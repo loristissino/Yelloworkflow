@@ -72,12 +72,14 @@ AppAsset::register($this);
 <footer class="footer">
     <div class="container">
         <p class="pull-left">
-            &copy; 2020 Loris Tissino - 
+            <?= Html::a('&copy; 2020 Loris Tissino (GNU Affero GPL)', 'https://github.com/loristissino/Yelloworkflow') ?>
+            <?php /*- 
             <?php foreach(\Yii::$app->controller->authorization_ids as $id=>$value): ?>
                 <?= Html::a($value, ['authorizations/view', 'id'=>$id]) ?> 
             <?php endforeach ?>
             -
             <?= Yii::$app->session->get('organizational_unit_id', Yii::t('app', 'No current Organizational Unit')) ?>
+            */ ?>
         </p>
         <p class="pull-right"><?= Yii::powered() ?></p>
     </div>
