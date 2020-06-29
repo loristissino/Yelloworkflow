@@ -1,0 +1,132 @@
+<?php
+
+$params = require __DIR__ . '/params.php';
+$db = require __DIR__ . '/db.php';
+
+$config = [
+    'id' => 'ywf',
+	'language' => 'it',
+
+    'basePath' => dirname(__DIR__),
+    'bootstrap' => ['log'],
+    'aliases' => [
+        '@bower' => '@vendor/bower-asset',
+        '@npm'   => '@vendor/npm-asset',
+    ],
+    'components' => [
+        'request' => [
+            // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
+            'cookieValidationKey' => 'Okmns7kfhskjkdhjsj6jh2wCMPsob-wq',
+            
+            'parsers' => [
+                    'application/json' => 'yii\web\JsonParser',
+                ],
+            
+        ],
+        'cache' => [
+            'class' => 'yii\caching\FileCache',
+        ],
+        'user' => [
+			'class' => 'app\components\CUser',
+            'identityClass' => 'app\models\User',
+            'enableAutoLogin' => false,
+            'enableSession' => true,
+            'loginUrl' => null,
+        ],
+        'errorHandler' => [
+            'errorAction' => 'site/error',
+        ],
+        'mailer' => [
+            'class' => 'yii\swiftmailer\Mailer',
+            // send all mails to a file by default. You have to set
+            // 'useFileTransport' to false and configure a transport
+            // for the mailer to send real emails.
+            'useFileTransport' => true,
+        ],
+        'log' => [
+            'traceLevel' => YII_DEBUG ? 3 : 0,
+            'targets' => [
+                [
+                    'class' => 'yii\log\FileTarget',
+                    'levels' => ['error', 'warning'],
+                ],
+            ],
+        ],
+        'db' => $db,
+        
+        'urlManager' => [
+            'enablePrettyUrl' => true,
+            'showScriptName' => false,
+            
+            'rules' => [
+                [
+					'class' => 'yii\rest\UrlRule', 'controller' => 'api/v1/books',
+                ],
+        ],
+        'formatter' => [
+			'currencyCode' => '€',
+			'thousandSeparator' => '.',
+			'decimalSeparator' => ',',
+		],
+		
+		'i18n' => [
+			'translations' => [
+				'app*' => [
+					'class' => 'yii\i18n\PhpMessageSource',
+					'basePath' => '@app/messages',
+					'sourceLanguage' => 'en-US',
+					'fileMap' => [
+						'app' => 'app.php',
+						'app/error' => 'error.php',
+					],
+				],
+			],
+		],
+        
+    ],
+    
+    'params' => $params,
+    
+	'modules' => [
+	/*
+		'v1' => [
+			'class' => 'app\modules\v1\Module',
+		],
+		'v2' => [
+			'class' => 'app\modules\v2\Module'
+		],
+		*/
+		'attachments' => [
+			'class' => nemmo\attachments\Module::className(),
+			'tempPath' => '@app/mydir_for_uploads/temp',
+			'storePath' => '@app/my_dir_for_uploads/store',
+			'rules' => [ // Rules according to the FileValidator
+				'maxFiles' => 10, // Allow to upload maximum 3 files, default to 3
+				'mimeTypes' => ['image/png', 'image/jpeg', 'application/pdf'],
+				'maxSize' => 1024 * 1024 // 1 MB
+			],
+			'tableName' => '{{attachments}}' // Optional, default to 'attach_file'
+		]
+	],
+
+];
+
+if (YII_ENV_DEV) {
+    // configuration adjustments for 'dev' environment
+    
+    $config['bootstrap'][] = 'debug';
+    $config['modules']['debug'] = [
+        'class' => 'yii\debug\Module',
+        // uncomment the following to add your IP if you are not connecting from localhost.
+        'allowedIPs' => ['127.0.0.1', '::1', '10.0.2.2'],
+    ];
+	
+    $config['bootstrap'][] = 'gii';
+    $config['modules']['gii'] = [
+        'class' => 'yii\gii\Module',
+        // uncomment the following to add your IP if you are not connecting from localhost.
+        'allowedIPs' => ['*', '127.0.0.1', '::1', '10.0.2.2'],
+    ];
+}
+
+return $config;
