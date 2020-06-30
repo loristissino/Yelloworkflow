@@ -43,11 +43,6 @@ class SiteController extends CController
         return $this->render('index');
     }
 
-    public function actionSbattezzati()
-    {
-        return $this->render('sbattezzati');
-    }
-
     /**
      * Login action.
      *
