@@ -20,6 +20,7 @@ AppAsset::register($this);
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php $this->registerCsrfMetaTags() ?>
+    <?= Html::csrfMetaTags() ?>
     <title><?= Html::encode($this->title) ?></title>
     <?php $this->head() ?>
 </head>
@@ -35,16 +36,18 @@ AppAsset::register($this);
             'class' => 'navbar-inverse navbar-fixed-top',
         ],
     ]);
-    echo Nav::widget([
-        'options' => ['class' => 'navbar-nav navbar-right'],
-        'items' => [
-            ['label' => Yii::t('app', 'Home'), 'url' => ['/site/index']],
-            ['label' => Yii::t('app', 'Dashboard'), 'url' => ['/site/dashboard']],
-            ['label' => Yii::t('app', 'About'), 'url' => ['/site/about']],
-            ['label' => Yii::t('app', 'Contact'), 'url' => ['/site/contact']],
-            Yii::$app->user->isGuest ? (
-                ['label' => 'Login', 'url' => ['/site/login']]
-            ) : (
+    
+    $items = [
+        ['label' => Yii::t('app', 'Home'), 'url' => ['/site/index']],
+    ];
+    
+    if (Yii::$app->user->isGuest) {
+        $items[] = ['label' => 'Login', 'url' => ['/site/login']];
+    }
+    else {
+        $items[] = ['label' => Yii::t('app', 'Dashboard'), 'url' => ['/site/dashboard']];
+        $items[] = ['label' => Yii::t('app', 'Handbook'), 'url' => ['/site/handbook'], 'linkOptions' => ['target'=>'_blank', 'title'=>Yii::t('app', 'Opens in a new tab')]];
+        $items[] = (
                 '<li>'
                 . Html::beginForm(['/site/logout'], 'post')
                 . Html::submitButton(
@@ -53,9 +56,12 @@ AppAsset::register($this);
                 )
                 . Html::endForm()
                 . '</li>'
-            )
-
-        ],
+                );
+        }
+    
+    echo Nav::widget([
+        'options' => ['class' => 'navbar-nav navbar-right'],
+        'items' => $items,
     ]);
     NavBar::end();
     ?>

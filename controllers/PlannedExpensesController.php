@@ -17,42 +17,11 @@ class PlannedExpensesController extends CController
     public $project = null;
 
     /**
-     * Lists all PlannedExpense models.
-     * @return mixed
-     */
-    /*
-    public function actionIndex()
-    {
-        $searchModel = new PlannedExpenseSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
-        return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
-    }
-    */
-    /**
-     * Displays a single PlannedExpense model.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    /*
-    public function actionView($id)
-    {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-        ]);
-    }
-    **/
-
-    /**
      * Creates a new PlannedExpense model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate($project)
+    public function actionCreate($project) // Creates a new planned expense linked to a project
     {
         $this->findProject($project);
         $model = new PlannedExpense();
@@ -74,7 +43,7 @@ class PlannedExpensesController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionUpdate($id)
+    public function actionUpdate($id) // Updates a planned expense, given its id
     {
         $model = $this->findModel($id);
         
@@ -94,7 +63,7 @@ class PlannedExpensesController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionDelete($id)
+    public function actionDelete($id) // Deletes a planned expense, given its id
     {
         $this->findModel($id)->delete();
 

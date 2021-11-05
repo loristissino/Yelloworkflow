@@ -25,7 +25,7 @@ class AuthorizationsController extends CController
      * Lists all Authorization models.
      * @return mixed
      */
-    public function actionIndex($active=null, $pagesize=100)
+    public function actionIndex($active=null, $pagesize=100) // Lists all authorizations
     {
         $active = $active == 'false' ? false : true;
         
@@ -51,7 +51,7 @@ class AuthorizationsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a specific authorization, given its id
     {
         return $this->render('view', [
             'model' => $this->findModel($id),
@@ -63,7 +63,7 @@ class AuthorizationsController extends CController
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate()
+    public function actionCreate() // Creates a new authorization
     {
         $model = new Authorization();
 
@@ -83,7 +83,7 @@ class AuthorizationsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionUpdate($id)
+    public function actionUpdate($id) // Updates a specific authorization, given its id
     {
         $model = $this->findModel($id);
 
@@ -96,7 +96,7 @@ class AuthorizationsController extends CController
         ]);
     }
 
-    public function actionRevoke($id)
+    public function actionRevoke($id) // Revokes a specific authorization, given its id
     {
         $model = $this->findModel($id);
         $model->revoke()->save();
@@ -111,9 +111,22 @@ class AuthorizationsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionDelete($id)
+    public function actionDelete($id) // Deletes a specific authorization, given its id [works only if the authorization has never been used]
     {
-        $this->findModel($id)->delete();
+        try {
+            $authorization = $this->findModel($id);
+            if ($authorization->canBeDeleted()) {
+                $authorization->delete();
+                Yii::$app->session->setFlash('success', Yii::t('app', 'Authorization deleted.'));
+            }
+            else {
+                Yii::$app->session->setFlash('error', Yii::t('app', 'This authorization has been used and cannot be deleted.'));
+                return $this->redirect(['authorizations/view', 'id'=>$id]);
+            }
+        }
+        catch (Exception $e) {
+            Yii::$app->session->setFlash('error', Yii::t('app', 'The authorization could not be deleted.'));
+        }
 
         return $this->redirect(['index']);
     }

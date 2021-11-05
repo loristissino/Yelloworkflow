@@ -35,7 +35,14 @@ $this->title = Yii::t('app', 'Transactions');
 
             // 'id',
             // 'periodical_report_id',
-            'date',
+            [
+                'label'=>Yii::t('app', 'Date'),
+                'attribute'=>'date',
+                'format'=>'raw',
+                'value'=>function($data) {
+                    return Yii::$app->formatter->asDate($data['date']);
+                },
+            ],
             'description',
             [
                 'attribute' => 'project_id',
@@ -93,7 +100,7 @@ $this->title = Yii::t('app', 'Transactions');
 
     <?php if ($periodicalReport->isDraft): ?>
         <?= Yii::t('app', 'With the selected transactions: ') ?>
-        <?= Html::a("Confirm", ['transaction-submissions/process', 'action'=>'confirm', 'redirect'=>\yii\helpers\Url::toRoute(['periodical-report-submissions/view', 'id'=>$periodicalReport->id])], ['data-method'=>'post'])?>
+        <?= Html::a(Yii::t('app', 'Confirm'), ['transaction-submissions/process', 'action'=>'confirm', 'redirect'=>\yii\helpers\Url::toRoute(['periodical-report-submissions/view', 'id'=>$periodicalReport->id])], ['data-method'=>'post'])?>
     <?php endif ?>
     
     <?= Html::endForm();?>

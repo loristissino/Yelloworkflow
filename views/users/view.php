@@ -23,7 +23,6 @@ $this->params['breadcrumbs'][] = $this->title;
                 'method' => 'post',
             ],
         ]) ?>
-        <?= Html::a(Yii::t('app', 'Reset Password'), ['password', 'id' => $model->id], ['class' => 'btn btn-danger']) ?>
     </p>
 
     <?= DetailView::widget([
@@ -45,15 +44,16 @@ $this->params['breadcrumbs'][] = $this->title;
     
     <hr />
 
-    <h2><?= Yii::t('app', 'Organizational Units') ?></h2>
+    <h2><?= Yii::t('app', 'Project-Enabled Organizational Units') ?></h2>
     <?= \app\components\UnorderedListWidget::widget([
         'introMessage'=>'{count,plural,=0{No organizational unit found} =1{One organizational unit found} other{# organizational units found}}:',
         'items'=>$model->getOrganizationalUnits()->all(),
         'textProperty'=>'name',
         'link'=>'organizational-units/view',
+        'noItemsMessage'=>Yii::t('app', 'This user does not belong to any project-enabled organizational unit.'),
     ]) ?>
 
-    <h2>Authorizations</h2>
+    <h2><?= Yii::t('app', 'Authorizations') ?></h2>
 
     <h3><?= Yii::t('app', 'Roles') ?></h3>
     <?= \app\components\UnorderedListWidget::widget([
@@ -63,7 +63,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'link'=>'roles/view',
     ]) ?>
     
-    <h3>Specific Authorizations</h3>
+    <h3><?= Yii::t('app', 'Specific Authorizations') ?></h3>
 
     <?= \app\components\UnorderedListWidget::widget([
         'introMessage'=>'{count,plural,=0{No authorization found} =1{One authorization found} other{# authorizations found}}:',

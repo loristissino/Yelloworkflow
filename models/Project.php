@@ -163,7 +163,7 @@ class Project extends \yii\db\ActiveRecord
             ->field($model, $options['field_name'])
             ->dropDownList(
                 self::getProjectsAsArray($options['order_by'], $options['organizational_unit_id']),
-                ["prompt"=>$options['prompt']]
+                ["prompt"=>Yii::t('app', $options['prompt'])]
             );
     }
 
@@ -193,6 +193,11 @@ class Project extends \yii\db\ActiveRecord
     {
         return Posting::find()->joinWith('transaction')->joinWith('account')->withRealAccount(false)->relatedToProject($this)->count() == 0;
     }    
+
+    public function getAllowsComments()
+    {
+        return $this->getLoggedActivities()->count() > 1;
+    }
 
     private function _runWorkflowChecks($event)
     {
@@ -244,6 +249,10 @@ class Project extends \yii\db\ActiveRecord
         $log .= $event->getTransition()->getId() . "\n";
         
         $options = [];
+
+        if ($event->getEndStatus()->getId() == 'ProjectWorkflow/draft') {
+             Yii::$app->session->setFlash('info', Yii::t('app', 'The project must be submitted again after the edits.'));
+        }
         
         if ($event->getEndStatus()->getId() == 'ProjectWorkflow/submitted') {
             $options['related'] = ['plannedExpenses'];
@@ -251,7 +260,7 @@ class Project extends \yii\db\ActiveRecord
 
         if ($event->getEndStatus()->getId() == 'ProjectWorkflow/approved') {
             $ou = $this->getOrganizationalUnit()->one();
-            if (!($ou->possible_actions & \app\models\OrganizationalUnit::HAS_OWN_CASH)) {
+            if (! $ou->hasOwnCash) {
                 $periodicalReport = new \app\models\PeriodicalReport();
                 $periodicalReport->begin_date = date('Y-m-d');
                 $periodicalReport->end_date = date('Y-m-d', time()+365*24*60*60);

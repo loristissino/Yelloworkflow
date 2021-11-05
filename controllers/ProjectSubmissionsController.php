@@ -6,6 +6,7 @@ use Yii;
 use app\models\Project;
 use app\models\ProjectSearch;
 use yii\web\NotFoundHttpException;
+use yii\web\ForbiddenHttpException;
 use app\components\CController;
 use app\models\OrganizationalUnit;
 use app\controllers\SubmissionsTrait;
@@ -17,8 +18,11 @@ class ProjectSubmissionsController extends CController
 {
     use SubmissionsTrait;
     
+    //public $enableCsrfValidation = false;
+    
     public function init()
     {
+        parent::init();
         $this->viewPath = '@app/views';
         // This is needed because we want to use the same views for both
         // submitter and manager, that use different controllers
@@ -38,7 +42,7 @@ class ProjectSubmissionsController extends CController
      * Lists all Project models.
      * @return mixed
      */
-    public function actionIndex($active=null, $pagesize=100)
+    public function actionIndex($active=null, $pagesize=100) // Lists all the projects of the organizational unit of the logged-in user
     {
         $active = $active == 'false' ? false : true;
         
@@ -63,10 +67,11 @@ class ProjectSubmissionsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a specific project, given its id
     {
+        $project = $this->findModel($id, false);
         return $this->render('projects/view', [
-            'model' => $this->findModel($id, false),
+            'model' => $project,
         ]);
     }
 
@@ -75,7 +80,7 @@ class ProjectSubmissionsController extends CController
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate()
+    public function actionCreate() // Creates a new project for the organizational unit of the logged-in user
     {
         $model = new Project();
 
@@ -95,7 +100,7 @@ class ProjectSubmissionsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionUpdate($id)
+    public function actionUpdate($id) // Updates a project, given its id
     {
         $model = $this->findModel($id);
 
@@ -108,15 +113,15 @@ class ProjectSubmissionsController extends CController
         ]);
     }
 
-    public function actionClone($id)
+    public function actionClone($id) // Clones a project
     {
-        // we need to redeclare this because of the false parametero to use
+        // we need to redeclare this because of the false parameter to use
         $model = $this->findModel($id, false)->cloneModel();
         Yii::$app->session->setFlash('success', Yii::t('app', "Project cloned."));
         return $this->redirect(['index']);//, 'id' => $model->id]);
     }
 
-    public function actionChange($id, $status)
+    public function actionChange($id, $status) // Changes the workflow status of a project
     {
         $model = $this->findModel($id, false);
         return $this->_changeWorkflowStatus($model, $status);
@@ -129,7 +134,7 @@ class ProjectSubmissionsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionDelete($id)
+    public function actionDelete($id) // Deletes a project
     {
         $model = $this->findModel($id);
         $model->sendToStatus('deleted');
@@ -154,6 +159,10 @@ class ProjectSubmissionsController extends CController
         }
         
         if ($model) {
+            if (!$model->getOrganizationalUnit()->one()->hasLoggedInUser()) {
+                throw new ForbiddenHttpException(Yii::t('app', 'Not authorized.'));
+            }
+
             return $model;
         }
         throw new NotFoundHttpException(Yii::t('app', 'The requested page does not exist.'));

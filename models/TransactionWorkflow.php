@@ -20,6 +20,7 @@ class TransactionWorkflow implements IWorkflowDefinitionProvider
                         'verb' => 'Reset to draft',
                         'permission' => "$submissionsController/reset-to-draft",
                         'limit' => 'ou',
+                        'icon' => '📝',
                     ],
                 ],
                 'confirmed' => [
@@ -42,7 +43,7 @@ class TransactionWorkflow implements IWorkflowDefinitionProvider
                     ],
                 ],
                 'submitted' => [
-                    'transition' => ['recorded'],
+                    'transition' => ['recorded', 'draft'],
                     'metadata'   => [
                         'color' => 'green',
                         'condition' => 'isDirectlySubmittable',
@@ -73,6 +74,7 @@ class TransactionWorkflow implements IWorkflowDefinitionProvider
                         'color' => '#0000FF',
                         'verb' => 'Set Recorded',
                         'permission' => "$managementController/set-registered",
+                        'icon' => '📒',
                     ],
                 ],
                 'reimbursed' => [

@@ -6,6 +6,7 @@ use Yii;
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
+use yii\data\SqlDataProvider;
 use yii\behaviors\TimestampBehavior;
 use \raoul2000\workflow\base\SimpleWorkflowBehavior;
 
@@ -163,12 +164,32 @@ class Transaction extends \yii\db\ActiveRecord
 
     public function getPostingsView()
     {
+        return $this->_getPostingsView();
+    }
+    
+    public function getPostingsPrintingView()
+    {
+        $items = [];
+        foreach ($this->getPostings()->all() as $posting) {
+            $items[] = sprintf('<li>%s<br />&nbsp;&nbsp;(%s)</li>', $posting->account->name, $posting->getAmountDescribed($posting->account));
+        }
+        return '<ul>' . join ('', $items) . '</ul>';
+    }
+    
+    public function getPostingsViewWithoutLink()
+    {
+        return $this->_getPostingsView(['class'=>'disabled_link']);
+    }
+    
+    private function _getPostingsView($options=[])
+    {
         $html = '';
         foreach ($this->getPostings()->all() as $posting) {
-            $html .= sprintf('%s (%s)<br />', $posting->account->getViewLink(), $posting->getAmountDescribed($posting->account));
+            $html .= sprintf('%s (%s)<br />', $posting->account->getViewLink($options), $posting->getAmountDescribed($posting->account));
         }
         return $html;
     }
+    
     
     public function getOrganizationalUnit()
     {
@@ -205,6 +226,12 @@ class Transaction extends \yii\db\ActiveRecord
         $template = $this->transactionTemplate;
         
         switch ($event->getEndStatus()->getId()) {
+            case 'TransactionWorkflow/draft':
+                if (!in_array($this->periodicalReport->getWorkflowStatus()->getId(), ['PeriodicalReportWorkflow/draft', 'PeriodicalReportWorkflow/questioned'])) {
+                    $this->workflowError = 'The transaction cannot be reset to draft when the periodical report has the current status.';
+                    $event->invalidate($this->workflowError);
+                }
+                break;
             case 'TransactionWorkflow/confirmed':
                 if ($template->needs_attachment && sizeof($this->files)==0) {
                     $this->workflowError = 'This transaction must be documented with an attachment.';
@@ -310,6 +337,35 @@ class Transaction extends \yii\db\ActiveRecord
         ];
         return ArrayHelper::getValue($messages, $action, '');
     }
+
+    public static function getBalance(PeriodicalReport $periodicalReport, $end=true, $statuses=[])
+    {
+        if (sizeof($statuses)==0) {
+            $statuses = [
+                'TransactionWorkflow/recorded',
+            ];
+        }
+        
+        $set = "'" . join("', '", $statuses) . "'";
+        
+        $provider = new SqlDataProvider([
+            'sql' => "SELECT `accounts`.`id`, SUM(`amount`) AS `amount_sum`, `accounts`.`name` AS `account_name` FROM `transactions` JOIN `periodical_reports` ON `periodical_report_id` = `periodical_reports`.id JOIN `postings` ON `transactions`.`id` = `postings`.`transaction_id` JOIN `accounts` ON `postings`.`account_id` = `accounts`.`id` WHERE `periodical_reports`.`organizational_unit_id`= :organizational_unit_id AND `transactions`.`wf_status` IN ($set) AND `transactions`.`date` " . ($end ? '<=' : '<') . " :date AND `accounts`.`represents` = 'R' GROUP BY `accounts`.`id`, `accounts`.`name` HAVING `amount_sum` <> 0 ORDER BY `accounts`.`rank`",
+            'params' => [
+                ':date'=> $end ? $periodicalReport->end_date : $periodicalReport->begin_date,
+                ':organizational_unit_id' => $periodicalReport->organizational_unit_id,
+            ],
+            'pagination' => [
+                'pageSize' => 1000,
+            ],
+        ]);
+        
+        return $provider;
+    }
+
+/*
+
+*/
+
 
     /**
      * {@inheritdoc}

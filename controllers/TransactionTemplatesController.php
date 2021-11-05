@@ -17,7 +17,7 @@ class TransactionTemplatesController extends CController
      * Lists all TransactionTemplate models.
      * @return mixed
      */
-    public function actionIndex($active=null, $pagesize=100)
+    public function actionIndex($active=null, $pagesize=100) // Lists all transaction templates
     {
         $active = $active == 'false' ? false : true;
         
@@ -42,7 +42,7 @@ class TransactionTemplatesController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a transaction template
     {
         return $this->render('view', [
             'model' => $this->findModel($id),
@@ -54,7 +54,7 @@ class TransactionTemplatesController extends CController
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate()
+    public function actionCreate() // Creates a transaction template
     {
         $model = new TransactionTemplate();
 
@@ -74,7 +74,7 @@ class TransactionTemplatesController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionUpdate($id)
+    public function actionUpdate($id) // Updates a transaction template
     {
         $model = $this->findModel($id);
 
@@ -94,12 +94,19 @@ class TransactionTemplatesController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionDelete($id)
+    public function actionDelete($id) // Deletes a transaction template
     {
         $this->findModel($id)->delete();
 
         return $this->redirect(['index']);
     }
+    
+    public function actionClone($id) // Clones a transaction template
+    {
+        $model = $this->findModel($id, false)->cloneModel();
+        Yii::$app->session->setFlash('success', Yii::t('app', "Transaction template cloned."));
+        return $this->redirect(['index']);//, 'id' => $model->id]);
+    }    
 
     /**
      * Finds the TransactionTemplate model based on its primary key value.

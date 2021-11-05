@@ -8,7 +8,7 @@ trait SubmissionsTrait
 {
     protected $organizationalUnit;
 
-    public function setOrganizationalUnit($action)
+    public function setOrganizationalUnit()
     {
         $_organizationalUnitId = \Yii::$app->session->get('organizational_unit_id', null);
 

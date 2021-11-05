@@ -17,6 +17,7 @@ class PeriodicalReportsManagementController extends CController
 
     public function init()
     {
+        parent::init();
         $this->viewPath = '@app/views/periodical-reports';
         // This is needed because we want to use the same views for both
         // submitter and manager, that use different controllers
@@ -26,7 +27,7 @@ class PeriodicalReportsManagementController extends CController
      * Lists all PeriodicalReport models.
      * @return mixed
      */
-    public function actionIndex($active=null, $pagesize=100)
+    public function actionIndex($active=null, $pagesize=100) // Lists all periodical reports 
     {        
         $active = $active == 'false' ? false : true;
         
@@ -51,7 +52,7 @@ class PeriodicalReportsManagementController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a periodical report, given its id
     {
         return $this->render('/periodical-reports/view', [
             'model' => $this->findModel($id),
@@ -63,7 +64,7 @@ class PeriodicalReportsManagementController extends CController
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate()
+    public function actionCreate() // Creates a single periodical report
     {
         $model = new PeriodicalReport();
 
@@ -76,7 +77,7 @@ class PeriodicalReportsManagementController extends CController
         ]);
     }
 
-    public function actionCreateReports()
+    public function actionCreateReports() // Creates a set of periodical reports
     {
         $model = new PeriodicalReportsBulkCreationForm();
 
@@ -108,7 +109,7 @@ class PeriodicalReportsManagementController extends CController
         return []; 
     }       
 
-    public function actionChange($id, $status)
+    public function actionChange($id, $status) // Changes the workflow status of a periodical report
     {
         $model = $this->findModel($id, false);
         return $this->_changeWorkflowStatus($model, $status);

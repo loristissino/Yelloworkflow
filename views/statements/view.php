@@ -45,27 +45,27 @@ $this->params['breadcrumbs'][] = $this->title;
         'footerRowOptions' => ['class'=>'grid_footer'],
         'columns' => [
             [
-                'attribute' => 'Date',
+                'attribute' => Yii::t('app', 'Date'),
                 'format' => 'raw',
                 'value' => 'transaction.date',
             ],
             [
-                'attribute' => 'Description',
+                'attribute' => Yii::t('app', 'Description'),
                 'format' => 'raw',
                 'value' => 'transaction.viewLink',
             ],
             [
-                'attribute' => 'Periodical Report',
+                'attribute' => Yii::t('app', 'Report'),
                 'format' => 'raw',
                 'value' => 'transaction.periodicalReport.viewLink',
             ],
             [
-                'attribute' => 'Notes',
+                'attribute' => Yii::t('app', 'Notes'),
                 'format' => 'raw',
                 'value' => 'transaction.notes',
             ],
             [
-                'attribute' => 'Status',
+                'attribute' => Yii::t('app', 'Status'),
                 'format' => 'raw',
                 'value' => 'transaction.workflowLabel',
             ],

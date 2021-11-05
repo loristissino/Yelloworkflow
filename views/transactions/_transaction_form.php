@@ -56,7 +56,7 @@ $this->registerJs(
 
     <?= $form->field($model, 'description')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'amount')->textInput(['maxlength' => true, 'size' => 10]) ?>
+    <?= $form->field($model, 'amount')->textInput(['maxlength' => true, 'size' => 10])->hint(Yii::t('app', 'Use a dot for the decimal part of the amount.')) ?>
 
     <?= $form->field($model, 'notes')->textInput(['maxlength' => true]) ?>
 

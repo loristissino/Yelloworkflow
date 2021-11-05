@@ -29,7 +29,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'subject',
             //'plaintext_body:ntext',
             [
-                'label' => 'Content',
+                'label' => Yii::t('app', 'Content'),
                 'format' => 'raw',
                 'value' => 'html_body',
             ],
@@ -44,8 +44,8 @@ $this->params['breadcrumbs'][] = $this->title;
     ]); ?>
     
     <?= Yii::t('app', 'With the selected notifications: ') ?>
-    <?= Html::a("Mark seen", ['process', 'action'=>'markSeen'], ['data-method'=>'post'])?> - 
-    <?= Html::a("Mark unseen", ['process', 'action'=>'markUnseen'], ['data-method'=>'post'])?>
+    <?= Html::a(Yii::t('app', 'Mark seen'), ['process', 'action'=>'markSeen'], ['data-method'=>'post'])?> - 
+    <?= Html::a(Yii::t('app', 'Mark unseen'), ['process', 'action'=>'markUnseen'], ['data-method'=>'post'])?>
     
     <?= Html::endForm();?> 
 

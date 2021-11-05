@@ -19,17 +19,17 @@ $this->title = Yii::t('app', 'Postings');
             ['class' => 'yii\grid\SerialColumn'],
             'id',
             [
-                'attribute' => 'Account',
+                'attribute' => Yii::t('app', 'Account'),
                 'format' => 'raw',
                 'value' => 'account.viewLink',
             ],
             [
-                'attribute' => 'Description',
+                'attribute' => Yii::t('app', 'Description'),
                 'format' => 'raw',
                 'value' => 'description',
             ],
             [
-                'attribute' => 'Amount',
+                'attribute' => Yii::t('app', 'Amount'),
                 'format' => 'raw',
                 'value' => 'formattedAmount',
                 'contentOptions' => ['class' => 'amount'],

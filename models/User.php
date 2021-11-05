@@ -205,7 +205,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 
     public function validateAuthKey($authKey)
     {
-        return null; //$this->authKey === $authKey;
+        return $this->authKey === $authKey;
     }
     
     /**
@@ -254,7 +254,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             $auth->revoke()->save();
         }
         
-        file_put_contents('log_inside_user_fixPermissions_' . $this->username . '.txt', $log);
+        //file_put_contents('log_inside_user_fixPermissions_' . $this->username . '.txt', $log);
         
         return true;
     }

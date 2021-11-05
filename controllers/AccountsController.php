@@ -18,7 +18,7 @@ class AccountsController extends CController
      * Lists all Account models.
      * @return mixed
      */
-    public function actionIndex($active=null, $pagesize=100)
+    public function actionIndex($active=null, $pagesize=100) // Lists accounts available for transactions
     {
         $active = $active == 'false' ? false : true;
         
@@ -43,7 +43,7 @@ class AccountsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a specific account, given its id
     {
         return $this->render('view', [
             'model' => $this->findModel($id),
@@ -55,7 +55,7 @@ class AccountsController extends CController
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate()
+    public function actionCreate() // Creates a new account for transactions
     {
         $model = new Account();
 
@@ -75,7 +75,7 @@ class AccountsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionUpdate($id)
+    public function actionUpdate($id) // Updates a specific account, given its id
     {
         $model = $this->findModel($id);
 
@@ -95,7 +95,7 @@ class AccountsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionDelete($id)
+    public function actionDelete($id) // Deletes a specific account, given its id
     {
         $this->findModel($id)->delete();
 

@@ -16,7 +16,6 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= $this->render('/common_partials/_need_to_change_organizational_unit') ?>
 
-    <?php Pjax::begin(); ?>
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <?= GridView::widget([
@@ -28,8 +27,22 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format'=>'raw',
                 'value'=>'viewLink',
             ],
-            'begin_date',
-            'end_date',
+            [
+                'label'=>Yii::t('app', 'Begin Date'),
+                'attribute'=>'begin_date',
+                'format'=>'raw',
+                'value'=>function($data) {
+                    return Yii::$app->formatter->asDate($data['begin_date']);
+                },
+            ],
+            [
+                'label'=>Yii::t('app', 'End Date'),
+                'attribute'=>'end_date',
+                'format'=>'raw',
+                'value'=>function($data) {
+                    return Yii::$app->formatter->asDate($data['end_date']);
+                },
+            ],
             [
                 'attribute'=>'wf_status',
                 'format'=>'raw',
@@ -50,7 +63,5 @@ $this->params['breadcrumbs'][] = $this->title;
             ]
         ],
     ]); ?>
-
-    <?php Pjax::end(); ?>
 
 </div>

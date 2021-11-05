@@ -21,6 +21,7 @@ class OfficeTransactionsController extends CController
     
     public function init()
     {
+        parent::init();
         $this->viewPath = '@app/views';
         // This is needed because we want to use the same views for both
         // submitter and manager, that use different controllers
@@ -37,7 +38,7 @@ class OfficeTransactionsController extends CController
 		return true; // or false to not run the action
 	}
 
-    public function actionIndex($active=null)
+    public function actionIndex($active=null) // Lists all transactions prepared by office workers
     {
         $active = $active == 'false' ? false : true;
         $searchModel = new TransactionSearch();
@@ -58,7 +59,7 @@ class OfficeTransactionsController extends CController
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate($organizational_unit_id=null, $project_id=null, $amount=null)
+    public function actionCreate($organizational_unit_id=null, $project_id=null, $amount=null) // Creates a transaction [office workers]
     {
         $model = new TransactionForm();
         $model->begin_date = date('Y-m-d', mktime(0, 0, 0, 1, 1, date('Y')));
@@ -97,14 +98,14 @@ class OfficeTransactionsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a transaction, given its id
     {
         return $this->render('/transactions/view', [
             'model' => $this->findModel($id),
         ]);
     }
 
-    public function actionDelete($id)
+    public function actionDelete($id) // Deletes a transaction, given its id [only if prepared by office workers]
     {
         $model = $this->findModel($id);
         
@@ -120,7 +121,7 @@ class OfficeTransactionsController extends CController
     }
 
 
-    public function actionChange($id, $status)
+    public function actionChange($id, $status) // Changes the workflow status of a transaction
     {
         $model = $this->findModel($id, false);
         return $this->_changeWorkflowStatus($model, $status);

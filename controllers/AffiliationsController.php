@@ -17,7 +17,7 @@ class AffiliationsController extends CController
      * Lists all Affiliation models.
      * @return mixed
      */
-    public function actionIndex($pagesize=100)
+    public function actionIndex($pagesize=100) // Lists affiliations
     {
         $searchModel = new AffiliationSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
@@ -39,7 +39,7 @@ class AffiliationsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a specific affiliation, given its id
     {
         return $this->render('view', [
             'model' => $this->findModel($id),
@@ -51,7 +51,7 @@ class AffiliationsController extends CController
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate()
+    public function actionCreate() // Creates a new affiliations
     {
         $model = new Affiliation();
 
@@ -71,7 +71,7 @@ class AffiliationsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionUpdate($id)
+    public function actionUpdate($id) // Updates an affiliation, given its id
     {
         $model = $this->findModel($id);
 
@@ -91,7 +91,7 @@ class AffiliationsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionDelete($id)
+    public function actionDelete($id) // Deletes an affiliation
     {
         $this->findModel($id)->delete();
 

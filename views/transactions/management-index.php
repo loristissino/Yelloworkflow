@@ -12,6 +12,7 @@ $this->title = Yii::t('app', 'Transactions');
 //$this->params['breadcrumbs'][] = $this->title;
 
 ?>
+
 <div class="transaction-index">
 
     <h2><?= Html::encode($this->title) ?></h2>
@@ -29,7 +30,14 @@ $this->title = Yii::t('app', 'Transactions');
 
             // 'id',
             // 'periodical_report_id',
-            'date',
+            [
+                'label'=>Yii::t('app', 'Date'),
+                'attribute'=>'date',
+                'format'=>'raw',
+                'value'=>function($data) {
+                    return Yii::$app->formatter->asDate($data['date']);
+                },
+            ],
             'description',
             /*
             [
@@ -41,7 +49,7 @@ $this->title = Yii::t('app', 'Transactions');
             [
                 'label' => 'Postings',
                 'format' => 'raw',
-                'value' => 'postingsView'
+                'value' => 'postingsViewWithoutLink',
             ],
             [
                 'attribute'=>'wf_status',

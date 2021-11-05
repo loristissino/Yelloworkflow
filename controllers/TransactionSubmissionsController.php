@@ -23,28 +23,11 @@ class TransactionSubmissionsController extends CController
     
     public function init()
     {
+        parent::init();
         $this->viewPath = '@app/views';
         // This is needed because we want to use the same views for both
         // submitter and manager, that use different controllers
     }
-
-    /**
-     * Lists all Transaction models.
-     * @return mixed
-     */
-     /*
-    public function actionIndex($active=null, $pagesize=100)
-    {
-        $active = $active == 'false' ? false : true;
-        
-        $searchModel = new TransactionSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
-        return $this->render('/transactions/index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
-    }*/
 
     public function beforeAction($action)
 	{
@@ -63,7 +46,7 @@ class TransactionSubmissionsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a transaction
     {
         return $this->render('/transactions/view', [
             'model' => $this->findModel($id),
@@ -75,7 +58,7 @@ class TransactionSubmissionsController extends CController
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate($periodical_report)
+    public function actionCreate($periodical_report) // Creates a transaction for a specific periodical report
     {
         $this->periodicalReport = $this->findPeriodicalReport($periodical_report, true);
 
@@ -102,7 +85,7 @@ class TransactionSubmissionsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionUpdate($id)
+    public function actionUpdate($id) // Updates a transaction
     {
         $transaction = $this->findModel($id);
         
@@ -141,7 +124,7 @@ class TransactionSubmissionsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionDelete($id)
+    public function actionDelete($id) // Deletes a transaction
     {
         $model = $this->findModel($id);
         $periodical_report_id = $model->periodical_report_id;
@@ -156,7 +139,7 @@ class TransactionSubmissionsController extends CController
         return $this->redirect(['periodical-report-submissions/view', 'id'=>$periodical_report_id]);
     }
     
-    public function actionInvert($id)
+    public function actionInvert($id) // Inverts the postings of a transaction
     {
         $model = $this->findModel($id);
         $periodical_report_id = $model->periodical_report_id;
@@ -176,7 +159,7 @@ class TransactionSubmissionsController extends CController
         return $this->redirect(['transaction-submissions/view', 'id'=>$id]);
     }
 
-    public function actionChange($id, $status)
+    public function actionChange($id, $status) // Changes the workflow status of a transaction
     {
         $model = $this->findModel($id, false);
         return $this->_changeWorkflowStatus($model, $status);

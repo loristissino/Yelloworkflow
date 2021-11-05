@@ -18,7 +18,7 @@ class TransactionTemplatePostingsController extends CController
      * Lists all TransactionTemplatePosting models.
      * @return mixed
      */
-    public function actionIndex()
+    public function actionIndex() // Lists the transaction templates' postings
     {
         $searchModel = new TransactionTemplatePostingSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
@@ -35,7 +35,7 @@ class TransactionTemplatePostingsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a transaction template's posting
     {
         return $this->render('view', [
             'model' => $this->findModel($id),
@@ -47,7 +47,7 @@ class TransactionTemplatePostingsController extends CController
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate($template)
+    public function actionCreate($template) // Creates a transaction template's posting
     {
         $template = $this->findTransactionTemplate($template);
 
@@ -72,7 +72,7 @@ class TransactionTemplatePostingsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionUpdate($id)
+    public function actionUpdate($id) // Updates a transanction template's posting
     {
         $model = $this->findModel($id);
 
@@ -92,7 +92,7 @@ class TransactionTemplatePostingsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionDelete($id)
+    public function actionDelete($id) // Deletes a transaction template's posting
     {
         $model = $this->findModel($id);
         

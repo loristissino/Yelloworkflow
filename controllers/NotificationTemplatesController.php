@@ -20,7 +20,7 @@ class NotificationTemplatesController extends CController
      * Lists all NotificationTemplate models.
      * @return mixed
      */
-    public function actionIndex()
+    public function actionIndex() // Lists all notification templates
     {
         $searchModel = new NotificationTemplateSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
@@ -37,7 +37,7 @@ class NotificationTemplatesController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a specific notification template, given its id
     {
         return $this->render('view', [
             'model' => $this->findModel($id),
@@ -49,7 +49,7 @@ class NotificationTemplatesController extends CController
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate()
+    public function actionCreate() // Creates a notification template
     {
         $model = new NotificationTemplate();
 
@@ -69,7 +69,7 @@ class NotificationTemplatesController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionUpdate($id)
+    public function actionUpdate($id) // Updates a notification template
     {
         $model = $this->findModel($id);
 
@@ -89,7 +89,7 @@ class NotificationTemplatesController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionDelete($id)
+    public function actionDelete($id) // Deletes a notification template
     {
         $this->findModel($id)->delete();
 

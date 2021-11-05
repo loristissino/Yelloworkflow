@@ -37,7 +37,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'headerOptions' => ['class' => 'amount'],
                 'footerOptions' => ['class' => 'amount'],
             ],
-
+            'last_designation_date:date',
             //'url:url',
             //'created_at',
             //'updated_at',

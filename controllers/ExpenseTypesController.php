@@ -17,7 +17,7 @@ class ExpenseTypesController extends CController
      * Lists all ExpenseType models.
      * @return mixed
      */
-    public function actionIndex()
+    public function actionIndex() // List all expense types
     {
         $searchModel = new ExpenseTypeSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
@@ -34,7 +34,7 @@ class ExpenseTypesController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a specific expense type, given its id
     {
         return $this->render('view', [
             'model' => $this->findModel($id),
@@ -46,7 +46,7 @@ class ExpenseTypesController extends CController
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate()
+    public function actionCreate() // Creates an expense type
     {
         $model = new ExpenseType();
 
@@ -66,7 +66,7 @@ class ExpenseTypesController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionUpdate($id)
+    public function actionUpdate($id) // Updates an expense type
     {
         $model = $this->findModel($id);
 
@@ -86,7 +86,7 @@ class ExpenseTypesController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionDelete($id)
+    public function actionDelete($id) // Deletes an expense type
     {
         $this->findModel($id)->delete();
 

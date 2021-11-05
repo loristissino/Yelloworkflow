@@ -2,6 +2,7 @@
 
 use yii\helpers\Html;
 use yii\widgets\DetailView;
+use yii\helpers\Markdown;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\OrganizationalUnit */
@@ -38,6 +39,12 @@ $this->params['breadcrumbs'][] = $this->title;
             'name',
             'email:email',
             'url:url',
+            'last_designation_date:date',
+            [
+                'attribute' => 'notes',
+                'format' => 'raw',
+                'value' => Markdown::process($model->notes, 'extra'),
+            ],
             [
                 'label' => Yii::t('app', 'Ceiling Amount'),
                 'format' => 'raw',

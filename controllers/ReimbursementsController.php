@@ -17,7 +17,7 @@ class ReimbursementsController extends CController
      * Lists all Reimbursement models.
      * @return mixed
      */
-    public function actionIndex()
+    public function actionIndex() // Lists all reimbursements
     {
         $searchModel = new ReimbursementSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
@@ -34,7 +34,7 @@ class ReimbursementsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a reimbursement
     {
         return $this->render('view', [
             'model' => $this->findModel($id),
@@ -46,7 +46,7 @@ class ReimbursementsController extends CController
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate()
+    public function actionCreate() // Creates a reimbursement
     {
         $model = new Reimbursement();
 
@@ -66,7 +66,7 @@ class ReimbursementsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionUpdate($id)
+    public function actionUpdate($id) // Updates a reimbursement
     {
         $model = $this->findModel($id);
 
@@ -86,7 +86,7 @@ class ReimbursementsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionDelete($id)
+    public function actionDelete($id) // Deletes a reimbursement
     {
         $this->findModel($id)->delete();
 

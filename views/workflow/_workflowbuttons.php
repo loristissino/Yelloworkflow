@@ -1,6 +1,17 @@
 <?php
 
 use yii\helpers\Html;
+use yii\helpers\Url;
+
+$this->registerJs(
+    "
+    $('.loader').on('click', function(event){
+        $('#loader').show();
+    });
+    ",
+    \yii\web\View::POS_END,
+    'loader_manager'
+);
 
 ?>
 <?php foreach($transitions as $transition):
@@ -21,8 +32,9 @@ if ($confirm && ( ! $confirmCondition or ($confirmCondition and $model->$confirm
 
 ?>
 <?= Html::a(Yii::t('app', $es->getMetadata('verb')), ['change', 'id' => $model->id, 'status'=>$es->getId()], [
-    'class' => 'btn btn-info',
+    'class' => 'btn btn-info loader',
     'style' => 'background-color: ' . $es->getMetadata('color') . '; border-color: ' . $es->getMetadata('color'),
     'data' => $data,
 ]) ?> 
 <?php endforeach ?>
+<img style="display: none" id="loader" src="<?= Url::to('@web/images/submit_loader.gif') ?>" />

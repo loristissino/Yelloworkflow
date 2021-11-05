@@ -19,6 +19,16 @@ class AffiliationQuery extends \yii\db\ActiveQuery
         return $this->andWhere(['=', 'user_id', $user->id]);
     }
 
+    public function withRole(Role $role)
+    {
+        return $this->andWhere(['=', 'role_id', $role->id]);
+    }
+
+    public function withOrganizationalUnit(OrganizationalUnit $ou)
+    {
+        return $this->andWhere(['=', 'organizational_unit_id', $ou->id]);
+    }
+
     /**
      * {@inheritdoc}
      * @return Affiliation[]|array

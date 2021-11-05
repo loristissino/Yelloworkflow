@@ -75,9 +75,19 @@ class Notification extends \yii\db\ActiveRecord
         ];
     }
 
+    /**
+     * Gets query for [[User]].
+     *
+     * @return \yii\db\ActiveQuery|UserQuery
+     */
+    public function getUser()
+    {
+        return $this->hasOne(User::className(), ['id' => 'user_id']);
+    }
+    
     public function markSeen()
     {
-        $this->touch('seen_at');
+        $this->touch('seen_at'); // this saves the model after updating the field
         return $this;
     }
 
@@ -97,6 +107,30 @@ class Notification extends \yii\db\ActiveRecord
         return ArrayHelper::getValue($messages, $action, '');
     }
 
+    public function sendEmail($save=true) {
+        $user = $this->getUser()->one();
+
+        if (!$this->email) {
+            $this->email = $user->email;
+        }
+        
+        if (Yii::$app->mailer->compose()
+            ->setTo($this->email, $user->getFullName())
+            ->setSubject($this->subject)
+            ->setHtmlBody($this->html_body)
+            ->send()
+        ) {
+            if ($save) {
+                $this->sent_at = time();
+                $this->save();
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
     /**
      * {@inheritdoc}
      * @return NotificationQuery the active query used by this AR class.
@@ -105,4 +139,5 @@ class Notification extends \yii\db\ActiveRecord
     {
         return new NotificationQuery(get_called_class());
     }
+        
 }

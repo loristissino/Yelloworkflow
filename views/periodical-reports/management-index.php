@@ -19,7 +19,6 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= Html::a(Yii::t('app', 'Create Periodical Reports'), ['create-reports'], ['class' => 'btn btn-success']) ?>
     </p>
 
-    <?php Pjax::begin(); ?>
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <?= GridView::widget([
@@ -34,8 +33,22 @@ $this->params['breadcrumbs'][] = $this->title;
                 'value'=>'organizationalUnit.viewLink',
             ],
             'name',
-            'begin_date',
-            'end_date',
+            [
+                'label'=>Yii::t('app', 'Begin Date'),
+                'attribute'=>'begin_date',
+                'format'=>'raw',
+                'value'=>function($data) {
+                    return Yii::$app->formatter->asDate($data['begin_date']);
+                },
+            ],
+            [
+                'label'=>Yii::t('app', 'End Date'),
+                'attribute'=>'end_date',
+                'format'=>'raw',
+                'value'=>function($data) {
+                    return Yii::$app->formatter->asDate($data['end_date']);
+                },
+            ],
             [
                 'attribute'=>'wf_status',
                 'format'=>'raw',
@@ -60,6 +73,5 @@ $this->params['breadcrumbs'][] = $this->title;
         ],
     ]); ?>
 
-    <?php Pjax::end(); ?>
 
 </div>

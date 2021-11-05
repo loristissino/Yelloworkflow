@@ -116,7 +116,7 @@ class CController extends Controller
         return $this->redirect($redirect);
     }
     
-    protected function _changeWorkflowStatus($model, $status)
+    protected function _changeWorkflowStatus($model, $status, $redirect=null)
     {
         if ($model->sendToStatus($status)) {
             $model->save();
@@ -125,7 +125,10 @@ class CController extends Controller
         else {
             Yii::$app->session->setFlash('error', Yii::t('app', $model->workflowError));
         }
-        return $this->redirect(['view', 'id' => $model->id]);
+        if (!$redirect) {
+            $redirect = ['view', 'id' => $model->id];
+        }
+        return $this->redirect($redirect);
     }
 
 

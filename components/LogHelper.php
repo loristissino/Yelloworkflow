@@ -68,31 +68,53 @@ class LogHelper {
         $markdownBody = $template->md_body;
 
         foreach($notification_fields as $field) {
-            $subject = str_replace('{' . $field . '}', $model->$field, $subject);
-            $plaintextBody = str_replace('{' . $field . '}', $model->$field, $plaintextBody);
-            $markdownBody = str_replace('{' . $field . '}', $model->$field, $markdownBody);
+            if (isset($model->$field)) {
+                $subject = str_replace('{' . $field . '}', $model->$field, $subject);
+                $plaintextBody = str_replace('{' . $field . '}', $model->$field, $plaintextBody);
+                $markdownBody = str_replace('{' . $field . '}', $model->$field, $markdownBody);
+            }
         }
         
         foreach($notifications as $permission=>$type){
             $authorizations = Authorization::find()->withActivePermission($permission)->all();
-            
+                        
             if ($type == 'ou') {
                 $ou = $model->getOrganizationalUnit()->one();
                 $authorizations = array_filter($authorizations, function($auth) use ($ou) {
                     return $ou->getUsers()->withId($auth->user_id)->one() !== null;
                 });
             }
-            
+
             $url = Url::toRoute([$permission, 'id' => $model->id], true);
             
             foreach ($authorizations as $authorization) {
                 $notification = new Notification();
+                
+                $notification->email = $authorization->user->email; // the default is to send the email to the user
+                
+                if ($authorization->role && $authorization->role->email) {
+                    // but if the role has an associated email we use that one
+                    if ($authorization->role->email == 'ou') {
+                        // unless the role has 'ou' as email, which means that we use the email of the organizational unit
+                        $notification->email = $ou->email;
+                    }
+                    else {
+                        $notification->email = $authorization->role->email;
+                    }
+                }
+                
+                if (!$notification->email) {
+                    continue;
+                }
+                
                 $notification->user_id = $authorization->user_id;
                 $notification->subject = $subject;
                 $notification->plaintext_body = str_replace('{url}', $url, $plaintextBody);
                 $notification->html_body = Markdown::process(str_replace('{url}', $url, $markdownBody));
                 $notification->save();
+                // $notification->sendEmail(); // we'll send the email later, see notifications/send 
             }
         }
+
     }
 }

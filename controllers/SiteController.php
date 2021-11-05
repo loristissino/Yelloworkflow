@@ -6,6 +6,8 @@ use Yii;
 use yii\filters\AccessControl;
 use yii\web\Response;
 use app\models\LoginForm;
+use app\models\PwdResetForm;
+use app\models\PwdChangeForm;
 use app\models\ContactForm;
 use app\components\CController;
 use app\models\Authorization;
@@ -38,7 +40,7 @@ class SiteController extends CController
      *
      * @return string
      */
-    public function actionIndex()
+    public function actionIndex() // Displays the home page
     {
         return $this->render('index');
     }
@@ -48,10 +50,14 @@ class SiteController extends CController
      *
      * @return Response|string
      */
-    public function actionLogin()
+    public function actionLogin() // Displays the login page
     {
         if (!Yii::$app->user->isGuest) {
             return $this->goHome();
+        }
+
+        if (isset(Yii::$app->params['loginInfo'])) {
+            Yii::$app->session->setFlash('info', Yii::$app->params['loginInfo']);
         }
 
         $model = new LoginForm();
@@ -72,6 +78,50 @@ class SiteController extends CController
         ]);
     }
 
+    public function actionPwdreset() // Displays the "Forgot your password?" page
+    {
+        if (!Yii::$app->user->isGuest) {
+            return $this->goHome();
+        }
+
+        if (isset(Yii::$app->params['loginEmailInfo'])) {
+            Yii::$app->session->setFlash('info', Yii::$app->params['loginEmailInfo']);
+        }
+
+        $model = new PwdResetForm();
+        if ($model->load(Yii::$app->request->post())) {
+            $model->sendEmail(false);
+        }
+
+        $model->username = '';
+        return $this->render('pwdreset', [
+            'model' => $model,
+        ]);
+    }
+
+    public function actionPwd($u, $c) // Allows the password to be reset
+    {
+        if (strpos($u, '_')<1 or (md5($u . Yii::$app->params['notificationsKey'])!=$c)) {
+            throw new ForbiddenHttpException('Wrong link.');
+        }
+        
+        list($id, $timestamp) = explode('_', $u);
+
+        if (time() > $timestamp) {
+            throw new ForbiddenHttpException('Link expired.');
+        }
+                
+        $model = new PwdChangeForm();
+        if ($model->load(Yii::$app->request->post()) && $model->resetPassword($id)) {
+            return $this->redirect(['site/login']);
+        }
+
+        $model->password = '';
+        return $this->render('pwdchange', [
+            'model' => $model,
+        ]);
+    }
+
     private function _back()
     {
         $return_url = Yii::$app->request->get('return');
@@ -86,7 +136,7 @@ class SiteController extends CController
      *
      * @return Response
      */
-    public function actionLogout()
+    public function actionLogout() // Makes the user log out
     {
         Yii::$app->user->logout();
 
@@ -94,11 +144,22 @@ class SiteController extends CController
     }
 
     /**
+     * Handbook action.
+     *
+     * @return Response
+     */
+    public function actionHandbook() // Makes the user log out
+    {
+        return $this->redirect(Yii::$app->params['handbookUrl']);
+    }
+
+
+    /**
      * Displays contact page.
      *
      * @return Response|string
      */
-    public function actionContact()
+    public function actionContact() // Displays the "Contact us" page
     {
         $model = new ContactForm();
         if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
@@ -116,18 +177,20 @@ class SiteController extends CController
      *
      * @return string
      */
-    public function actionAbout()
+    public function actionAbout() // Displays the "About" page
     {
         return $this->render('about');
     }
 
-    public function actionProfile()
+    public function actionProfile() // Displays the "Profile" page
     {
+        Yii::$app->session->setFlash('info', null);
         return $this->render('profile');
     }
     
-    public function actionDashboard()
+    public function actionDashboard() // Displays the "Dashboard" page
     {
+        Yii::$app->session->setFlash('info', null);
         $controllers = array_merge([
             'site/profile' => [
                 'icon' => 'user',
@@ -142,10 +205,8 @@ class SiteController extends CController
             ]
         );
     }
-    
-    
 
-    public function actionChooseOrganizationalUnit($id=null, $return='')
+    public function actionChooseOrganizationalUnit($id=null, $return='') // Allows the user to switch to a different organizational unit they belong to
     {
         if (Yii::$app->user->isGuest) {
             return;
@@ -183,7 +244,7 @@ class SiteController extends CController
         );
     }
 
-    public function actionApikey($action, $id=null)
+    public function actionApikey($action, $id=null) // Creates or deletes an API key [for REST services]
     {
         switch ($action) {
             case 'create':

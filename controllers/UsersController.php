@@ -18,7 +18,7 @@ class UsersController extends CController
      * Lists all User models.
      * @return mixed
      */
-    public function actionIndex($active=null)
+    public function actionIndex($active=null) // Lists all users
     {
         $active = $active == 'false' ? false : true;
         $searchModel = new UserSearch();
@@ -36,7 +36,7 @@ class UsersController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a specific user
     {
         return $this->render('view', [
             'model' => $this->findModel($id),
@@ -48,9 +48,12 @@ class UsersController extends CController
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate()
+    public function actionCreate() // Creates a new user
     {
         $model = new User();
+        
+        $model->auth_key = rand(100000000, 999999999); // it must be set by the user anyway...
+        $model->status = 1;
 
         if ($model->load(Yii::$app->request->post()) && $model->setRandomValuesForUnusedFields() && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
@@ -68,7 +71,7 @@ class UsersController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionUpdate($id)
+    public function actionUpdate($id) // Updates a specific user
     {
         $model = $this->findModel($id);
 
@@ -81,7 +84,8 @@ class UsersController extends CController
         ]);
     }
 
-    public function actionPassword($id)
+    /*
+    public function aactionPassword($id)
     {
         $model = $this->findModel($id);
 
@@ -95,8 +99,9 @@ class UsersController extends CController
             'model' => $model,
         ]);
     }
+    */
 
-    public function actionFixPermissions($id)
+    public function actionFixPermissions($id) // Fixes the authorizations for a user
     {
         $model = $this->findModel($id);
         
@@ -106,21 +111,6 @@ class UsersController extends CController
 
         return $this->redirect(['view', 'id' => $model->id]);
         
-    }
-
-
-    /**
-     * Deletes an existing User model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionDelete($id)
-    {
-        $this->findModel($id)->delete();
-
-        return $this->redirect(['index']);
     }
 
     public function beforeAction($action)

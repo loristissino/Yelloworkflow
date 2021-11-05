@@ -4,7 +4,9 @@ namespace app\controllers;
 
 use Yii;
 use app\models\PeriodicalReport;
+use app\models\PeriodicalReportForm;
 use app\models\PeriodicalReportSearch;
+use app\models\Transaction;
 use yii\web\NotFoundHttpException;
 use app\components\CController;
 use app\models\PeriodicalReportsBulkCreationForm;
@@ -18,6 +20,7 @@ class PeriodicalReportSubmissionsController extends CController
 
     public function init()
     {
+        parent::init();
         $this->viewPath = '@app/views';
         // This is needed because we want to use the same views for both
         // submitter and manager, that use different controllers
@@ -26,12 +29,13 @@ class PeriodicalReportSubmissionsController extends CController
     public function beforeAction($action)
     {
         $this->modelClass = PeriodicalReport::className();
-
+        
         $this->setOrganizationalUnit($action);
         if (!$this->organizationalUnit) {
             $this->redirect(['/site/choose-organizational-unit', 'return'=>\Yii::$app->request->url]);
             return;
         }
+        
         return parent::beforeAction($action);
     }
 
@@ -39,7 +43,7 @@ class PeriodicalReportSubmissionsController extends CController
      * Lists all PeriodicalReport models.
      * @return mixed
      */
-    public function actionIndex($active=null, $pagesize=100)
+    public function actionIndex($active=null, $pagesize=100) // List all periodical reports for the organizational unit of the logged-in user
     {        
         $active = $active == 'false' ? false : true;
         
@@ -68,7 +72,7 @@ class PeriodicalReportSubmissionsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a periodical report, given its id
     {
         return $this->render('/periodical-reports/view', [
             'model' => $this->findModel($id),
@@ -76,67 +80,52 @@ class PeriodicalReportSubmissionsController extends CController
     }
 
     /**
-     * Creates a new PeriodicalReport model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
-     */
-    public function actionCreate()
-    {
-        $model = new PeriodicalReport();
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        }
-
-        return $this->render('create', [
-            'model' => $model,
-        ]);
-    }
-
-    /**
-     * Updates an existing PeriodicalReport model.
-     * If update is successful, the browser will be redirected to the 'view' page.
+     * Shows a printable version of a single PeriodicalReport model.
      * @param integer $id
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    /*
-    public function actionUpdate($id)
+    public function actionPrint($id) // Shows a printable version of a periodical report, given its id
+    {
+        $this->layout = 'print';
+        $periodicalReport = $this->findModel($id);
+        return $this->render('/periodical-reports/print', [
+            'model' => $periodicalReport,
+            'beginningBalanceDataProvider' => Transaction::getBalance($periodicalReport, false, ['TransactionWorkflow/recorded', 'TransactionWorkflow/submitted']),
+            'endBalanceDataProvider' => Transaction::getBalance($periodicalReport, true, ['TransactionWorkflow/recorded', 'TransactionWorkflow/submitted']),
+        ]);
+    }
+
+    public function actionUpdate($id) // Updates a periodical report (only for attachments)
     {
         $model = $this->findModel($id);
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        
+        if (! $model->isOwnedByCurrentUser)
+        {
+            throw new ForbiddenHttpException(Yii::t('app', 'Not authorized.'));
         }
-
-        return $this->render('update', [
-            'model' => $model,
-        ]);
+        
+        echo "<pre>";
+        
+        print_r($_FILES);
+        
+        print_r(Yii::$app->request->post());
+        
+        if ($model->load(Yii::$app->request->post()) && $model->saveAttachments()) {
+            return $this->redirect(['/periodical-report-submissions/view', 'id'=>$id]);
+        }
+        else {
+            die("Very uncommon");
+        }
+        
+        throw new NotFoundHttpException(Yii::t('app', 'This action can\'t be called directly.'));
     }
-    */
-    /**
-     * Deletes an existing PeriodicalReport model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-     /*
-    public function actionDelete($id)
-    {
-        $this->findModel($id)->delete();
 
-        return $this->redirect(['index']);
-    }
-    * */
-
-    
     public function notSavingBulkActions() {
         return []; 
     }       
 
-
-    public function actionChange($id, $status)
+    public function actionChange($id, $status) // Changes the workflow status of a periodical report
     {
         $model = $this->findModel($id, false);
         return $this->_changeWorkflowStatus($model, $status);

@@ -24,19 +24,16 @@ $this->params['breadcrumbs'][] = $this->title;
 $plannedExpenseSearchModel = new PlannedExpenseSearch();
 $plannedExpenseDataProvider = $plannedExpenseSearchModel->search(Yii::$app->request->queryParams, PlannedExpense::find()->ofProject($model));
 
-if ($currentStatus!='ProjectWorkflow/draft') {
-    
+if ($model->allowsComments) {
     $commentSearchModel = new ProjectCommentSearch();
     $commentDataProvider = $commentSearchModel->search(Yii::$app->request->queryParams, ProjectComment::find()->forProject($model));
     $commentDataProvider->sort->defaultOrder = ['created_at' => SORT_DESC];
-    
-    $postingSearchModel = new PostingSearch();
-    $postingDataProvider = $postingSearchModel->search(Yii::$app->request->queryParams, Posting::find()->joinWith('transaction')->withRealAccount(false)->relatedToProject($model));
-    //$postingDataProvider->sort->defaultOrder = ['date' => SORT_ASC];
-
 }
 
-
+if (!$model->isDraft) {
+    $postingSearchModel = new PostingSearch();
+    $postingDataProvider = $postingSearchModel->search(Yii::$app->request->queryParams, Posting::find()->joinWith('transaction')->withRealAccount(false)->relatedToProject($model));
+}
 
 ?>
 <div class="project-view">
@@ -86,13 +83,16 @@ if ($currentStatus!='ProjectWorkflow/draft') {
 ]);
 ?>
 
-<?php if($currentStatus!='ProjectWorkflow/draft'): ?>
+<?php if($model->allowsComments): ?>
     <?= $this->render('/project-comments/index', [
         'searchModel' => $commentSearchModel,
         'dataProvider' => $commentDataProvider,
         'project' => $model,
     ]);
     ?>
+<?php endif ?>
+
+<?php if(!$model->isDraft): ?>
     <?= $this->render('/statements/project-related-expenses', [
         'searchModel' => $postingSearchModel,
         'postingDataProvider' => $postingDataProvider,

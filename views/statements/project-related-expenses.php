@@ -46,7 +46,9 @@ $balance = $debitsTotalAmount - $creditsTotalAmount;
             [
                 'label' => Yii::t('app', 'Date'),
                 'format' => 'raw',
-                'value' => 'transaction.date',
+                'value'=>function($data) {
+                    return Yii::$app->formatter->asDate($data['transaction']['date']);
+                },
             ],
             [
                 'label' => Yii::t('app', 'Description'),

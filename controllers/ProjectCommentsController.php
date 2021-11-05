@@ -14,43 +14,13 @@ use app\components\CController;
 class ProjectCommentsController extends CController
 {
     public $project = null;
-    /**
-     * Lists all ProjectComment models.
-     * @return mixed
-     */
-     /*
-    public function actionIndex()
-    {
-        $searchModel = new ProjectCommentSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
-        return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
-    }
-    */
-    /**
-     * Displays a single ProjectComment model.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    /*
-    public function actionView($id)
-    {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-        ]);
-    }
-    */
-
+    
     /**
      * Creates a new ProjectComment model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate($project, $controller, $reply_to=null)
+    public function actionCreate($project, $controller, $reply_to=null) // Creates a comment linked to a project
     {
         $this->project = $this->findProject($project);
         $model = new ProjectComment();
@@ -71,8 +41,6 @@ class ProjectCommentsController extends CController
         ]);
     }
 
-
-
     /**
      * Updates an existing ProjectComment model.
      * If update is successful, the browser will be redirected to the 'view' page.
@@ -80,7 +48,7 @@ class ProjectCommentsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionUpdate($id, $controller)
+    public function actionUpdate($id, $controller) // Updates a comment linked to a project, given its id
     {
         $model = $this->findModel($id);
 
@@ -102,7 +70,7 @@ class ProjectCommentsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionDelete($id, $controller)
+    public function actionDelete($id, $controller) // Deletes a comment linked to a project, given its id
     {
         $this->findModel($id)->delete();
 
@@ -134,7 +102,11 @@ class ProjectCommentsController extends CController
     
     protected function findProject($id)
     {
-        if (($this->project = \app\models\Project::find()->withId($id)->draft(false)->one()) !== null) {
+        if (
+            (($this->project = \app\models\Project::find()->withId($id)->one()) !== null)
+            and
+            $this->project->allowsComments
+            ) {
             return $this->project;
         }
         throw new NotFoundHttpException(Yii::t('app', 'The requested page does not exist.'));

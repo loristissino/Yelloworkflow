@@ -17,7 +17,7 @@ class RolesController extends CController
      * Lists all Role models.
      * @return mixed
      */
-    public function actionIndex($active=null, $pagesize=100)
+    public function actionIndex($active=null, $pagesize=100) // Lists all roles
     {
         $active = $active == 'false' ? false : true;
         
@@ -42,7 +42,7 @@ class RolesController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a role
     {
         return $this->render('view', [
             'model' => $this->findModel($id),
@@ -54,7 +54,7 @@ class RolesController extends CController
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate()
+    public function actionCreate() // Creates a new role
     {
         $model = new Role();
 
@@ -74,7 +74,7 @@ class RolesController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionUpdate($id)
+    public function actionUpdate($id) // Updates a role
     {
         $model = $this->findModel($id);
 
@@ -86,22 +86,6 @@ class RolesController extends CController
             'model' => $model,
         ]);
     }
-
-    /**
-     * Deletes an existing Role model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-     /*
-    public function actionDelete($id)
-    {
-        $this->findModel($id)->delete();
-
-        return $this->redirect(['index']);
-    }
-    */
 
     /**
      * Finds the Role model based on its primary key value.

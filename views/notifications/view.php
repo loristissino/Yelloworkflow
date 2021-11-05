@@ -19,8 +19,13 @@ $this->params['breadcrumbs'][] = $this->title;
         'model' => $model,
         'attributes' => [
             //'subject',
-            'plaintext_body:ntext',
-            'html_body:raw',
+            //'plaintext_body:ntext',
+            //'html_body:raw',
+            [
+                'attribute' => 'html_body',
+                'format' => 'raw',
+                'label' => Yii::t('app','Content'),
+            ],
             'created_at:datetime',
             'seen_at:datetime',
             'sent_at:datetime',

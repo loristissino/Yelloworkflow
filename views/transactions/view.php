@@ -101,6 +101,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= $is_draft ? Html::a(Yii::t('app', 'Invert'), ['invert', 'id' => $model->id], [
             'class' => 'btn btn-info',
             'style' => 'background-color: yellow; border-color: #FFA500; color: #222222',
+            'title' => Yii::t('app', 'By clicking here, you can invert a transaction, reversing both debits and credits'),
             'data' => [
                 'confirm' => Yii::t('app', 'Are you sure you want to invert the transaction?'),
                 'method' => 'post',
@@ -171,7 +172,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'invoice',
             'wf_status',
             [
-                'label' => 'Last Updater',
+                'label' => Yii::t('app', 'Last Updater'),
                 'format' => 'raw',
                 'value' => $model->user,
             ],

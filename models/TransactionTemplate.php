@@ -106,7 +106,7 @@ class TransactionTemplate extends \yii\db\ActiveRecord
             $html .= Html::tag('span', $this->o_title, ['style'=>'font-weight: bold; font-style: italic']) . '<br />';
         }
         
-        foreach ($this->getTransactionTemplatePostings()->all() as $posting) {
+        foreach ($this->getTransactionTemplatePostings()->orderBy(['rank'=>'ASC'])->all() as $posting) {
             $html .= sprintf('%s %s<br />', 
                 $posting->iconDC,
                 $posting->account
@@ -171,6 +171,25 @@ class TransactionTemplate extends \yii\db\ActiveRecord
             ->field($model, $options['field_name'])
             ->dropDownList(\yii\helpers\ArrayHelper::map($options['array'], 'id', 'title'), $options)
             ;
+    }
+
+    public function cloneModel()
+    {
+        $model = new TransactionTemplate();
+        $model->attributes = $this->attributes;
+        $model->title .= ' - ' . Yii::t('app', '(Copy)');
+        $model->id = null;
+        $model->save();
+        
+        foreach($this->transactionTemplatePostings as $item) {
+            $newItem = new TransactionTemplatePosting();
+            $newItem->attributes = $item->attributes;
+            $newItem->id = null;
+            $newItem->transaction_template_id = $model->id;
+            $newItem->save();
+        }
+    
+        return $model;
     }
 
     /**

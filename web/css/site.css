@@ -156,3 +156,14 @@ a.desc:after {
 .advanced_view {
     display: none;
 }
+
+.disabled_link {
+    cursor: default;
+    pointer-events: none;        
+    text-decoration: none;
+    color: #800080;
+}
+
+.alert-info:before {
+    content: '💡 ';
+}

@@ -17,7 +17,7 @@ class OrganizationalUnitsController extends CController
      * Lists all OrganizationalUnit models.
      * @return mixed
      */
-    public function actionIndex($active=null)
+    public function actionIndex($active=null) // Lists all organizational units
     {
         $active = $active == 'false' ? false : true;
         $searchModel = new OrganizationalUnitSearch();
@@ -36,7 +36,7 @@ class OrganizationalUnitsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays an organizational unit, given its id
     {
         return $this->render('view', [
             'model' => $this->findModel($id),
@@ -48,7 +48,7 @@ class OrganizationalUnitsController extends CController
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate()
+    public function actionCreate() // Creates an organizational unit
     {
         $model = new OrganizationalUnit();
 
@@ -68,7 +68,7 @@ class OrganizationalUnitsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionUpdate($id)
+    public function actionUpdate($id) // Updates an organizational unit
     {
         $model = $this->findModel($id);
 
@@ -79,20 +79,6 @@ class OrganizationalUnitsController extends CController
         return $this->render('update', [
             'model' => $model,
         ]);
-    }
-
-    /**
-     * Deletes an existing OrganizationalUnit model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionDelete($id)
-    {
-        $this->findModel($id)->delete();
-
-        return $this->redirect(['index']);
     }
 
     /**

@@ -212,6 +212,7 @@ class Account extends \yii\db\ActiveRecord
             'D' => Yii::t('app', 'Donation'),
             'C' => Yii::t('app', 'Contribution'),
             'S' => Yii::t('app', 'Sale'),
+            'O' => Yii::t('app', 'Other'),
         ];
     }
     
@@ -223,6 +224,7 @@ class Account extends \yii\db\ActiveRecord
             'D' => ['icon'=>'glyphicon-log-in', 'color'=>'#008000'],
             'C' => ['icon'=>'glyphicon-log-in', 'color'=>'#0000FF'],
             'S' => ['icon'=>'glyphicon-tags', 'color'=>'#0000FF'],
+            'O' => ['icon'=>'glyphicon-question-sign', 'color'=>'#800080'],
         ];
     }
 

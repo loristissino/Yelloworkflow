@@ -34,14 +34,13 @@ class ProjectWorkflow implements IWorkflowDefinitionProvider
                         'permission' => "$submissionsController/submit",
                         'limit' => 'ou',
                         'notifications' => [
-                            "$managementController/view" => '*',
                             "$submissionsController/view" => 'ou',
                         ],
                         'notification_fields' => ['title', 'organizationalUnit'],
                     ],
                 ],
                 'approved' => [
-                    'transition' => ['suspended', 'ended'],
+                    'transition' => ['draft', 'suspended', 'ended'],
                     'metadata'   => [
                         'color' => 'green',
                         'verb' => 'Approve',

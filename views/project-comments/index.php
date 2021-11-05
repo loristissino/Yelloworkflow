@@ -5,6 +5,7 @@ use yii\grid\GridView;
 use yii\widgets\Pjax;
 
 $is_commentable = in_array($project->getWorkflowStatus()->getId(), [
+    'ProjectWorkflow/draft',
     'ProjectWorkflow/submitted',
     'ProjectWorkflow/questioned',
     'ProjectWorkflow/approved',

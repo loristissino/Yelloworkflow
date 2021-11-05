@@ -260,6 +260,11 @@ class Authorization extends \yii\db\ActiveRecord
     {
         return Html::a($this->identifier, ['authorizations/view', 'id'=>$this->id], $options);
     }
+    
+    public function canBeDeleted()
+    {
+        return $this->getActivities()->count() == 0;
+    }
 
     public function beforeDelete()
     {

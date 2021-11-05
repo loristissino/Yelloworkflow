@@ -79,6 +79,12 @@ class Role extends \yii\db\ActiveRecord
     {
         return $this->hasMany(User::className(), ['id' => 'user_id'])->viaTable('affiliations', ['role_id' => 'id']);
     }
+    
+    public function getOrganizationalUnitOfUser($user)
+    {
+        $a = Affiliation::find()->withUser($user)->withRole($this)->one();
+        return $a->organizationalUnit;
+    }
 
     /**
      * Gets query for [[Authorizations]].
@@ -176,12 +182,23 @@ class Role extends \yii\db\ActiveRecord
             $log .= "no change\n";
         }
 
-        file_put_contents(sprintf("mylog_%s.txt", date('His')), $log);
+        //file_put_contents(sprintf("mylog_%s.txt", date('His')), $log);
         
         LogHelper::log($insert ? 'created':'updated', $this);
 
         return parent::afterSave($insert, $changedAttributes);
 
+    }
+
+    public function getFormattedUsersEmailAddresses()
+    {
+        $users=$this->getUsers()->all();
+        $lines=[];
+        foreach($users as $user) {
+            $email = $this->email == 'ou' ? $this->getOrganizationalUnitOfUser($user)->email : $user->email;
+            $lines[] = sprintf('%s <%s>,', $user->getFullName(), $email);
+        }
+        return join($lines, "\n");
     }
 
     public function addPermissionsForUser(\app\models\User $user)
@@ -210,7 +227,7 @@ class Role extends \yii\db\ActiveRecord
         else {
             $log .= "no permissions to work on\n";
         }
-        file_put_contents("log_inside_role_addPermissions_for_" . $user->username . "_role_" . $this->name . ".txt", $log);
+        // file_put_contents("log_inside_role_addPermissions_for_" . $user->username . "_role_" . $this->name . ".txt", $log);
     }
 
     private function _permissionsFromField($field)

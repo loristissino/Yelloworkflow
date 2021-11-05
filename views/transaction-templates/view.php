@@ -36,6 +36,12 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
         ]) ?>
         <?php endif ?>
+        <?= Html::a(Yii::t('app', 'Clone'), ['clone', 'id' => $model->id], [
+            'class' => 'btn btn-info',
+            'data' => [
+                'method' => 'post',
+            ],
+        ]) ?>       
     </p>
 
     <?= DetailView::widget([

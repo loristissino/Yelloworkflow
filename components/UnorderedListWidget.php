@@ -5,7 +5,7 @@ use yii\helpers\Html;
 
 class UnorderedListWidget extends Widget {
     public $introMessage = "A list of items:";
-    public $noItemsMessage = "No items.";
+    public $noItemsMessage = '';
     public $items = [];
     public $textProperty = 'title';
     public $key = 'id';
@@ -13,6 +13,9 @@ class UnorderedListWidget extends Widget {
     
     public function init() {
         parent::init();
+        if (!$this->noItemsMessage) {
+            $this->noItemsMessage = \Yii::t('app', 'No items.');
+        }
     }
     public function run(){
         return $this->render('UnorderedList', [

@@ -26,8 +26,8 @@ use \raoul2000\workflow\base\SimpleWorkflowBehavior;
  */
 class PeriodicalReport extends \yii\db\ActiveRecord
 {
-
     use WorkflowTrait;
+        
     /**
      * {@inheritdoc}
      */
@@ -44,6 +44,9 @@ class PeriodicalReport extends \yii\db\ActiveRecord
                 'class'                    => SimpleWorkflowBehavior::className(),
                 'statusAttribute'          => 'wf_status',
             ],
+			'fileBehavior' => [
+				'class' => \nemmo\attachments\behaviors\FileBehavior::className()
+			],
         ];
     }
 
@@ -99,6 +102,16 @@ class PeriodicalReport extends \yii\db\ActiveRecord
         return $this->hasMany(Transaction::className(), ['periodical_report_id' => 'id']);
     }
 
+    /**
+     * Gets query for [[PeriodicalReportComments]].
+     *
+     * @return \yii\db\ActiveQuery|PeriodicalReportCommentQuery
+     */
+    public function getPeriodicalReportComments()
+    {
+        return $this->hasMany(PeriodicalReportComment::className(), ['periodical_report_id' => 'id']);
+    }
+
     public function getIsDraft()
     {
         return $this->getWorkflowStatus()->getId() == 'PeriodicalReportWorkflow/draft';
@@ -141,6 +154,7 @@ class PeriodicalReport extends \yii\db\ActiveRecord
     {
         return 
             $this->getTransactions()->withStatus('TransactionWorkflow/confirmed')->count() +
+            $this->getTransactions()->withStatus('TransactionWorkflow/submitted')->count() +
             $this->getTransactions()->withStatus('TransactionWorkflow/notified')->count() +
             $this->getTransactions()->withStatus('TransactionWorkflow/recorded')->count()
             ==
@@ -157,12 +171,27 @@ class PeriodicalReport extends \yii\db\ActiveRecord
             ;
     }
 
+    public function saveAttachments()
+    {
+        $this->saveUploads(null);
+        return true;
+    }
+
+    private function _hasRecentComments()
+    {
+        return sizeof($this->getPeriodicalReportComments()->after($this->LastLoggedActivityTime)->ofUser(Yii::$app->user->identity->id)->all()) > 0;
+    }
+
     private function _runWorkflowChecks($event)
     {
         switch ($event->getEndStatus()->getId()) {
             case 'PeriodicalReportWorkflow/submitted-empty':
                 if (!$this->isEmpty) {
                     $this->workflowError = 'An empty periodical report cannot have transactions.';
+                    $event->invalidate($this->workflowError);
+                }
+                if (sizeof($this->files)==0 and $this->organizationalUnit->hasOwnCash) {
+                    $this->workflowError = 'At least one attachment is needed (sales sheet of the month).';
                     $event->invalidate($this->workflowError);
                 }
                 break;
@@ -173,6 +202,16 @@ class PeriodicalReport extends \yii\db\ActiveRecord
                 }
                 elseif (!$this->hasAllTransactionsReady) {
                     $this->workflowError = 'Not all the transactions are confirmed.';
+                    $event->invalidate($this->workflowError);
+                }
+                if (sizeof($this->files)==0 and $this->organizationalUnit->hasOwnCash) {
+                    $this->workflowError = 'At least one attachment is needed (sales sheet of the month).';
+                    $event->invalidate($this->workflowError);
+                }
+                break;
+            case 'PeriodicalReportWorkflow/questioned':
+                if ( ! $this->_hasRecentComments() ) {
+                    $this->workflowError = 'To question a periodical report at least one comment is needed.';
                     $event->invalidate($this->workflowError);
                 }
                 break;
@@ -202,25 +241,10 @@ class PeriodicalReport extends \yii\db\ActiveRecord
             }
         }
         
-        file_put_contents('workflow2.txt', $log);
-        /*
-        $log = "Running workflow routines...\n";
-        
-        $log .= $event->getTransition()->getId() . "\n";
-        
         $options = [];
-        
-        if ($event->getEndStatus()->getId() == 'ProjectWorkflow/submitted') {
-            $options['related'] = ['plannedExpenses'];
-        }
-
-        if ($event->getEndStatus()->getId() == 'ProjectWorkflow/rejected') {
-            $options['related'] = ['projectComments'];
-        }
         
         \app\components\LogHelper::log($event->getEndStatus()->getId(), $this, $options);
         
-        */
     }
 
     public static function getBulkActionMessage($action)

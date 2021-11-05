@@ -21,6 +21,10 @@ use yii\widgets\ActiveForm;
     <?= $form->field($model, 'rank')->textInput() ?>
 
     <?= $form->field($model, 'status')->checkbox() ?>
+    
+    <?= $form->field($model, 'last_designation_date')->input('date', ['class'=>'date-field form-control']) ?>
+    
+    <?= $form->field($model, 'notes')->textarea(['rows' => 6])->hint(Yii::t('app', 'Markdown allowed.')) ?>
 
     <?= $form->field($model, 'ceiling_amount')->textInput(['maxlength' => true]) ?>
 

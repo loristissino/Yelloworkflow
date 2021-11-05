@@ -12,9 +12,21 @@ switch($view) {
         
         $columns = [
             ['class' => 'yii\grid\SerialColumn'],
-            'date',
-            'name',
             [
+                'label'=>Yii::t('app', 'Date'),
+                'attribute'=>'date',
+                'format'=>'raw',
+                'value'=>function($data) {
+                    return Yii::$app->formatter->asDate($data['date']);
+                },
+            ],
+            [
+                'label'=>Yii::t('app', 'Name'),
+                'attribute'=>'name',
+                'format'=>'raw',
+            ],
+            [
+                'label' => Yii::t('app', 'Amount'),
                 'attribute' => 'amount',
                 'format' => 'raw',
                 'value' => function ($row, $index) {

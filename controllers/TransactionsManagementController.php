@@ -21,6 +21,7 @@ class TransactionsManagementController extends CController
     
     public function init()
     {
+        parent::init();
         $this->viewPath = '@app/views';
         // This is needed because we want to use the same views for both
         // submitter and manager, that use different controllers
@@ -43,17 +44,21 @@ class TransactionsManagementController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a specific transaction
     {
         return $this->render('/transactions/view', [
             'model' => $this->findModel($id),
         ]);
     }
 
-    public function actionChange($id, $status)
+    public function actionChange($id, $status) // Changes the workflow status of a transaction
     {
         $model = $this->findModel($id, false);
-        return $this->_changeWorkflowStatus($model, $status);
+        $redirect = null;
+        if ($status == 'TransactionWorkflow/recorded') {
+            $redirect = ['periodical-reports-management/view', 'id'=>$model->periodicalReport->id];
+        }
+        return $this->_changeWorkflowStatus($model, $status, $redirect);
     }
 
     /**

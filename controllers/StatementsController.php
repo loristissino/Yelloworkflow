@@ -9,6 +9,7 @@ use app\models\Posting;
 use app\models\PostingSearch;
 use app\models\PeriodicalReport;
 use app\models\PeriodicalReportSearch;
+use app\models\Transaction;
 use yii\web\NotFoundHttpException;
 use app\components\CController;
 use yii\data\SqlDataProvider;
@@ -23,19 +24,23 @@ class StatementsController extends CController
     
     public function beforeAction($action)
     {
-        $this->setOrganizationalUnit($action);
-        if (!$this->organizationalUnit) {
-            $this->redirect(['/site/choose-organizational-unit', 'return'=>\Yii::$app->request->url]);
-            return;
+        if (($action->id == 'balance' and !Yii::$app->user->hasAuthorizationFor('transactions-management')) || $action->id != 'balance') {
+            $this->setOrganizationalUnit($action);
+            if (!$this->organizationalUnit) {
+                $this->redirect(['/site/choose-organizational-unit', 'return'=>\Yii::$app->request->url]);
+                return;
+            }
         }
+        
         return parent::beforeAction($action);
     }
+
 
     /**
      * Lists all Account models.
      * @return mixed
      */
-    public function actionIndex()
+    public function actionIndex() // Lists all available ledgers for the available accounts
     {
         $searchModel = new AccountSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
@@ -52,7 +57,7 @@ class StatementsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a ledger for a specific account of the organizational unit of the logged-in user
     {
         
         $postingSearchModel = new PostingSearch();
@@ -71,7 +76,7 @@ class StatementsController extends CController
         ]);
     }
 
-    public function actionLedger($account, $ou)
+    public function actionLedger($account, $ou) // Displays a ledger for a specific account of a specific organizational unit
     {
         $model = $this->findModel($account);
         
@@ -94,8 +99,18 @@ class StatementsController extends CController
         ]);
     }
     
+    public function actionBalance($id)
+    {
+        $periodicalReport = $this->findPeriodicalReport($id);
+        
+        return $this->render('balance', [
+            'dataProvider' => Transaction::getBalance($periodicalReport),
+            'periodicalReport' => $periodicalReport,
+            'ou' => $this->findOu($periodicalReport->organizational_unit_id),
+        ]);
+    }
     
-    public function actionSales($id, $view='lines')  // periodical Report id
+    public function actionSales($id, $view='lines')  // Displays the sales report linked to a periodical report
     {
         $periodicalReport = $this->findPeriodicalReport($id);
 
@@ -154,7 +169,7 @@ class StatementsController extends CController
     {
         $model = PeriodicalReport::findOne($id);
         
-        if ($model->organizationalUnit->id == $this->organizationalUnit->id or Yii::$app->user->hasAuthorizationFor('transactions-management')) {
+        if (Yii::$app->user->hasAuthorizationFor('transactions-management') or $model->organizationalUnit->id == $this->organizationalUnit->id) {
             return $model;
         }
         throw new NotFoundHttpException(Yii::t('app', 'The requested page does not exist.'));

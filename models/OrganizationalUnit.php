@@ -17,6 +17,8 @@ use yii\helpers\Url;
  * @property string $name
  * @property string|null $email
  * @property string|null $url
+ * @property string $last_designation
+ * @property string $notes
  * @property float $ceiling_amount
  * @property int $possible_actions
  * @property int $created_at
@@ -58,6 +60,8 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
         return [
             [['rank', 'status', 'name'], 'required'],
             [['rank', 'status', 'created_at', 'updated_at'], 'integer'],
+            [['last_designation_date'], 'safe'],
+            [['notes'], 'string'],
             [['name', 'email'], 'string', 'max' => 100],
             [['ceiling_amount'], 'number', 'min'=>0, 'max' => 100000],
             [['possible_actions'], 'number', 'min' => 0],
@@ -77,6 +81,8 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
             'name' => Yii::t('app', 'Name'),
             'email' => Yii::t('app', 'Email'),
             'url' => Yii::t('app', 'Url'),
+            'last_designation_date' => Yii::t('app', 'Last Designation Date'),
+            'notes' => Yii::t('app', 'Notes'),
             'ceiling_amount' => Yii::t('app', 'Ceiling Amount'),
             'possible_actions' => Yii::t('app', 'Possible Actions'), // reserved for future use
             'created_at' => Yii::t('app', 'Created At'),
@@ -121,7 +127,7 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
     
     public function hasLoggedInUser()
     {
-        return $this->hasUser(Yii::$app->user->identity);
+        return Yii::$app->user->isGuest? false : $this->hasUser(Yii::$app->user->identity);
     }
 
     /**
@@ -210,13 +216,18 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
 
     public function getSignificantLedgers()
     {
-        if (! ($this->possible_actions & self::HAS_OWN_CASH))
+        if (! $this->hasOwnCash)
             return '';
         $significantAccounts = Account::find()->shownInOUView()->all();
         foreach ($significantAccounts as $account) {
             $links[] = sprintf('%s: %s', $account->name, $this->getLinkToLedger($account));
         }
         return join($links, '<br />');
+    }
+    
+    public function getHasOwnCash()
+    {
+        return $this->possible_actions & self::HAS_OWN_CASH;
     }
 
     public function getLinkToLedger(Account $account)

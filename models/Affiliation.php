@@ -50,7 +50,10 @@ class Affiliation extends \yii\db\ActiveRecord
         return [
             'id' => Yii::t('app', 'ID'),
             'user_id' => Yii::t('app', 'User'),
+            'full_name' => Yii::t('app', 'Full Name'),
+            'organizational_unit' => Yii::t('app', 'Organizational Unit'),
             'organizational_unit_id' => Yii::t('app', 'Organizational Unit'),
+            'role' => Yii::t('app', 'Role'),
             'role_id' => Yii::t('app', 'Role'),
             'rank' => Yii::t('app', 'Rank'),
         ];

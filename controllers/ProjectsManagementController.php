@@ -15,6 +15,7 @@ class ProjectsManagementController extends CController
 {
     public function init()
     {
+        parent::init();
         $this->viewPath = '@app/views';
         // This is needed because we want to use the same views for both
         // submitter and manager, that use different controllers
@@ -24,7 +25,7 @@ class ProjectsManagementController extends CController
      * Lists all Project models.
      * @return mixed
      */
-    public function actionIndex($active=null, $pagesize=100)
+    public function actionIndex($active=null, $pagesize=100) // List all submitted projects
     {
         $active = $active == 'false' ? false : true;
         
@@ -52,14 +53,14 @@ class ProjectsManagementController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id) // Displays a submitted project, given its id
     {
         return $this->render('projects/view', [
             'model' => $this->findModel($id),
         ]);
     }
 
-    public function actionChange($id, $status)
+    public function actionChange($id, $status) // Changes the workflow status of a project
     {
         $model = $this->findModel($id);
         return $this->_changeWorkflowStatus($model, $status);

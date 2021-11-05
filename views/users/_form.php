@@ -21,7 +21,7 @@ use yii\widgets\ActiveForm;
     <?= $form->field($model, 'email')->textInput(['maxlength' => true]) ?>
 
     <?php if ($model->isNewRecord): ?>
-        <?= $form->field($model, 'auth_key')->textInput(['maxlength' => true]) ?>
+        <?= $form->field($model, 'auth_key')->hiddenInput()->label(false) ?>
     <?php endif ?>
 
     <?php //= $form->field($model, 'access_token')->textInput(['maxlength' => true]) ?>

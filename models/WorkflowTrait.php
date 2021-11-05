@@ -46,7 +46,12 @@ trait WorkflowTrait
     
     public function getWorkflowLabel()
     {
-        return Html::tag('span', $this->getWorkflowStatus()->getLabel(), ['style'=>'color: ' . $this->getWorkflowStatus()->getMetadata('color')]);
+        return Html::tag('span', Yii::t(Yii::t('app', get_class($this)), $this->getWorkflowStatus()->getLabel()), ['style'=>'color: ' . $this->getWorkflowStatus()->getMetadata('color')]);
+    }
+
+    public function getWorkflowIcon()
+    {
+        return $this->getWorkflowStatus()->getMetaData('icon', '❓');
     }
     
     public function getAuthorizedTransitions()
@@ -92,7 +97,7 @@ trait WorkflowTrait
     
     public function getLastLoggedActivity() 
     {
-        return Activity::find()->withModel($this::className())->withModelId($this->id)->orderBy(['happened_at'=>SORT_DESC])->one();
+        return $this->getLoggedActivities()->orderBy(['happened_at'=>SORT_DESC])->one();
     }
 
     public function getLastLoggedActivityTime() 
@@ -105,4 +110,10 @@ trait WorkflowTrait
     {
         return substr($this->getWorkflowStatus()->getId(), -6) == '/draft';
     }
+    
+    public function getLoggedActivities()
+    {
+        return Activity::find()->withModel($this::className())->withModelId($this->id);
+    }
+    
 }

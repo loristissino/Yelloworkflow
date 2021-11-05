@@ -24,6 +24,11 @@ class UserQuery extends \yii\db\ActiveQuery
         return $this->andWhere(['=', 'username', $username]);
     }
 
+    public function withEmail($email)
+    {
+        return $this->andWhere(['=', 'email', $email]);
+    }
+
     /**
      * {@inheritdoc}
      * @return User[]|array

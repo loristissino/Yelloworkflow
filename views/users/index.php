@@ -56,7 +56,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <?php Pjax::end(); ?>
 
     <?= Yii::t('app', 'With the selected users: ') ?>
-    <?= Html::a("Fix Permissions", ['process', 'action'=>'fixPermissions'], ['data-method'=>'post'])?>
+    <?= Html::a(Yii::t('app', 'Fix Permissions'), ['process', 'action'=>'fixPermissions'], ['data-method'=>'post'])?>
     
     <?= Html::endForm();?> 
 

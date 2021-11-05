@@ -17,6 +17,14 @@ class NotificationQuery extends \yii\db\ActiveQuery
             return $this->andWhere('seen_at IS NULL');
     }
 
+    public function sent($sent=true)
+    {
+        if ($sent)
+            return $this->andWhere('sent_at IS NOT NULL');
+        else
+            return $this->andWhere('sent_at IS NULL');
+    }
+    
     public function forUser($user_id)
     {
         return $this->andWhere(['=', 'user_id', $user_id]);

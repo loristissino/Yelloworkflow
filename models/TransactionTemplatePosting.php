@@ -89,7 +89,7 @@ class TransactionTemplatePosting extends \yii\db\ActiveRecord
         return [
             'D' => Yii::t('app', 'Debit'),
             'C' => Yii::t('app', 'Credit'),
-            '$' => Yii::t('app', 'Specified Amount'),
+            '$' => Yii::t('app', 'Predetermined Amount'),
         ];
     }
     

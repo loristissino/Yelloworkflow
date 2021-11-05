@@ -11,7 +11,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Yii::t('app', 'Something about you.') ?>
+        <?= Yii::t('app', 'Email: ') ?>
+        <?= Yii::$app->user->identity->email ?>
     </p>
     
     <hr />

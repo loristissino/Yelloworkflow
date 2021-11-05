@@ -10,6 +10,18 @@ $this->title = $model->description;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Roles'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
+
+$this->registerJs(
+    "
+    $('#toggle_addresses_link').click(function(e){
+        e.preventDefault();
+        $('#addresses').toggle();
+    });
+    ",
+    \yii\web\View::POS_END,
+    'togglea_ddresses_view'
+);
+
 ?>
 <div class="role-view">
 
@@ -44,5 +56,8 @@ $this->params['breadcrumbs'][] = $this->title;
         'textProperty'=>'fullname',
         'link'=>'users/view',
     ]) ?>
+    
+    <a href="#" id="toggle_addresses_link"><?= Yii::t('app', 'Toggle email addresses view') ?></a><br />
+    <textarea id="addresses" style="display:none" cols="90" rows="5"><?= $model->getFormattedUsersEmailAddresses() ?></textarea>
 
 </div>
