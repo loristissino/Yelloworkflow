@@ -209,7 +209,7 @@ class SiteController extends CController
     public function actionChooseOrganizationalUnit($id=null, $return='') // Allows the user to switch to a different organizational unit they belong to
     {
         if (Yii::$app->user->isGuest) {
-            return;
+            return $this->redirect(['login', 'return' => $return]);
         }
         $ous = Yii::$app->user->identity->getOrganizationalUnits()->all();
         $current_ou_id = Yii::$app->session->get('organizational_unit_id');

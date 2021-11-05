@@ -97,6 +97,9 @@ class ProjectComment extends \yii\db\ActiveRecord
     }
 
     public function getIsUpdateable() {
+        if (Yii::$app->user->isGuest) {
+            return false;
+        }
         return $this->user_id == Yii::$app->user->identity->id and $this->created_at >= $this->project->lastLoggedActivityTime;
     }
 
