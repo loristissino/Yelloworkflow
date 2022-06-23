@@ -16,7 +16,7 @@ $transitions = $model->getAuthorizedTransitions();
 $currentStatus = $model->getWorkflowStatus()->getId();
 
 $this->title = $model->title;
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Projects'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', Yii::$app->controller->id == 'project-submissions' ? 'Projects': 'Projects Management'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
 
@@ -32,7 +32,7 @@ if ($model->allowsComments) {
 
 if (!$model->isDraft) {
     $postingSearchModel = new PostingSearch();
-    $postingDataProvider = $postingSearchModel->search(Yii::$app->request->queryParams, Posting::find()->joinWith('transaction')->withRealAccount(false)->relatedToProject($model));
+    $postingDataProvider = $postingSearchModel->search(Yii::$app->request->queryParams, Posting::find()->joinWith('transaction')->withRealAccount(false)->rejected(false)->relatedToProject($model));
 }
 
 ?>
@@ -40,7 +40,7 @@ if (!$model->isDraft) {
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <p><?= $currentStatus=='ProjectWorkflow/draft' ? Html::a(Yii::t('app', 'Update'), ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) : '' ?>
+    <p><?= ($currentStatus=='ProjectWorkflow/draft' and $model->organizationalUnit->hasLoggedInUser()) ? Html::a(Yii::t('app', 'Update'), ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) : '' ?>
 
     <?= $this->render('/workflow/_workflowbuttons', [
         'model' => $model,
@@ -60,17 +60,17 @@ if (!$model->isDraft) {
             'place',
             'wf_status',
             [
+                'label' => Yii::t('app', 'Activities'),
+                'format' => 'raw',
+                'value' => Html::a(Yii::t('app', 'Workflow Log'), ['log', 'id'=>$model->id]),
+            ],
+            [
                 'label' => Yii::t('app', 'Organizational Unit'),
                 'format' => 'raw',
                 'value' => $model->organizationalUnit->viewLink,
             ],
             'created_at:datetime',
             'updated_at:datetime',
-            [
-                'label' => 'Last Logged Activity At',
-                'format' => 'datetime',
-                'value' => $model->lastLoggedActivityTime,
-            ],
         ],
     ]) ?>
 

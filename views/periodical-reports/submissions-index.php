@@ -2,7 +2,6 @@
 
 use yii\helpers\Html;
 use yii\grid\GridView;
-use yii\widgets\Pjax;
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\PeriodicalReportSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -65,3 +64,7 @@ $this->params['breadcrumbs'][] = $this->title;
     ]); ?>
 
 </div>
+
+<hr>
+
+<?= Html::a(Yii::t('app', 'Balances'), ['statements/index']) ?>

@@ -1,6 +1,7 @@
 <?php
 
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\widgets\ActiveForm;
 use zhuravljov\yii\widgets\DatePicker;
 
@@ -24,10 +25,69 @@ $this->registerJs(
     "
     let templates = JSON.parse(".\yii\helpers\Json::htmlEncode($templates).");
     let vat_number_messages = JSON.parse('".\yii\helpers\Json::htmlEncode($vat_number_messages)."');
+    
+    let projectsUrl = '". Url::toRoute(['office-transactions/projects', 'organizational_unit_id'=>'ou_id']). "';
+    let ouAccountingSummaryUrl = '". Url::toRoute(['office-transactions/view-ou-accounting-summary', 'id'=>'ou_id']). "';
+    
+    let projectPrompt = '<option value=\'\'>". Yii::t('app', 'Choose the project') . "</option>';
+    
+    async function updateProjects() {
+        let ou_id = $('#" . Html::getInputId($model, 'organizational_unit_id') . "').val();
+        let url = projectsUrl.replace('ou_id', ou_id);
+        let response = await fetch(url);
+        let projects = await response.json();
+        let options = [];
+        let projectId = " . ($model->project_id ? $model->project_id : 0) . ";
+        for (const id in projects) {
+            let opt = '<option ';
+            if (id == projectId) {
+                opt += 'selected ';
+            }
+            opt += 'value=\'' + id + '\'>'+ projects[id] + '</option>';
+            console.log(opt);
+            options.push(opt);
+        }
+        $('#" . Html::getInputId($model, 'project_id') . "').html(projectPrompt + options.join(''));
+        
+        await fetchOuAccountingSummary(ou_id);
+    }
+    
+    async function fetchOuAccountingSummary(ou_id)
+    {
+        $('#loader').show();
+        $('#ou_info').hide();
+        let url = ouAccountingSummaryUrl.replace('ou_id', ou_id);
+        let response = await fetch(url);
+        let text = await response.text();
+        $('#ou_info').html(text);
+        $('#ou_info').show();
+        $('#loader').hide();
+    }
+    
     ",
     \yii\web\View::POS_HEAD,
     'transaction_js_code_head'
 );
+
+if ($model->organizational_unit_id) {
+    $this->registerJs(
+        "
+            fetchOuAccountingSummary(" . $model->organizational_unit_id . ");
+        ",
+        \yii\web\View::POS_READY,
+        'transaction_js_code_ready'
+    );
+}
+
+$allowedAttachmentExtensions = ['png', 'pdf', 'jpeg', 'jpg'];
+
+$showAlsoEndedProjects = false;
+
+if (Yii::$app->controller->id == 'office-transactions') {
+    $allowedAttachmentExtensions[] = 'ods';
+    $allowedAttachmentExtensions[] = 'xlsx';
+    $showAlsoEndedProjects = true;
+}
 
 ?>
 
@@ -36,7 +96,14 @@ $this->registerJs(
     <?php $form = ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]); ?>
     
     <?php if ($office_transaction): ?>
-        <?= \app\models\OrganizationalUnit::getDropdown($form, $model, ['possible_actions' => \app\models\OrganizationalUnit::HAS_OWN_CASH]) ?>
+        <?= \app\models\OrganizationalUnit::getDropdown($form, $model, [
+            'possible_actions' => \app\models\OrganizationalUnit::HAS_OWN_CASH,
+            'onchange' => 'updateProjects()',
+            ]) ?>
+        <div style="padding-bottom: 16px">
+            <span id="ou_info"></span>
+            <img style="display: none" id="loader" src="<?= Url::to('@web/images/submit_loader.gif') ?>" />
+        </div>
     <?php endif ?>
 
     <?= \app\models\TransactionTemplate::getDropdown($form, $model, ['array'=>$model->templates]) ?>
@@ -58,23 +125,20 @@ $this->registerJs(
 
     <?= $form->field($model, 'amount')->textInput(['maxlength' => true, 'size' => 10])->hint(Yii::t('app', 'Use a dot for the decimal part of the amount.')) ?>
 
+    <div class="info-block alert" style="display:none" id="notes_request"></div>
     <?= $form->field($model, 'notes')->textInput(['maxlength' => true]) ?>
 
-    <?php if (! $office_transaction): ?>
     <fieldset id="project_fieldset">
         <legend><?= Yii::t('app', 'Project') ?></legend>
-        <?= \app\models\Project::getDropdown($form, $model, ['organizational_unit_id'=>Yii::$app->controller->periodicalReport->organizational_unit_id]) ?>
-
-        <?php //= $form->field($model, 'event_id')->textInput() ?>
+        <?= \app\models\Project::getDropdown($form, $model, ['organizational_unit_id'=>Yii::$app->controller->periodicalReport ? Yii::$app->controller->periodicalReport->organizational_unit_id: 0, 'alsoEnded'=>$showAlsoEndedProjects]) ?>
     </fieldset>
-    <?php endif ?>
 
     <fieldset id="vendor_fieldset">
         <legend><?= Yii::t('app', 'Vendor') ?></legend>
-        <?= $form->field($model, 'vat_number')->textInput(['maxlength' => true]) ?>
+        <?= $form->field($model, 'vat_number')->textInput(['maxlength' => true])->hint(Yii::t('app', 'You can omit the VAT number, but if it is present it must be correct.')) ?>
         <div class="info-block" style="display:none" id="vat_number_check"></div>
         <?= $form->field($model, 'vendor')->textInput(['maxlength' => true]) ?>
-        <?= $form->field($model, 'invoice')->textInput(['maxlength' => true]) ?>
+        <?= $form->field($model, 'invoice')->textInput(['maxlength' => true])->hint(Yii::t('app', 'Number and date of the invoice or description of the document (for instance, "Receipt number X").')) ?>
     </fieldset>
 
     <fieldset id="attachments_fieldset">
@@ -92,7 +156,7 @@ $this->registerJs(
                 'initialPreview' => $model->isNewRecord ? [] : $model->getInitialPreview(),
                 'dropZoneEnabled' => true,
                 'showPreview' => false,
-                'allowedFileExtensions' => ['png', 'pdf', 'jpeg', 'jpg'],
+                'allowedFileExtensions' => $allowedAttachmentExtensions,
             ]
         ]) ?>
     </fieldset>
@@ -101,6 +165,9 @@ $this->registerJs(
 
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app', 'Save'), ['class' => 'btn btn-success', 'id'=>'save_button']) ?>
+        <?php if(Yii::$app->user->hasAuthorizationFor('office-transactions')): ?>
+            <?= Html::submitButton(Yii::t('app', 'Save and Notify'), ['class' => 'btn btn-success', 'style'=>'background-color: orange; border-color: orange', 'id'=>'save_and_notify_button', 'name'=>'TransactionForm[immediateNotification]', 'value'=>1]) ?>
+        <?php endif ?>
     </div>
 
     <?php ActiveForm::end(); ?>

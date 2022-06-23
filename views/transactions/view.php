@@ -45,7 +45,8 @@ $this->registerJs(
 
 $transitions = $model->getAuthorizedTransitions();
 $currentStatus = $model->getWorkflowStatus()->getId();
-$is_draft = $currentStatus == 'TransactionWorkflow/draft';
+$is_draft = in_array($currentStatus, ['TransactionWorkflow/draft', 'TransactionWorkflow/prepared']);
+$is_sealed = in_array($currentStatus, ['TransactionWorkflow/sealed']);
 $is_prepared = $currentStatus == 'TransactionWorkflow/prepared';
 
 $postingSearchModel = new PostingSearch();
@@ -60,21 +61,31 @@ $this->title = $model->description;
 $template_title_property = 'title';
 $template_description_property = 'description';
 
-if (Yii::$app->controller->id == 'transaction-submissions') {
-    $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Periodical Reports'), 'url' => ['periodical-report-submissions/index']];
-    $this->params['breadcrumbs'][] = ['label' => $model->periodicalReport, 'url' => ['periodical-report-submissions/view', 'id'=>$model->periodical_report_id]];
-    $projectViewLink = 'submitterViewLink';
-}
-elseif (Yii::$app->controller->id == 'transactions-management') {
-    $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Periodical Reports'), 'url' => ['periodical-reports-management/index']];
-    $this->params['breadcrumbs'][] = ['label' => sprintf('%s (%s)', $model->periodicalReport, $model->organizationalUnit), 'url' => ['periodical-reports-management/view', 'id'=>$model->periodical_report_id]];
-    $projectViewLink = 'viewLink';
-}
-else {  // office
-    $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Office Transactions'), 'url' => ['office-transactions/index']];
-    $projectViewLink = 'viewLink';
-    $template_title_property = 'o_title';
-    $template_description_property = 'o_description';
+$controller = Yii::$app->controller->id;
+
+switch($controller) {
+    case 'transaction-submissions':
+        $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Periodical Reports'), 'url' => ['periodical-report-submissions/index']];
+        $this->params['breadcrumbs'][] = ['label' => $model->periodicalReport, 'url' => ['periodical-report-submissions/view', 'id'=>$model->periodical_report_id]];
+        $projectViewLink = 'submitterViewLink';
+        break;
+    case 'transactions-management':
+        $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Periodical Reports'), 'url' => ['periodical-reports-management/index']];
+        $this->params['breadcrumbs'][] = ['label' => sprintf('%s (%s)', $model->periodicalReport, $model->organizationalUnit), 'url' => ['periodical-reports-management/view', 'id'=>$model->periodical_report_id]];
+        $projectViewLink = 'viewLink';
+        break;
+    case 'office-transactions':
+        $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Office Transactions'), 'url' => ['office-transactions/index']];
+        $projectViewLink = 'viewLink';
+        $template_title_property = 'o_title';
+        $template_description_property = 'o_description';
+        break;
+    case 'fast-transactions':
+        $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Fast Transactions'), 'url' => ['fast-transactions/index']];
+        $projectViewLink = 'viewLink';
+        $template_title_property = 'o_title';
+        $template_description_property = 'o_description';
+        break;
 }
 
 $this->params['breadcrumbs'][] = $this->title;
@@ -83,9 +94,10 @@ $this->params['breadcrumbs'][] = $this->title;
 <div class="transaction-view">
 
     <h1><?= Html::encode($this->title) ?></h1>
-
+    
     <p>
         <?= $is_draft ? Html::a(Yii::t('app', 'Update'), ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) : null ?>
+        <?= ($is_sealed and Yii::$app->user->hasAuthorizationFor('fast-transactions')) ? Html::a(Yii::t('app', 'Edit handling notes'), ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) : null ?>
         <?= $is_draft || ($is_prepared && Yii::$app->user->id == $model->user_id) ? Html::a(Yii::t('app', 'Delete'), ['delete', 'id' => $model->id], [
             'class' => 'btn btn-danger',
             'data' => [
@@ -110,6 +122,10 @@ $this->params['breadcrumbs'][] = $this->title;
         </span>
     </p>
 
+    <?php if($model->canBeSealed): ?>
+        <p>🔔 <?= Yii::t('app', 'Please use the «Seal» button for transactions that must be dealt immediately by the office, like membership fees proceeds or withholding payments.') ?></p>
+    <?php endif ?>
+
     <?= DetailView::widget([
         'model' => $model,
         'attributes' => [
@@ -120,6 +136,7 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             'description',
             'notes',
+            'handling',
             [
                 'label' => Yii::t('app', 'Template'),
                 'format' => 'raw',
@@ -127,6 +144,11 @@ $this->params['breadcrumbs'][] = $this->title;
                     $model->transactionTemplate->$template_title_property) . Html::tag('em', $model->transactionTemplate->$template_description_property)
                 ),
             ],
+            [
+                'label' => Yii::t('app', 'Activities'),
+                'format' => 'raw',
+                'value' => Html::a(Yii::t('app', 'Workflow Log'), ['log', 'id'=>$model->id]),
+            ]
         ],
     ]) ?>
 

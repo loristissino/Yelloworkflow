@@ -27,13 +27,14 @@ class ProjectWorkflow implements IWorkflowDefinitionProvider
                     ],
                 ],
                 'submitted' => [
-                    'transition' => ['approved', 'rejected', 'questioned'],
+                    'transition' => ['approved', 'partially-approved', 'rejected', 'questioned'],
                     'metadata'   => [
                         'color' => '#009ACC',
                         'verb' => 'Submit',
                         'permission' => "$submissionsController/submit",
                         'limit' => 'ou',
                         'notifications' => [
+                            "$managementController/view" => '*',
                             "$submissionsController/view" => 'ou',
                         ],
                         'notification_fields' => ['title', 'organizationalUnit'],
@@ -49,7 +50,20 @@ class ProjectWorkflow implements IWorkflowDefinitionProvider
                             "$managementController/view" => '*',
                             "$submissionsController/view" => 'ou',
                         ],
-                        'notification_fields' => ['title', 'organizationalUnit'],
+                        'notification_fields' => ['title', 'organizationalUnit', 'frozenPlannedExpensesAsText'],
+                    ],
+                ],
+                'partially-approved' => [
+                    'transition' => ['draft', 'suspended', 'ended'],
+                    'metadata'   => [
+                        'color' => '#0000FF',
+                        'verb' => 'Approve partially',
+                        'permission' => "$managementController/approve",
+                        'notifications' => [
+                            "$managementController/view" => '*',
+                            "$submissionsController/view" => 'ou',
+                        ],
+                        'notification_fields' => ['title', 'organizationalUnit', 'lastComments'],
                     ],
                 ],
                 'rejected' => [

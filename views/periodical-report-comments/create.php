@@ -20,6 +20,8 @@ if ($reply_to and !$model->comment) {
 
     <?= $this->render('_form', [
         'model' => $model,
+        'controller' => $controller,
+        'periodicalReport' => $periodicalReport,
     ]) ?>
 
 </div>

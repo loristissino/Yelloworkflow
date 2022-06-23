@@ -34,6 +34,8 @@ class TransactionForm extends Model
     public $end_date;
     public $organizational_unit_id;
     
+    public $immediateNotification;
+    
     /**
      * @return array the validation rules.
      */
@@ -41,7 +43,7 @@ class TransactionForm extends Model
     {
         return [
             [['transaction_template_id', 'date', 'description', 'amount'], 'required'],
-            [['project_id', 'notes', 'event_id', 'vat_number', 'vendor', 'invoice', 'organizational_unit_id'], 'safe'],
+            [['project_id', 'notes', 'event_id', 'vat_number', 'vendor', 'invoice', 'organizational_unit_id', 'immediateNotification'], 'safe'],
             [['date'], 'date', 'format' => 'yyyy-mm-dd'],
             [['amount'], 'number', 'min' => 0, 'max'=>1000000],
         ];
@@ -60,7 +62,7 @@ class TransactionForm extends Model
             'vat_number' => Yii::t('app', 'VAT Number'),
             'vendor' => Yii::t('app', 'Vendor'),
             'amount' => Yii::t('app', 'Amount'),
-            'invoice' => Yii::t('app', 'Invoice'),
+            'invoice' => Yii::t('app', 'Invoice or Receipt'),
         ];
     }
     
@@ -83,6 +85,8 @@ class TransactionForm extends Model
         }
         $this->amount = abs($transaction->postings[0]->amount);
         $this->originalTransaction = $transaction;
+        $this->organizational_unit_id = $transaction->periodicalReport->organizational_unit_id;
+        
         return $this;
     }
     
@@ -98,12 +102,12 @@ class TransactionForm extends Model
    
         $ou = \app\models\OrganizationalUnit::find()->active()->withId($organizational_unit_id)->one();
         if (!$ou) {
-            $this->addError('request', 'Invalid Organizational Unit.');
+            $this->addError('request', Yii::t('app', 'Invalid Organizational Unit.'));
         }
         else {
             $periodicalReport = $ou->getPeriodicalReportByDate($date);
             if (!$periodicalReport) {
-                $this->addError('request', 'Couldn\'t find an active periodical report.');
+                $this->addError('request', Yii::t('app', 'Couldn\'t find an active periodical report.'));
             }
             else {
                 $this->periodicalReport = $periodicalReport;
@@ -151,11 +155,15 @@ class TransactionForm extends Model
                 'vendor' => $this->vendor,
                 'invoice' => $this->invoice,
             ]);
-            $transaction->save(false);
+
+            $transaction->save(false); // FIXME it fails if validation is applied -- to investigate
             
             $transaction->addPostings($template, $this->amount, false);
+
+            $transaction->save(true); // FIXME this is a workaround -- filters are applied now
             
             $transaction->saveUploads(null);
+            
             
             $dbTransaction->commit();
             $this->id = $transaction->id;
@@ -187,6 +195,5 @@ class TransactionForm extends Model
     {
         return $this->originalTransaction->getFiles();
     }
-
     
 }

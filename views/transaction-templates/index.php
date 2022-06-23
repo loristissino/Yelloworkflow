@@ -2,7 +2,6 @@
 
 use yii\helpers\Html;
 use yii\grid\GridView;
-use yii\widgets\Pjax;
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\TransactionTemplateSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -19,7 +18,6 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= Html::a(Yii::t('app', 'Create Transaction Template'), ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 
-    <?php Pjax::begin(); ?>
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <?= GridView::widget([
@@ -85,12 +83,23 @@ $this->params['breadcrumbs'][] = $this->title;
                 ],
             ],
 
+            [
+                'attribute'=>'is_sealable',
+                'format'=>'raw',
+                'label'=>'Sealable?',
+                'value'=>'isSealableView',
+                'headerOptions'=>['title'=>'Is this kind of transaction sealable?', 'class'=>'narrow_column'],
+                'contentOptions' => ['class' => 'narrow_column'],
+                'filterInputOptions' => [
+                    'class' => 'form-control',
+                    'style'=>'width: 40px',
+                ],
+            ],
+
             ['class' => 'yii\grid\ActionColumn',
                 'template'=>'{view} {update}',
             ]
         ],
     ]); ?>
-
-    <?php Pjax::end(); ?>
 
 </div>

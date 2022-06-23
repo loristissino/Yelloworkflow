@@ -62,6 +62,9 @@ class SiteController extends CController
 
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
+            \app\components\LogHelper::log('Login', $model->getUser(), ['excluded'=>[
+                'first_name','last_name', 'email', 'auth_key', 'access_token','otp_secret','created_at', 'updated_at',
+            ]]);
             return $this->_back();
             /*
             $return_url = Yii::$app->request->get('return');
@@ -138,8 +141,12 @@ class SiteController extends CController
      */
     public function actionLogout() // Makes the user log out
     {
+        if (!Yii::$app->user->isGuest) {
+            \app\components\LogHelper::log('Logout', Yii::$app->user->identity, ['excluded'=>[
+                'first_name','last_name', 'email', 'auth_key', 'access_token','otp_secret','created_at', 'updated_at',
+            ]]);
+        }
         Yii::$app->user->logout();
-
         return $this->goHome();
     }
 

@@ -38,7 +38,7 @@ $this->registerJs(
             'rank',
             [
                 'label' => 'Status',
-                'value' => $model->status == 1 ? 'Active': 'Inactive',
+                'value' => $model->ternarianValues[$model->status],
             ],
             'name',
             'description',
@@ -53,7 +53,7 @@ $this->registerJs(
     <?= \app\components\UnorderedListWidget::widget([
         'introMessage'=>'{count,plural,=0{No user found} =1{One user found} other{# users found}}:',
         'items'=>$model->getUsers()->all(),
-        'textProperty'=>'fullname',
+        'textProperty'=>$model->status == 1 ? 'fullName': 'fullNameWithMembership',
         'link'=>'users/view',
     ]) ?>
     

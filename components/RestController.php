@@ -19,14 +19,17 @@ class RestController extends ActiveController
 		\Yii::$app->user->enableSession = false;
 	}
 
-	public function behaviors()
-	{
-		$behaviors = parent::behaviors();
-		$behaviors['authenticator'] = [
-			'class' => HttpHeaderAuth::className(),
+    public function behaviors()
+    {
+        $behaviors = parent::behaviors();
+        $behaviors['authenticator'] = [
+            'class' => HttpHeaderAuth::className(),
 		];
-		return $behaviors;
-	}
+        $behaviors['access'] = [
+            'class' => \app\components\AuthorizationFilter::className(),
+        ];
+        return $behaviors;
+    }
     
 	public function beforeAction($action)
 	{

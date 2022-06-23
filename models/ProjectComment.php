@@ -19,7 +19,9 @@ use yii\behaviors\TimestampBehavior;
  * @property User $user
  */
 class ProjectComment extends \yii\db\ActiveRecord
-{
+{    
+    public $immediately_question_project = false;
+    
     /**
      * {@inheritdoc}
      */
@@ -44,8 +46,10 @@ class ProjectComment extends \yii\db\ActiveRecord
             [['project_id', 'user_id', 'comment'], 'required'],
             [['project_id', 'user_id', 'created_at', 'updated_at'], 'integer'],
             [['comment'], 'string'],
+            [['comment'], 'filter', 'filter'=>function($value) {return trim(strip_tags($value));}],
             [['project_id'], 'exist', 'skipOnError' => true, 'targetClass' => Project::className(), 'targetAttribute' => ['project_id' => 'id']],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
+            [['immediately_question_project'], 'safe'],
         ];
     }
 
@@ -61,6 +65,7 @@ class ProjectComment extends \yii\db\ActiveRecord
             'comment' => Yii::t('app', 'Comment'),
             'created_at' => Yii::t('app', 'Created At'),
             'updated_at' => Yii::t('app', 'Updated At'),
+            'immediately_question_project' => Yii::t('app', 'Immediately question the Project'),
         ];
     }
 

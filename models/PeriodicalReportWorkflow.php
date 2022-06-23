@@ -23,7 +23,7 @@ class PeriodicalReportWorkflow implements IWorkflowDefinitionProvider
                         'notifications' => [
                             "$submissionsController/view" => 'ou',
                         ],
-                        'notification_fields' => ['name', 'organizationalUnit'],
+                        'notification_fields' => ['name', 'organizationalUnit', 'dueDate'],
                     ],
                 ],
                 'submitted' => [
@@ -32,6 +32,7 @@ class PeriodicalReportWorkflow implements IWorkflowDefinitionProvider
                         'color' => '#009ACC',
                         'verb' => 'Submit',
                         'permission' => "$submissionsController/submit",
+                        'condition' => 'isSpread',
                         'limit' => 'ou',
                         'notifications' => [
                             "$managementController/view" => '*',
@@ -44,7 +45,7 @@ class PeriodicalReportWorkflow implements IWorkflowDefinitionProvider
                     'transition' => ['closed', 'questioned'],
                     'metadata'   => [
                         'color' => '#797F81',
-                        'verb' => 'Submit Empty',
+                        'verb' => 'Submit Without Transactions',
                         'permission' => "$submissionsController/submit",
                         'condition' => 'isEmpty',
                         'limit' => 'ou',
@@ -57,10 +58,24 @@ class PeriodicalReportWorkflow implements IWorkflowDefinitionProvider
                     ],
                 ],
                 'closed' => [
+                    'transition' => ['archived', 'reopened'],
                     'metadata'   => [
                         'color' => 'green',
                         'verb' => 'Set Closed',
                         'permission' => "$managementController/close",
+                        'notifications' => [
+                            "$managementController/view" => '*',
+                            "$submissionsController/view" => 'ou',
+                        ],
+                        'notification_fields' => ['name', 'organizationalUnit'],
+                    ],
+                ],
+                'reopened' => [
+                    'transition' => ['closed', 'questioned'],
+                    'metadata'   => [
+                        'color' => 'green',
+                        'verb' => 'Reopen',
+                        'permission' => "system",
                         'notifications' => [
                             "$managementController/view" => '*',
                             "$submissionsController/view" => 'ou',
@@ -78,14 +93,14 @@ class PeriodicalReportWorkflow implements IWorkflowDefinitionProvider
                             "$managementController/view" => '*',
                             "$submissionsController/view" => 'ou',
                         ],
-                        'notification_fields' => ['name', 'organizationalUnit'],
+                        'notification_fields' => ['name', 'organizationalUnit', 'dueDate'],
                     ],
                ],
                 'archived' => [
                     'metadata'   => [
                         'color' => '#BFBFBF',
                         'verb' => 'Archive',
-                        'permission' => "$managementController/archive",
+                        'permission' => "system",
                         'confirm' => 'Are you sure you want to archive this periodical report?',
                         'notifications' => [
                             "$managementController/view" => '*',

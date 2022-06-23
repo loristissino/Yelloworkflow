@@ -79,13 +79,10 @@ class PeriodicalReportSearch extends PeriodicalReport
             'updated_at' => $this->updated_at,
         ]);
 
-        $query->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'wf_status', $this->wf_status]);
-
-        $query
+        $query->andFilterWhere(['like', 'periodical_reports.name', $this->name])
+            ->andFilterWhere(['=', 'RIGHT(wf_status, ' . strlen($this->wf_status) . ')', $this->wf_status])
             ->andFilterWhere(['like', 'organizational_units.name', $this->organizational_unit])
             ;
-
 
         return $dataProvider;
     }

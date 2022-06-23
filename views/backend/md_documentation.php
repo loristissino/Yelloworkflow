@@ -31,7 +31,7 @@ use app\models\TransactionTemplate;
 <?php foreach(TransactionTemplate::find()->active()->orderBy(['rank' => SORT_ASC, 'title' => SORT_ASC])->all() as $transactionTemplate): ?>
 * **<?= $transactionTemplate->title ?>**  
 _<?= $transactionTemplate->description ?>_  
-<?php foreach ($transactionTemplate->transactionTemplatePostings as $posting): ?>
+<?php foreach ($transactionTemplate->getTransactionTemplatePostings()->orderBy(['rank' => SORT_ASC])->all() as $posting): ?>
   - <?= $posting->account ?> (<?= $posting->viewDc ?>)
 <?php endforeach ?>
   

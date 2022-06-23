@@ -2,7 +2,6 @@
 
 use yii\helpers\Html;
 use yii\grid\GridView;
-use yii\widgets\Pjax;
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\NotificationSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -33,7 +32,16 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'raw',
                 'value' => 'html_body',
             ],
-            'created_at:datetime',
+            [
+                'label'=>Yii::t('app', 'Created At'),
+                'attribute'=>'created_at',
+                'format'=>'raw',
+                'value'=>function($data) {
+                    return sprintf('%s %s', Yii::$app->formatter->asDate($data['created_at']), Yii::$app->formatter->asTime($data['created_at']));
+                },
+            ],
+
+
             //'seen_at',
             //'sent_at',
             //'email:email',

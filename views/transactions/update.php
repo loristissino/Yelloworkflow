@@ -7,13 +7,21 @@ use yii\helpers\Html;
 
 $office_transaction = false;
 
+if (Yii::$app->controller->id == 'office-transactions') {
+    $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Office Transactions'), 'url'=>['office-transactions/index']];
+    $office_transaction = true;
+}
+else {
+    $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Periodical Reports'), 'url' => ['periodical-report-submissions/index']];
+    $this->params['breadcrumbs'][] = ['label' => $model->periodicalReport->name, 'url' => ['periodical-report-submissions/view', 'id'=>$model->periodicalReport->id]];
+    $this->params['breadcrumbs'][] = ['label' => $model->description, 'url' => ['view', 'id' => $model->id]];
+    $this->params['breadcrumbs'][] = Yii::t('app', 'Update');
+}
+
 $this->title = Yii::t('app', 'Update Transaction: {name}', [
     'name' => $model->description,
 ]);
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Periodical Reports'), 'url' => ['periodical-report-submissions/index']];
-$this->params['breadcrumbs'][] = ['label' => $model->periodicalReport->name, 'url' => ['periodical-report-submissions/view', 'id'=>$model->periodicalReport->id]];
-$this->params['breadcrumbs'][] = ['label' => $model->description, 'url' => ['view', 'id' => $model->id]];
-$this->params['breadcrumbs'][] = Yii::t('app', 'Update');
+
 ?>
 <div class="transaction-update">
 

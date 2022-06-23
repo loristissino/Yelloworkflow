@@ -30,10 +30,12 @@ class ProjectSubmissionsController extends CController
     
     public function beforeAction($action)
     {
-        $this->setOrganizationalUnit($action);
-        if (!$this->organizationalUnit) {
-            $this->redirect(['/site/choose-organizational-unit', 'return'=>\Yii::$app->request->url]);
-            return;
+        if (!in_array($action->id, ['list', 'details'])) {
+            $this->setOrganizationalUnit($action);
+            if (!$this->organizationalUnit) {
+                $this->redirect(['/site/choose-organizational-unit', 'return'=>\Yii::$app->request->url]);
+                return;
+            }
         }
         return parent::beforeAction($action);
     }
@@ -60,6 +62,34 @@ class ProjectSubmissionsController extends CController
             'organizationalUnit' => $this->organizationalUnit,
         ]);
     }
+    
+    public function actionList($status='') // Lists all the projects approved or closed
+    {
+        switch ($status){
+            case 'approved':
+                $query = Project::find()->approved(true);
+                break;
+            case 'completed':
+                $query = Project::find()->completed();
+                break;
+            default:
+                $query = Project::find()->withId(-1); 
+        }
+        
+        $searchModel = new ProjectSearch();
+        $dataProvider = $searchModel->search(
+            Yii::$app->request->queryParams,
+            $query
+        );
+
+        $dataProvider->sort->defaultOrder = ['updated_at' => SORT_DESC];
+
+        return $this->render('projects/list', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+            'status' => $status,
+        ]);
+    }
 
     /**
      * Displays a single Project model.
@@ -71,6 +101,14 @@ class ProjectSubmissionsController extends CController
     {
         $project = $this->findModel($id, false);
         return $this->render('projects/view', [
+            'model' => $project,
+        ]);
+    }
+
+    public function actionDetails($id) // Displays a specific project, given its id
+    {
+        $project = $this->findModel($id, false, false);
+        return $this->render('projects/details', [
             'model' => $project,
         ]);
     }
@@ -116,7 +154,7 @@ class ProjectSubmissionsController extends CController
     public function actionClone($id) // Clones a project
     {
         // we need to redeclare this because of the false parameter to use
-        $model = $this->findModel($id, false)->cloneModel();
+        $model = $this->findModel($id, false, false)->cloneModel($this->organizationalUnit->id);
         Yii::$app->session->setFlash('success', Yii::t('app', "Project cloned."));
         return $this->redirect(['index']);//, 'id' => $model->id]);
     }
@@ -149,7 +187,7 @@ class ProjectSubmissionsController extends CController
      * @return Project the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
-    protected function findModel($id, $onlyUpdateable=true)
+    protected function findModel($id, $onlyUpdateable=true, $onlyOwned=true)
     {
         if ($onlyUpdateable) {
             $model = Project::find()->withId($id)->withOrganizationalUnitId($this->organizationalUnit->id)->draft()->one();
@@ -159,7 +197,7 @@ class ProjectSubmissionsController extends CController
         }
         
         if ($model) {
-            if (!$model->getOrganizationalUnit()->one()->hasLoggedInUser()) {
+            if ($onlyOwned and !$model->getOrganizationalUnit()->one()->hasLoggedInUser() or $model->isDraft and !$model->getOrganizationalUnit()->one()->hasLoggedInUser()) {
                 throw new ForbiddenHttpException(Yii::t('app', 'Not authorized.'));
             }
 

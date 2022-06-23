@@ -19,6 +19,9 @@ trait WorkflowTrait
 
     public function beforeDelete()
     {
+        foreach($this->files as $attachment) {
+            $attachment->delete();
+        }
         \app\components\LogHelper::log('deleted', $this);
         return parent::beforeDelete();
     }
@@ -108,7 +111,8 @@ trait WorkflowTrait
     
     public function getAttachmentsAreDeletable()
     {
-        return substr($this->getWorkflowStatus()->getId(), -6) == '/draft';
+        $pieces = explode('/', $this->getWorkflowStatus()->getId());
+        return in_array($pieces[1], ['draft', 'prepared']);
     }
     
     public function getLoggedActivities()

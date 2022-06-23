@@ -19,16 +19,16 @@ trait ModelTrait
         return $value ? Html::tag('span', '', ['class'=>'glyphicon glyphicon-ok']) : '';
     }
     
-    public function getTernarianRepresentation($value)
+    public function getTernarianRepresentation($value, $icons=['glyphicon-ok', 'glyphicon-asterisk'])
     {
-        // 1 means true, 0 means false, every other value "means" possible 
+        // the standard meaning is as follows: 1 means true, 0 means false, every other value "means" possible 
         return $value == 1 ?
-            Html::tag('span', '', ['class'=>'glyphicon glyphicon-ok', 'title'=>$this->ternarianValues[$value]])
+            Html::tag('span', '', ['class'=>'glyphicon ' . $icons[0], 'title'=>$this->ternarianValues[$value]])
             :
             ($value == 0 ?
                 ''
                 :
-                 Html::tag('span', '', ['class'=>'glyphicon glyphicon-asterisk', 'title'=>$this->ternarianValues[$value]])
+                 Html::tag('span', '', ['class'=>'glyphicon ' . $icons[1], 'title'=>$this->ternarianValues[$value]])
             );
     }
 

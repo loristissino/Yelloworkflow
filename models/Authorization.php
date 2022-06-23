@@ -207,9 +207,15 @@ class Authorization extends \yii\db\ActiveRecord
             ],
             'office-transactions' => [
                 'icon' => 'table',
-                'color' => '#table',
+                'color' => '#A52A2A',
                 'title' => 'Office Transactions',
                 'description' => 'Debits and credits centrally recorded',
+            ],
+            'fast-transactions' => [
+                'icon' => 'paper-plane',
+                'color' => '#0000FF',
+                'title' => 'Fast Transactions',
+                'description' => 'Transactions on the express track',
             ],
             'events' => [
                 'icon' => 'calendar-o',
@@ -286,7 +292,7 @@ class Authorization extends \yii\db\ActiveRecord
             return null;
         }
         $items = [
-            'controller_id' => $tokens[0],
+            'controller_id' => str_replace("\\", "/", $tokens[0]),
             'action_id' => '*',
             'method' => '*',
         ];

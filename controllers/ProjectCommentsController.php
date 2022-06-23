@@ -26,6 +26,9 @@ class ProjectCommentsController extends CController
         $model = new ProjectComment();
 
         if ($model->load(Yii::$app->request->post()) && $model->setProject($this->project)->setUserId(Yii::$app->user->identity->id) && $model->save()) {
+            if ($model->immediately_question_project) {
+                return $this->redirect(['projects-management/change', 'id' => $this->project->id, 'status'=>'questioned']);
+            }
             return $this->redirect([$controller.'/view', 'id' => $this->project->id]);
         }
 

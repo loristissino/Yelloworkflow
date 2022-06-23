@@ -25,6 +25,8 @@ use app\components\LogHelper;
 class Role extends \yii\db\ActiveRecord
 {
 
+    use ModelTrait;
+    
     private $_oldPermissions;
 
     /**
@@ -46,6 +48,7 @@ class Role extends \yii\db\ActiveRecord
             [['name'], 'string', 'max' => 50],
             [['description', 'permissions'], 'string', 'max' => 255],
             [['email'], 'string', 'max' => 100],
+            [['name', 'description', 'email'], 'trim'],
         ];
     }
 
@@ -57,7 +60,7 @@ class Role extends \yii\db\ActiveRecord
         return [
             'id' => Yii::t('app', 'ID'),
             'rank' => Yii::t('app', 'Rank'),
-            'status' => Yii::t('app', 'Is Active?'),
+            'status' => Yii::t('app', 'Status'),
             'name' => Yii::t('app', 'Name'),
             'description' => Yii::t('app', 'Description'),
             'permissions' => Yii::t('app', 'Permissions'),
@@ -101,6 +104,11 @@ class Role extends \yii\db\ActiveRecord
         return Html::a($this->description, ['roles/view', 'id'=>$this->id], $options);
     }
 
+    public function getStatusView()
+    {
+        return $this->getTernarianRepresentation($this->status, ['glyphicon-star-empty', 'glyphicon-heart']);
+    }
+
     public static function getDropdown($form, $model, $options=[])
     {
         $options = array_merge([
@@ -116,7 +124,18 @@ class Role extends \yii\db\ActiveRecord
             );
     }
 
-    public function afterFind(){
+    public function __construct ($config = [])
+    {
+        $this->ternarianValues = [
+            0 => Yii::t('app', 'Inactive'),
+            1 => Yii::t('app', 'Active, no membership required'),
+            2 => Yii::t('app', 'Active, membership required'),            
+        ];
+        return parent::__construct($config);
+    }
+
+    public function afterFind()
+    {
         $this->_oldPermissions = $this->permissions;
         return parent::afterFind();
     }
@@ -228,6 +247,11 @@ class Role extends \yii\db\ActiveRecord
             $log .= "no permissions to work on\n";
         }
         // file_put_contents("log_inside_role_addPermissions_for_" . $user->username . "_role_" . $this->name . ".txt", $log);
+    }
+    
+    public function __toString()
+    {
+        return $this->description;
     }
 
     private function _permissionsFromField($field)

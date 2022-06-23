@@ -21,6 +21,7 @@ use \raoul2000\workflow\base\SimpleWorkflowBehavior;
  * @property int|null $project_id
  * @property int|null $event_id
  * @property string|null $notes
+ * @property string|null $handling
  * @property string|null $vat_number
  * @property string|null $vendor
  * @property string $wf_status
@@ -38,6 +39,8 @@ class Transaction extends \yii\db\ActiveRecord
     use WorkflowTrait;
     use ModelTrait;
     
+    const SCENARIO_HANDLING = 'handling';
+    
     /**
      * {@inheritdoc}
      */
@@ -50,7 +53,7 @@ class Transaction extends \yii\db\ActiveRecord
     {
         return [
             TimestampBehavior::className(),
-            [
+            'workflowBehavior' => [
                 'class'                    => SimpleWorkflowBehavior::className(),
                 'statusAttribute'          => 'wf_status',
             ],
@@ -58,6 +61,14 @@ class Transaction extends \yii\db\ActiveRecord
 				'class' => \nemmo\attachments\behaviors\FileBehavior::className()
 			],
         ];
+    }
+    
+    public function scenarios()
+    {
+        $scenarios = parent::scenarios();
+        $scenarios[self::SCENARIO_HANDLING] = ['handling'];
+        $scenarios['default'] = array_diff($scenarios['default'], $scenarios[self::SCENARIO_HANDLING]);
+        return $scenarios;        
     }
 
     /**
@@ -70,10 +81,11 @@ class Transaction extends \yii\db\ActiveRecord
             [['periodical_report_id', 'project_id', 'event_id', 'user_id', 'created_at', 'updated_at'], 'integer'],
             [['date'], 'safe'],
             [['description', 'notes'], 'string', 'max' => 255],
-            [['vat_number'], 'string', 'max' => 20],
+            [['notes', 'handling'], 'string', 'max' => 255],
             [['vendor'], 'string', 'max' => 100],
             [['invoice'], 'string', 'max' => 60],
             [['wf_status'], 'string', 'max' => 40],
+            [['description', 'notes', 'vendor', 'invoice'], 'filter', 'filter'=>function($value) {return trim(strip_tags($value));}],
             [['periodical_report_id'], 'exist', 'skipOnError' => true, 'targetClass' => PeriodicalReport::className(), 'targetAttribute' => ['periodical_report_id' => 'id']],
             [['transaction_template_id'], 'exist', 'skipOnError' => true, 'targetClass' => TransactionTemplate::className(), 'targetAttribute' => ['transaction_template_id' => 'id']],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
@@ -94,9 +106,10 @@ class Transaction extends \yii\db\ActiveRecord
             'project_id' => Yii::t('app', 'Project'),
             'event_id' => Yii::t('app', 'Event'),
             'notes' => Yii::t('app', 'Notes'),
+            'handling' => Yii::t('app', 'Handling'),
             'vat_number' => Yii::t('app', 'VAT Number'),
             'vendor' => Yii::t('app', 'Vendor'),
-            'invoice' => Yii::t('app', 'Invoice'),
+            'invoice' => Yii::t('app', 'Invoice or Receipt'),
             'wf_status' => Yii::t('app', 'Workflow Status'),
             'user_id' => Yii::t('app', 'User'),
             'created_at' => Yii::t('app', 'Created At'),
@@ -196,14 +209,40 @@ class Transaction extends \yii\db\ActiveRecord
         return $this->periodicalReport->organizationalUnit;
     }
     
-    public function getCanBeUpdated()
+    public function getTemplateTitle()
     {
-        return $this->getWorkflowStatus()->getId() == 'TransactionWorkflow/draft';
+        return $this->transactionTemplate->title;
+    }
+    
+    public function getCanBeUpdated($status='draft')
+    {
+        return $this->getWorkflowStatus()->getId() == 'TransactionWorkflow/' . $status;
+    }
+    
+    public function getCanBeConfirmed()
+    {
+        return ! $this->transactionTemplate->mustBeSealed;
+    }
+
+    public function getCanBeSealed()
+    {
+        return $this->transactionTemplate->canBeSealed and in_array($this->getWorkflowStatus()->getId(), ['TransactionWorkflow/draft', 'TransactionWorkflow/confirmed']);
     }
     
     public function confirm()
     {
         $status = 'TransactionWorkflow/confirmed';
+        if ($this->canBeSentToStatus($status)) {
+            return $this->sendToStatus($status);
+        }
+        else {
+            return false;
+        }
+    }
+    
+    public function setRecorded()
+    {
+        $status = 'TransactionWorkflow/recorded';
         if ($this->canBeSentToStatus($status)) {
             return $this->sendToStatus($status);
         }
@@ -220,6 +259,22 @@ class Transaction extends \yii\db\ActiveRecord
     {
         return false;
     }
+    
+    public function getIsDirectlyQuestionable()
+    {
+        return false; // this is used by the interface, in the section where we must choose to show the button or not
+    }
+    
+    public function getHasDateInValidRange()
+    {
+        return $this->date >= $this->periodicalReport->begin_date and $this->date <= $this->periodicalReport->end_date;
+    }
+    
+    public function unsetUneditableFields()
+    {
+        unset($this->description);
+        return true;
+    }
 
     private function _runWorkflowChecks($event)
     {
@@ -232,13 +287,20 @@ class Transaction extends \yii\db\ActiveRecord
                     $event->invalidate($this->workflowError);
                 }
                 break;
+            case 'TransactionWorkflow/questioned':
+                if (Yii::$app->controller->id == 'transactions-management') {
+                    $this->workflowError = 'The transaction can be questioned only indirectly, through the periodical report.';
+                    $event->invalidate($this->workflowError);
+                }    
+                break;
             case 'TransactionWorkflow/confirmed':
+            case 'TransactionWorkflow/sealed':
                 if ($template->needs_attachment && sizeof($this->files)==0) {
                     $this->workflowError = 'This transaction must be documented with an attachment.';
                     $event->invalidate($this->workflowError);
                 }
-                if ($template->needs_vendor && !( $this->vat_number && $this->vendor && $this->invoice) ) {
-                    $this->workflowError = 'Vendor details must be specified.';
+                if ($template->needs_vendor && !( $this->vendor && $this->invoice ) ) {
+                    $this->workflowError = 'Vendor and supply details must be specified.';
                     $event->invalidate($this->workflowError);
                 }
                 if ($template->needs_project==1 && !( $this->project_id) ) {
@@ -253,30 +315,44 @@ class Transaction extends \yii\db\ActiveRecord
                     $this->workflowError = 'This transaction cannot be linked to a vendor.';
                     $event->invalidate($this->workflowError);
                 }
+                if ( ! $this->hasDateInValidRange ) {
+                    $this->workflowError = 'Date outside periodica report\'s range.';
+                    $event->invalidate($this->workflowError);
+                }
+                if ( $template->request and !$this->notes ) {
+                    $this->workflowError = $template->request;
+                    $event->invalidate($this->workflowError);
+                }
+                break;
+            case 'TransactionWorkflow/notified':
+                if ($template->needs_attachment && sizeof($this->files)==0) {
+                    $this->workflowError = 'This transaction must be documented with an attachment.';
+                    $event->invalidate($this->workflowError);
+                }
+                if ( ! $this->hasDateInValidRange ) {
+                    $this->workflowError = 'Date outside periodical report\'s range.';
+                    $event->invalidate($this->workflowError);
+                }
+                break;
+            case 'TransactionWorkflow/rejected':
+                if (!$this->handling) {
+                    $this->workflowError = 'The transaction cannot be rejected without a handling text.';
+                    $event->invalidate($this->workflowError);
+                }
                 break;
         }
     }
 
     private function _runWorkflowRoutines($event)
     {
-        /*
         $log = "Running workflow routines...\n";
         
         $log .= $event->getTransition()->getId() . "\n";
         
         $options = [];
-        
-        if ($event->getEndStatus()->getId() == 'ProjectWorkflow/submitted') {
-            $options['related'] = ['plannedExpenses'];
-        }
-
-        if ($event->getEndStatus()->getId() == 'ProjectWorkflow/rejected') {
-            $options['related'] = ['projectComments'];
-        }
-        
+                
         \app\components\LogHelper::log($event->getEndStatus()->getId(), $this, $options);
         
-        */
     }
 
     public function addPostings(TransactionTemplate $template, $amount)
@@ -322,11 +398,14 @@ class Transaction extends \yii\db\ActiveRecord
     public function notify()
     {
         if ($this->getWorkflowStatus()->getId() == 'TransactionWorkflow/prepared') {
-            $this->sendToStatus('notified');
-            $this->save();
-            return true;
+            return $this->sendToStatus('notified');
         }
         return false;
+    }
+
+    public function __toString()
+    {
+        return sprintf('%s (%s)', $this->description, Yii::$app->formatter->asDate($this->date));
     }
 
     public static function getBulkActionMessage($action)
@@ -334,6 +413,7 @@ class Transaction extends \yii\db\ActiveRecord
         $messages = [
             'confirm' => "Status set to «confirmed» for {count,plural,=0{no transaction} =1{one transaction} other{# transactions}}.",
             'notify' => "{count,plural,=0{No transaction has been} =1{One transaction has been} other{# transactions have been}} notified.",
+            'setRecorded' => "Status set to «recorded» for {count,plural,=0{no transaction} =1{one transaction} other{# transactions}}."
         ];
         return ArrayHelper::getValue($messages, $action, '');
     }
@@ -343,6 +423,7 @@ class Transaction extends \yii\db\ActiveRecord
         if (sizeof($statuses)==0) {
             $statuses = [
                 'TransactionWorkflow/recorded',
+                'TransactionWorkflow/reimbursed',
             ];
         }
         

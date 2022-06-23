@@ -5,6 +5,9 @@ namespace app\controllers;
 use Yii;
 use app\models\Notification;
 use app\models\NotificationSearch;
+use app\models\NotificationTemplate;
+use app\models\PeriodicalReport;
+use app\components\LogHelper;
 use yii\web\NotFoundHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\MethodNotAllowedHttpException;
@@ -45,7 +48,7 @@ class NotificationsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id) // Displays a specific notification, givent its id
+    public function actionView($id) // Displays a specific notification, given its id
     {
         $model = $this->findModel($id);
         if (!$model->seen_at) {
@@ -71,7 +74,7 @@ class NotificationsController extends CController
             throw new MethodNotAllowedHttpException(Yii::t('app', 'Method not allowed.'));
         }
         */
-        $notifications = Notification::find()->sent(false)->orderBy(['created_at' => SORT_ASC])->all();
+        $notifications = Notification::find()->sent(false)->orderBy(['created_at' => SORT_ASC])->limit(6)->all();
         $this->layout = false;
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
@@ -85,6 +88,38 @@ class NotificationsController extends CController
             ];
             sleep(1); // let's wait one second between each email...
         }
+        return $this->renderContent($data);
+    }
+
+    public function actionPrepareReminders($key) // Prepare reminders as notifications
+    {
+        $this->enableCsrfValidation = false;
+        if ($key!=Yii::$app->params['notificationsKey'])
+        {
+            throw new ForbiddenHttpException(Yii::t('app', 'Not authorized.'));
+        }
+        // FIXME: move this to REST API requests (see actionSend())
+        
+        $this->layout = false;
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        
+        $reports = PeriodicalReport::find()->toRemindToday()->all();
+        
+        $template = NotificationTemplate::find()->withCode('PeriodicalReportWorkflow/remind')->one();
+        
+        $data = [];
+        
+        if ($template) {
+            foreach($reports as $report){
+                $count = LogHelper::notify($report, $template);
+                $data[] = [
+                    'report' => $report->id,
+                    'due_date' => $report->dueDate,
+                    'notifications' => $count,
+                    ];
+            }
+        }
+
         return $this->renderContent($data);
     }
 

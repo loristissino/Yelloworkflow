@@ -37,6 +37,14 @@ $this->params['breadcrumbs'][] = $this->title;
                 'label' => 'Status',
                 'value' => $model->status == 1 ? 'Active': 'Inactive',
             ],
+            [
+                'label' => Yii::t('app', 'External Id'),
+                'format' => 'raw',
+                'value' => function($model) {
+                    return Html::a($model->external_id, sprintf(Yii::$app->params['externalInfo']['usersUrl'], $model->external_id), ['target'=>'_blank']);
+                }
+            ],
+            'last_renewal',
             'created_at:datetime',
             'updated_at:datetime',
         ],

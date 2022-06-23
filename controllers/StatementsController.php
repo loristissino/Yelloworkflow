@@ -40,15 +40,50 @@ class StatementsController extends CController
      * Lists all Account models.
      * @return mixed
      */
-    public function actionIndex() // Lists all available ledgers for the available accounts
+    public function actionIndex($year=null) // Lists all available ledgers for the available accounts
     {
-        $searchModel = new AccountSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        if (!$year) {
+            return $this->redirect(['index', 'year'=>date('Y')]);
+        }
+        
+       $sql = "SELECT `accounts`.`id` as `id`, `accounts`.`name` as `name`, `accounts`.`enforced_balance` as `enforced_balance`, SUM(`amount`) as `amount_sum` FROM `postings` JOIN `accounts` ON `postings`.`account_id`=`accounts`.`id` JOIN `transactions` ON `postings`.`transaction_id`=`transactions`.`id` JOIN `periodical_reports` ON `periodical_reports`.`id` = `transactions`.`periodical_report_id` WHERE `periodical_reports`.`organizational_unit_id` = :id AND `accounts`.`represents`='R' AND `transactions`.`wf_status` <> 'TransactionWorkflow/rejected' GROUP BY `accounts`.`id`, `accounts`.`name`, `accounts`.`debits_header`, `accounts`.`credits_header`";
+
+        $dataProviderForRealAccounts = new SqlDataProvider([
+            'sql' => $sql,
+            'params' => [':id' => $this->organizationalUnit->id],
+            'sort' => [
+                'attributes' => [
+                    'rank',
+                    'name',
+                    ],
+                ],
+            'pagination' => false,
+            ]
+        );
+
+       $sql = "SELECT `accounts`.`id` as `id`, `accounts`.`name` as `name`, `accounts`.`debits_header` as `debits_header`, `accounts`.`credits_header` as `credits_header`, SUM(`amount`) as `amount_sum` FROM `postings` JOIN `accounts` ON `postings`.`account_id`=`accounts`.`id` JOIN `transactions` ON `postings`.`transaction_id`=`transactions`.`id` JOIN `periodical_reports` ON `periodical_reports`.`id` = `transactions`.`periodical_report_id` WHERE `periodical_reports`.`organizational_unit_id` = :id AND `accounts`.`represents` IN ('E', 'C', 'S', 'D') AND `transactions`.`wf_status` <> 'TransactionWorkflow/rejected' AND `transactions`.`date` >= MAKEDATE(:year, 1) AND `transactions`.`date` < MAKEDATE(:year +1, 1) GROUP BY `accounts`.`id`, `accounts`.`name`, `accounts`.`debits_header`, `accounts`.`credits_header`";
+       
+        $dataProviderForTemporaryAccounts = new SqlDataProvider([
+            'sql' => $sql,
+            'params' => [':id' => $this->organizationalUnit->id, ':year' => $year],
+            'sort' => [
+                'attributes' => [
+                    'rank',
+                    'name',
+                    ],
+                ],
+            'pagination' => false,
+            ]
+        );
 
         return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
+            'dataProviderForRealAccounts' => $dataProviderForRealAccounts,
+            'dataProviderForTemporaryAccounts' => $dataProviderForTemporaryAccounts,
+            'year' => $year,
         ]);
+
+
+
     }
 
     /**
@@ -57,12 +92,15 @@ class StatementsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id) // Displays a ledger for a specific account of the organizational unit of the logged-in user
+    public function actionView($id, $year=null) // Displays a ledger for a specific account of the organizational unit of the logged-in user
     {
-        
         $postingSearchModel = new PostingSearch();
         
-        $query = Posting::find()->orderBy('date')->select('postings.*, transactions.*')->withAccountId($id)->joinWith('periodicalReports')->withOrganizationalUnitId($this->organizationalUnit->id);
+        $query = Posting::find()->orderBy('date')->select('postings.*, transactions.*')->withAccountId($id)->joinWith('periodicalReports')->withOrganizationalUnitId($this->organizationalUnit->id)->notWithTransactionStatus('TransactionWorkflow/rejected');
+        
+        if ($year) {
+            $query = $query->inYear($year);
+        }
         
         $postingDataProvider = $postingSearchModel->search(Yii::$app->request->queryParams, $query);
         

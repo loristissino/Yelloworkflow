@@ -2,13 +2,23 @@
 
 use yii\helpers\Html;
 use yii\grid\GridView;
-use yii\widgets\Pjax;
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\TransactionSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 /*
  */
-$this->title = Yii::t('app', 'Office Transactions');
+
+$controller = Yii::$app->controller->id;
+ 
+switch ($controller) {
+    case 'office-transactions':
+        $this->title = Yii::t('app', 'Office Transactions');
+        break;
+    case 'fast-transactions':
+        $this->title = Yii::t('app', 'Fast Transactions');
+        break;
+} 
+ 
 $this->params['breadcrumbs'][] = $this->title;
 
 ?>
@@ -16,9 +26,11 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <p>
-        <?= Html::a(Yii::t('app', 'Create Transaction'), ['office-transactions/create'], ['class' => 'btn btn-success']) ?>
-    </p>
+    <?php if($controller == 'office-transactions'): ?>
+        <p>
+            <?= Html::a(Yii::t('app', 'Create Transaction'), ['office-transactions/create'], ['class' => 'btn btn-success']) ?>
+        </p>
+    <?php endif ?>
 
     <?php if (($dataProvider->count > 0)): ?>
 
@@ -33,7 +45,14 @@ $this->params['breadcrumbs'][] = $this->title;
 
             // 'id',
             // 'periodical_report_id',
-            'date',
+            [
+                'label'=>Yii::t('app', 'Date'),
+                'attribute'=>'date',
+                'format'=>'raw',
+                'value'=>function($data) {
+                    return Yii::$app->formatter->asDate($data['date']);
+                },
+            ],
             'description',
             [
                 'label' => Yii::t('app', 'Organizational Unit'),
@@ -54,23 +73,33 @@ $this->params['breadcrumbs'][] = $this->title;
             ['class' => 'yii\grid\ActionColumn',
                 'template'=>'{view}',
 				'buttons'=>[
-					'view' => function ($url, $model) {
-						return Html::a('<span class="glyphicon glyphicon-eye-open"></span>', ['office-transactions/view', 'id'=>$model->id], [
+					'view' => function ($url, $model) use ($controller) {
+						return Html::a('<span class="glyphicon glyphicon-eye-open"></span>', ["$controller/view", 'id'=>$model->id], [
                             'title'=>Yii::t('app', 'View'),
                             ]);
 						},
+                    /*
+					'update' => function ($url, $model)  use ($controller) {
+						if ( ! $model->getCanBeUpdated('prepared') )
+							return null;
+						return Html::a('<span class="glyphicon glyphicon-pencil"></span>', ["$controller/update", 'id'=>$model->id], [
+							'title' => Yii::t('app', 'Update'),
+							]);
+						},
+                    */
 				]
             ]
         ],
     ]); ?>
 
-    <?= Yii::t('app', 'With the selected transactions:') ?>
-    <?= Html::a(Yii::t('app', 'Notify'), ['process', 'action'=>'notify'], ['data-method'=>'post'])?>
+    <?php if ($controller == 'office-transactions'): ?>
+        <?= Yii::t('app', 'With the selected transactions: ') ?>
+        <?= Html::a(Yii::t('app', 'Notify'), ['process', 'action'=>'notify'], ['data-method'=>'post'])?>
+                
+    <?php endif ?>
     
     <?= Html::endForm();?>
     
-    <?= Html::endForm();?>
-
     <?php else: ?>
 
     <p><?= Yii::t('app', 'No transactions.') ?></p>

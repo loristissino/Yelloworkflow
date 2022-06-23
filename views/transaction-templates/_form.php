@@ -22,6 +22,8 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'description')->textInput(['maxlength' => true]) ?>
 
+    <?= $form->field($model, 'request')->textInput(['maxlength' => true])->hint(Yii::t('app', 'A sentence with the description of notes for transactions using this template.')) ?>
+
     <?= $form->field($model, 'o_title')->textInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'o_description')->textInput(['maxlength' => true]) ?>
@@ -31,6 +33,10 @@ use yii\widgets\ActiveForm;
     <?= $model->getTernarianRadioList($form, ['field_name'=>'needs_project']) ?>
 
     <?= $form->field($model, 'needs_vendor')->checkbox() ?>
+
+    <?= $model->getTernarianRadioList($form, ['field_name'=>'is_sealable']) ?>
+
+    <?= $model->getTernarianRadioList($form, ['field_name'=>'office']) ?>
 
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app', 'Save'), ['class' => 'btn btn-success']) ?>

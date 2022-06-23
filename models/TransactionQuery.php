@@ -40,7 +40,7 @@ class TransactionQuery extends \yii\db\ActiveQuery
     {
         return $this->andWhere(['=', 'transactions.wf_status', $status]);
     }
-    
+
     public function withOneOfStatuses($statuses=[])
     {
         $array = [];

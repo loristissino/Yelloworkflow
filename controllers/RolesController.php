@@ -35,6 +35,14 @@ class RolesController extends CController
             'dataProvider' => $dataProvider,
         ]);
     }
+    
+    public function actionRenewals()
+    {
+        $roles = Role::find()->withRequiredMembership()->all();
+        return $this->render('renewals', [
+            'roles' => $roles,
+        ]);
+    }
 
     /**
      * Displays a single Role model.

@@ -2,7 +2,6 @@
 
 use yii\helpers\Html;
 use yii\grid\GridView;
-use yii\widgets\Pjax;
 
 $totalAmount = 0;
 
@@ -33,7 +32,7 @@ $columns = [
     'notes:ntext',
 ];
 
-if ($is_draft) {
+if ($is_draft and $project->organizationalUnit->hasLoggedInUser()) {
     $columns[] = 
             ['class' => 'yii\grid\ActionColumn',
                 'template'=>'{update} {delete}',
@@ -57,7 +56,7 @@ if ($is_draft) {
 
     <h2><?= Yii::t('app', 'Planned Expenses') ?></h2>
 
-    <?php if ($is_draft): ?>
+    <?php if ($is_draft and $project->organizationalUnit->hasLoggedInUser()): ?>
         <p>
             <?= Html::a(Yii::t('app', 'Create Planned Expense'), ['planned-expenses/create', 'project'=>$project->id], ['class' => 'btn btn-success']) ?>
         </p>

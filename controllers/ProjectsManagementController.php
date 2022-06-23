@@ -32,7 +32,7 @@ class ProjectsManagementController extends CController
         $searchModel = new ProjectSearch();
         $dataProvider = $searchModel->search(
             Yii::$app->request->queryParams,
-            Project::find()->active($active)->draft(false)
+            Project::find()->active($active)->workedOn()
         );
 
         $dataProvider->sort->defaultOrder = ['updated_at' => SORT_DESC];
@@ -59,7 +59,7 @@ class ProjectsManagementController extends CController
             'model' => $this->findModel($id),
         ]);
     }
-
+    
     public function actionChange($id, $status) // Changes the workflow status of a project
     {
         $model = $this->findModel($id);
@@ -75,7 +75,7 @@ class ProjectsManagementController extends CController
      */
     protected function findModel($id)
     {
-        if (($model = Project::find()->withId($id)->draft(false)->one()) !== null) {
+        if (($model = Project::find()->withId($id)->workedOn()->one()) !== null) {
             return $model;
         }
 

@@ -19,6 +19,8 @@ class PeriodicalReportsBulkCreationForm extends Model
     public $name;
     public $begin_date;
     public $end_date;
+    public $due_date;
+    public $required_attachments;
 
     public $organizationalUnits = [];
 
@@ -29,6 +31,7 @@ class PeriodicalReportsBulkCreationForm extends Model
         ->withPossibileActions(OrganizationalUnit::HAS_OWN_CASH)
         ->select(['name'])
         ->indexBy('id')
+        ->orderBy(['possible_actions'=>SORT_DESC, 'rank'=>SORT_ASC, 'name'=>SORT_ASC])
         ->column();
     }
 
@@ -38,8 +41,9 @@ class PeriodicalReportsBulkCreationForm extends Model
     public function rules()
     {
         return [
-            [['name', 'begin_date', 'end_date'], 'required'],
+            [['name', 'begin_date', 'end_date', 'due_date'], 'required'],
             [['begin_date', 'end_date'], 'safe'],
+            [['required_attachments'], 'safe'],
         ];
     }
 
@@ -50,6 +54,8 @@ class PeriodicalReportsBulkCreationForm extends Model
             'name' => Yii::t('app', 'Name'),
             'begin_date' => Yii::t('app', 'Begin Date'),
             'end_date' => Yii::t('app', 'End Date'),
+            'due_date' => Yii::t('app', 'Due Date'),
+            'required_attachments' => Yii::t('app', 'Required Attachments'),
         ];
     }
     

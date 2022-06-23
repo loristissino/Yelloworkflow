@@ -11,26 +11,21 @@ class PeriodicalReportQuery extends \yii\db\ActiveQuery
 {
     public function active($active=true)
     {
-        return $this;
-        /* TODO
-        if ($active) {
-        return $this
-            ->andWhere(['<>', 'wf_status', 'ProjectWorkflow/archived'])
-            ->andWhere(['<>', 'wf_status', 'ProjectWorkflow/deleted'])
-            ;
-        }
-        else {
-            return $this->andWhere(new OrCondition([
-                ['=', 'wf_status', 'ProjectWorkflow/archived'],
-                ['=', 'wf_status', 'ProjectWorkflow/deleted']
-            ]));
-        }
-        */
+        return $this->andWhere([$active ? '<>': '=', 'wf_status', 'ProjectWorkflow/archived']);
     }
     
     public function draft($draft=true)
     {
         return $this->andWhere([$draft ? '=' : '<>', 'wf_status', 'PeriodicalReportWorkflow/draft']);
+    }
+
+
+    public function open()
+    {
+        return $this
+            ->andWhere(['<>', 'wf_status', 'PeriodicalReportWorkflow/closed'])
+            ->andWhere(['<>', 'wf_status', 'PeriodicalReportWorkflow/archived'])
+            ;
     }
 
     public function withId($id)
@@ -48,6 +43,16 @@ class PeriodicalReportQuery extends \yii\db\ActiveQuery
         return $this
             ->andWhere(['<=', 'begin_date', $date])
             ->andWhere(['>=', 'end_date', $date])
+            ;
+    }
+    
+    public function toRemindToday()
+    {
+        return $this
+            ->andWhere("wf_status IN ('PeriodicalReportWorkflow/draft', 'PeriodicalReportWorkflow/questioned')")
+            ->andWhere('due_date IS NOT NULL')
+            ->andWhere(['<=', 'due_date', date('Y-m-d')])
+            ->andWhere(['=', 'MOD(DATEDIFF(CURDATE(), `due_date`), 2)', 0]) // we send the reminder every two days...
             ;
     }
 

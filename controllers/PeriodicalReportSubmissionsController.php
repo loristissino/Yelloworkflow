@@ -53,7 +53,7 @@ class PeriodicalReportSubmissionsController extends CController
             PeriodicalReport::find()->withOrganizationalUnitId($this->organizationalUnit->id)->active($active)
             );
 
-        $dataProvider->sort->defaultOrder = ['end_date' => SORT_DESC];
+        $dataProvider->sort->defaultOrder = ['end_date' => SORT_DESC, 'begin_date' => SORT_DESC];
         
         $dataProvider->pagination = [
             'pageSize' => $pagesize,
@@ -91,8 +91,8 @@ class PeriodicalReportSubmissionsController extends CController
         $periodicalReport = $this->findModel($id);
         return $this->render('/periodical-reports/print', [
             'model' => $periodicalReport,
-            'beginningBalanceDataProvider' => Transaction::getBalance($periodicalReport, false, ['TransactionWorkflow/recorded', 'TransactionWorkflow/submitted']),
-            'endBalanceDataProvider' => Transaction::getBalance($periodicalReport, true, ['TransactionWorkflow/recorded', 'TransactionWorkflow/submitted']),
+            'beginningBalanceDataProvider' => Transaction::getBalance($periodicalReport, false, ['TransactionWorkflow/recorded', 'TransactionWorkflow/submitted', 'TransactionWorkflow/reimbursed']),
+            'endBalanceDataProvider' => Transaction::getBalance($periodicalReport, true, ['TransactionWorkflow/recorded', 'TransactionWorkflow/submitted', 'TransactionWorkflow/reimbursed']),
         ]);
     }
 

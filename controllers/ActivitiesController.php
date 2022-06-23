@@ -24,7 +24,7 @@ class ActivitiesController extends CController
         $searchModel = new ActivitytSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
-        $dataProvider->sort->defaultOrder = ['happened_at' => SORT_DESC];
+        $dataProvider->sort->defaultOrder = ['happened_at' => SORT_DESC, 'id' => SORT_DESC];
         
         $dataProvider->pagination = [
             'pageSize' => $pagesize,

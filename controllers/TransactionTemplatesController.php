@@ -17,7 +17,7 @@ class TransactionTemplatesController extends CController
      * Lists all TransactionTemplate models.
      * @return mixed
      */
-    public function actionIndex($active=null, $pagesize=100) // Lists all transaction templates
+    public function actionIndex($active=null, $pagesize=1000) // Lists all transaction templates
     {
         $active = $active == 'false' ? false : true;
         

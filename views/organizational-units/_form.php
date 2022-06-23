@@ -28,8 +28,9 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'ceiling_amount')->textInput(['maxlength' => true]) ?>
 
-    TODO: use checkboxes to set these possibilities<br />
-    <?= $form->field($model, 'possible_actions')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'possible_actions')->textInput(['maxlength' => true])->hint(
+        Yii::t('app', 'The sum of these possible values: 1=projects, 2=cash, 4=sales.')
+    ) ?>
 
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app', 'Save'), ['class' => 'btn btn-success']) ?>

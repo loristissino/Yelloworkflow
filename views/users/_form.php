@@ -28,6 +28,10 @@ use yii\widgets\ActiveForm;
 
     <?php //= $form->field($model, 'otp_secret')->textInput(['maxlength' => true]) ?>
 
+    <?= $form->field($model, 'external_id')->textInput(['maxlength' => true]) ?>
+
+    <?= $form->field($model, 'last_renewal')->textInput(['maxlength' => true]) ?>
+
     <?= $form->field($model, 'status')->checkbox() ?>
 
     <div class="form-group">

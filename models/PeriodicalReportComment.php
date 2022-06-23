@@ -14,12 +14,15 @@ use yii\behaviors\TimestampBehavior;
  * @property string $comment
  * @property int $created_at
  * @property int $updated_at
+ * @property boolean $immediately_question_periodical_report
  *
  * @property PeriodicalReport $periodicalReport
  * @property User $user
  */
 class PeriodicalReportComment extends \yii\db\ActiveRecord
 {
+    
+    public $immediately_question_periodical_report = false;
     /**
      * {@inheritdoc}
      */
@@ -44,8 +47,10 @@ class PeriodicalReportComment extends \yii\db\ActiveRecord
             [['periodical_report_id', 'user_id', 'comment'], 'required'],
             [['periodical_report_id', 'user_id', 'created_at', 'updated_at'], 'integer'],
             [['comment'], 'string'],
+            [['comment'], 'trim'],
             [['periodical_report_id'], 'exist', 'skipOnError' => true, 'targetClass' => PeriodicalReport::className(), 'targetAttribute' => ['periodical_report_id' => 'id']],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
+            [['immediately_question_periodical_report'], 'safe'],
         ];
     }
 
@@ -61,6 +66,7 @@ class PeriodicalReportComment extends \yii\db\ActiveRecord
             'comment' => Yii::t('app', 'Comment'),
             'created_at' => Yii::t('app', 'Created At'),
             'updated_at' => Yii::t('app', 'Updated At'),
+            'immediately_question_periodical_report' => Yii::t('app', 'Immediately question the Periodical Report'),
         ];
     }
 

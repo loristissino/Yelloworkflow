@@ -717,8 +717,8 @@ foreach([
 "meetup",
 
 ] as $icon) {
-    //echo FA::icon($icon)->size(FA::SIZE_5X);
-    //echo " " . $icon . "<br/>";
+    // echo FA::icon($icon)->size(FA::SIZE_5X);
+    // echo " " . $icon . "<br/>";
 }
 /*
 echo FA::icon('home'); // <i class="fa fa-home"></i>

@@ -1,14 +1,15 @@
 <?php
 
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\grid\GridView;
-use yii\widgets\Pjax;
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\PeriodicalReportSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
 $this->title = Yii::t('app', 'Financial Reports Management');
 $this->params['breadcrumbs'][] = $this->title;
+
 ?>
 <div class="periodical-report-index">
 
@@ -58,20 +59,30 @@ $this->params['breadcrumbs'][] = $this->title;
             //'updated_at',
 
             ['class' => 'yii\grid\ActionColumn',
-                'template'=>'{view} {remind}',
+                'template'=>'{view} {log} {workflow}',
 				'buttons'=>[
 					'view' => function ($url, $model) {
-                        if (! $model->isDraft) {
-                            $icon = 'glyphicon glyphicon-' . ($model->isDraft ? 'pencil' : 'eye-open');
-                            return Html::a('<span class="' . $icon . '"></span>', $url);
+                        if ($model->canBeSeenInManagementView) {
+                            $icon = 'glyphicon glyphicon-eye-open';
+                            return Html::a(sprintf('<span class="%s" title="%s"></span>', $icon, Yii::t('app', 'View')), $url);
                             }
                         },
-                ]
+					'log' => function ($url, $model) {
+                        $icon = 'glyphicon glyphicon-list-alt';
+                        return Html::a(sprintf('<span class="%s" title="%s"></span>', $icon, Yii::t('app', 'Workflow Log')), ['log', 'id'=>$model->id]);
+                        },
+					'workflow' => function ($url, $model) {
+                        if (Yii::$app->user->hasAuthorizationFor('workflow')) {
+                            $icon = 'glyphicon glyphicon-calendar';
+                            return Html::a(sprintf('<span class="%s" style="color:#800080" title="%s"></span>', $icon, Yii::t('app', 'Edit Workflow Status')), ['workflow/update', 'type'=>get_class($model), 'id'=>$model->id, 'return'=>Url::current()]);
+                            }
+                        },
+                ],
+                'contentOptions'=>['style'=> 'width: 80px'],
             ]
 
 
         ],
     ]); ?>
-
 
 </div>

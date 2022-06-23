@@ -2,12 +2,12 @@
 
 use yii\helpers\Html;
 use yii\grid\GridView;
-use yii\widgets\Pjax;
 
 $is_commentable = in_array($periodicalReport->getWorkflowStatus()->getId(), [
     'PeriodicalReportWorkflow/submitted',
     'PeriodicalReportWorkflow/submitted-empty',
     'PeriodicalReportWorkflow/questioned',
+    'PeriodicalReportWorkflow/reopened',
 ]);
 
 $columns = [
@@ -70,7 +70,6 @@ if ($is_commentable) {
 
     <?php if ($dataProvider->count > 0): ?>
     
-    <?php Pjax::begin(); ?>
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <?= GridView::widget([
@@ -78,8 +77,6 @@ if ($is_commentable) {
         'columns' => $columns
     ]); ?>
 
-    <?php Pjax::end(); ?>
-    
     <?php else: ?>
     
     <?= Yii::t('app', 'No comments.') ?>    

@@ -13,14 +13,14 @@ use yii\widgets\ActiveForm;
     <?php $form = ActiveForm::begin(); ?>
 
     <?= $form->field($model, 'rank')->textInput() ?>
-
-    <?= $form->field($model, 'status')->checkbox() ?>
+    
+    <?= $model->getTernarianDropdown($form, ['field_name'=>'status']) ?>
 
     <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'description')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'permissions')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'permissions')->textInput(['maxlength' => true])->hint(Yii::t('app', 'For controllers behind a path, use backslashes (eg. api\v1\users).')) ?>
 
     <?= $form->field($model, 'email')->textInput(['maxlength' => true])->hint(Yii::t('app', 'Use the string "ou" to mean that notifications should go to the email of the organizational unit.')) ?>
 

@@ -45,9 +45,12 @@ $this->params['breadcrumbs'][] = $this->title;
         'footerRowOptions' => ['class'=>'grid_footer'],
         'columns' => [
             [
-                'attribute' => Yii::t('app', 'Date'),
+                'label' => Yii::t('app', 'Date'),
                 'format' => 'raw',
-                'value' => 'transaction.date',
+                'attribute' => 'transaction.date',
+                'value'=>function($data) {
+                    return Yii::$app->formatter->asDate($data['transaction']['date']);
+                },
             ],
             [
                 'attribute' => Yii::t('app', 'Description'),

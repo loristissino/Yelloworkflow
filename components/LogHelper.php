@@ -39,27 +39,40 @@ class LogHelper {
                 );
         }
         
+        if (($cd = ArrayHelper::getValue($options, 'change_description', '')) !=='') {
+            $values['change_description'] = $cd;
+        }
+        
         $activity->info = JSON_encode($values);
         
         $activity->authorization_id = \Yii::$app->controller->getAuthorizationId();
         $activity->save(false);
         
-        self::notify($model);
+        if (!ArrayHelper::getValue($options, 'without-notifications', false)) {
+            self::notify($model);
+        }
     }
     
-    protected static function notify($model) {
+    public static function notify($model, NotificationTemplate $template=null) {
         // is there a better way to find out if the model has the workflow behavior?
+        
+        $count = 0;
+        
         if (!$model->hasProperty('wf_status'))
-            return;
-        
+            return $count;
+                        
         $notifications = $model->getWorkflowStatus()->getMetadata('notifications');
+                
+        if (!$notifications) {
+            return $count;
+        }
         
-        if (!$notifications)
-            return;
-        
-        $template = NotificationTemplate::find()->withCode($model->getWorkflowStatus()->getId())->one();
-        if (!$template)
-            return;
+        if (!$template) { // for reminders we receive the template as a parameter
+            $template = NotificationTemplate::find()->withCode($model->getWorkflowStatus()->getId())->one();
+        }
+        if (!$template) {
+            return $count;
+        }
         
         $notification_fields = $model->getWorkflowStatus()->getMetadata('notification_fields', []);
         
@@ -77,9 +90,9 @@ class LogHelper {
         
         foreach($notifications as $permission=>$type){
             $authorizations = Authorization::find()->withActivePermission($permission)->all();
-                        
+                                    
             if ($type == 'ou') {
-                $ou = $model->getOrganizationalUnit()->one();
+                $ou = $model->organizationalUnit;
                 $authorizations = array_filter($authorizations, function($auth) use ($ou) {
                     return $ou->getUsers()->withId($auth->user_id)->one() !== null;
                 });
@@ -88,6 +101,7 @@ class LogHelper {
             $url = Url::toRoute([$permission, 'id' => $model->id], true);
             
             foreach ($authorizations as $authorization) {
+                
                 $notification = new Notification();
                 
                 $notification->email = $authorization->user->email; // the default is to send the email to the user
@@ -112,9 +126,11 @@ class LogHelper {
                 $notification->plaintext_body = str_replace('{url}', $url, $plaintextBody);
                 $notification->html_body = Markdown::process(str_replace('{url}', $url, $markdownBody));
                 $notification->save();
+                $count++;
                 // $notification->sendEmail(); // we'll send the email later, see notifications/send 
             }
         }
-
+        return $count;
+        
     }
 }

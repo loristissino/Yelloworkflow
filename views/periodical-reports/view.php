@@ -44,13 +44,9 @@ $this->params['breadcrumbs'][] = $this->title;
 
 $transactionsView = Yii::$app->controller->id == 'periodical-reports-management' ? 'management-index' : 'submissions-index';
 
-if ($currentStatus!='PeriodicalReportWorkflow/draft') {
-    
-    $commentSearchModel = new PeriodicalReportCommentSearch();
-    $commentDataProvider = $commentSearchModel->search(Yii::$app->request->queryParams, PeriodicalReportComment::find()->forPeriodicalReport($model));
-    $commentDataProvider->sort->defaultOrder = ['created_at' => SORT_DESC];
-
-}
+$commentSearchModel = new PeriodicalReportCommentSearch();
+$commentDataProvider = $commentSearchModel->search(Yii::$app->request->queryParams, PeriodicalReportComment::find()->forPeriodicalReport($model));
+$commentDataProvider->sort->defaultOrder = ['created_at' => SORT_DESC];
 
 $attributes = [
         'name',
@@ -65,6 +61,12 @@ $attributes = [
             'attribute'=>'end_date',
             'format'=>'raw',
             'value'=>Yii::$app->formatter->asDate($model->end_date),
+        ],
+        [
+            'label'=>Yii::t('app', 'Due Date'),
+            'attribute'=>'due_date',
+            'format'=>'raw',
+            'value'=>Yii::$app->formatter->asDate($model->due_date),
         ],
         'wf_status',
         [
@@ -92,6 +94,12 @@ if ($transactionsView == 'submissions-index') {
         ];
 }
 
+$attributes[] = 
+[
+    'label' => Yii::t('app', 'Activities'),
+    'format' => 'raw',
+    'value' => Html::a(Yii::t('app', 'Workflow Log'), ['log', 'id'=>$model->id]),
+];
 
 ?>
 
@@ -115,14 +123,16 @@ if ($transactionsView == 'submissions-index') {
 
 </div>
 
-<?= $this->render('/transactions/'.$transactionsView, [
-    'searchModel' => $transactionSearchModel,
-    'dataProvider' => $transactionDataProvider,
-    'periodicalReport' => $model,
-]); 
-?>
+<?php if($model->isSpread): ?>
+    <?= $this->render('/transactions/'.$transactionsView, [
+        'searchModel' => $transactionSearchModel,
+        'dataProvider' => $transactionDataProvider,
+        'periodicalReport' => $model,
+    ]);
+    ?>
+<?php endif?>
 
-<?php if($currentStatus!='PeriodicalReportWorkflow/draft'): ?>
+<?php if($currentStatus!='PeriodicalReportWorkflow/draft' or $commentDataProvider->getTotalCount() > 0): ?>
     <?= $this->render('/periodical-report-comments/index', [
         'searchModel' => $commentSearchModel,
         'dataProvider' => $commentDataProvider,
@@ -133,6 +143,17 @@ if ($transactionsView == 'submissions-index') {
 
 <div class="attachments-view">
     <h2><?= Yii::t('app', 'Attachments') ?></h2>
+    <p> 
+    🔔 <?= Yii::t('app', 'Attach files here only if they are related to the periodical report in its entirety and not to the single transactions.') ?>
+    <?php if(sizeof($model->getRequiredAttachments())>0): ?>
+        <br />
+        🔔 <?= Yii::t('app', 'This document must have attached:') ?>
+        <ul>
+            <li><?= join('</li><li>', $model->getRequiredAttachments()) ?></li>
+        </ul>
+    <?php endif ?>
+    
+    </p>
     <?= \nemmo\attachments\components\AttachmentsTable::widget(['model' => $model, 'showDeleteButton'=>$is_draft]) ?>
 </div>
 
@@ -159,7 +180,7 @@ if ($transactionsView == 'submissions-index') {
                     'initialPreview' => $model->isNewRecord ? [] : $model->getInitialPreview(),
                     'dropZoneEnabled' => true,
                     'showPreview' => false,
-                    'allowedFileExtensions' => ['png', 'pdf', 'jpeg', 'jpg'],
+                    'allowedFileExtensions' => ['png', 'pdf', 'jpeg', 'jpg', 'ods', 'xlsx', 'xls'],
                 ]
             ]) ?>
         </fieldset>

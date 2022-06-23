@@ -38,6 +38,7 @@ class PlannedExpense extends \yii\db\ActiveRecord
             [['amount'], 'number', 'min' => 0, 'max'=>1000000],
             [['notes'], 'string'],
             [['description'], 'string', 'max' => 255],
+            [['notes', 'description'], 'filter', 'filter'=>function($value) {return trim(strip_tags($value));}],
             [['project_id'], 'exist', 'skipOnError' => true, 'targetClass' => Project::className(), 'targetAttribute' => ['project_id' => 'id']],
             [['expense_type_id'], 'exist', 'skipOnError' => true, 'targetClass' => ExpenseType::className(), 'targetAttribute' => ['expense_type_id' => 'id']],
         ];

@@ -24,6 +24,9 @@ foreach($postingDataProvider->models as $posting) {
 }
 
 $balance = $debitsTotalAmount - $creditsTotalAmount;
+if ($amountToBeReimbursed < 0) {
+    $amountToBeReimbursed = 0;
+}
 
 \yii\web\YiiAsset::register($this);
 ?>

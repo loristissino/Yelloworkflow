@@ -26,9 +26,33 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'raw',
                 'label' => Yii::t('app','Content'),
             ],
-            'created_at:datetime',
-            'seen_at:datetime',
-            'sent_at:datetime',
+            [
+                'attribute' => 'created_at',
+                'format' => 'raw',
+                'label' => Yii::t('app','Created At'),
+                'value' => function($data)
+                {
+                    return sprintf('%s %s', Yii::$app->formatter->asDate($data['created_at']), Yii::$app->formatter->asTime($data['created_at']));
+                }
+            ],
+            [
+                'attribute' => 'seen_at',
+                'format' => 'raw',
+                'label' => Yii::t('app','Seen At'),
+                'value' => function($data)
+                {
+                    return sprintf('%s %s', Yii::$app->formatter->asDate($data['seen_at']), Yii::$app->formatter->asTime($data['seen_at']));
+                }
+            ],
+            [
+                'attribute' => 'sent_at',
+                'format' => 'raw',
+                'label' => Yii::t('app','Sent At'),
+                'value' => function($data)
+                {
+                    return sprintf('%s %s', Yii::$app->formatter->asDate($data['sent_at']), Yii::$app->formatter->asTime($data['sent_at']));
+                }
+            ],
             'email:email',
         ],
     ]) ?>

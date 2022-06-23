@@ -5,6 +5,7 @@ namespace app\components;
 use Yii;
 use app\models\User;
 use app\models\UserSearch;
+use app\models\Activity;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -47,6 +48,31 @@ class CController extends Controller
     {
         $model = $this->findModel($id)->cloneModel();
         return $this->redirect(['view', 'id' => $model->id]);
+    }
+    
+    public function actionLog($id)
+    {
+        $model = $this->findModel($id, false);
+        $query = Activity::find()->withModel(get_class($model))->withModelId($id);
+
+        $provider = new \yii\data\ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => 1000,
+            ],
+            'sort' => [
+                'defaultOrder' => [
+                    'happened_at' => SORT_DESC,
+                    'id' => SORT_DESC,
+                ]
+            ],
+        ]);
+
+        return $this->render('/activities/model_log', [
+            'searchModel' => null,
+            'dataProvider' => $provider,
+            'model' => $model,
+        ]);
     }
     
     public function actionProcess($action='', $redirect=null) {

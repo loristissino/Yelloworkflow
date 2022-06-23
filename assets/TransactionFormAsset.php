@@ -14,13 +14,13 @@ class TransactionFormAsset extends AssetBundle
 
     public $css = [
 
-        'css/transaction_form.css',
+        'css/transaction_form.css?v20220109',
 
     ];
 
     public $js = [
 
-        'js/transaction_form.js',
+        'js/transaction_form.js?v20220109',
         'js/jsvat.js',
 
     ];

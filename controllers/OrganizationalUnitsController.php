@@ -19,14 +19,16 @@ class OrganizationalUnitsController extends CController
      */
     public function actionIndex($active=null) // Lists all organizational units
     {
-        $active = $active == 'false' ? false : true;
+        $activeStatus = $active == 'false' ? false : true;
+        $active = $activeStatus ? 'true': 'false';
         $searchModel = new OrganizationalUnitSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams, OrganizationalUnit::find()->active($active));
-        $dataProvider->sort->defaultOrder = ['rank' => SORT_ASC];
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams, OrganizationalUnit::find()->active($activeStatus));
+        $dataProvider->sort->defaultOrder = ['rank' => SORT_ASC, 'name' => SORT_ASC];
         
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+            'active' => $active,
         ]);
     }
 
@@ -56,6 +58,7 @@ class OrganizationalUnitsController extends CController
             return $this->redirect(['view', 'id' => $model->id]);
         }
 
+        $model->possible_actions = 0;
         return $this->render('create', [
             'model' => $model,
         ]);
@@ -80,6 +83,7 @@ class OrganizationalUnitsController extends CController
             'model' => $model,
         ]);
     }
+
 
     /**
      * Finds the OrganizationalUnit model based on its primary key value.

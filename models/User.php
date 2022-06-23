@@ -20,6 +20,8 @@ use \app\models\Apikey;
  * @property string $access_token
  * @property string|null $otp_secret
  * @property int $status
+ * @property int|null $external_id
+ * @property int|null $last_renewal
  * @property int|null $created_at
  * @property int|null $updated_at
  *
@@ -28,6 +30,8 @@ use \app\models\Apikey;
  * @property Apikey[] $apikeys
  * @property Authorization[] $authorizations
  * @property Event[] $events
+ * @property Notification[] $notifications 
+ * @property PeriodicalReportComment[] $periodicalReportComments
  * @property ProjectComment[] $projectComments
  * @property Transaction[] $transactions
  * @property UserAgent[] $userAgents
@@ -56,7 +60,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {
         return [
             [['username', 'first_name', 'last_name', 'email', 'auth_key'], 'required'],
-            [['status', 'created_at', 'updated_at'], 'integer'],
+            [['status', 'external_id', 'last_renewal', 'created_at', 'updated_at'], 'integer'],
             [['username'], 'string', 'max' => 20],
             [['first_name', 'last_name'], 'string', 'max' => 40],
             [['email', 'auth_key'], 'string', 'min'=>4, 'max' => 100], // TODO The min limit is for debugging purposes
@@ -65,6 +69,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             //[['otp_secret'], 'string', 'max' => 128],
             [['username'], 'unique'],
             [['email'], 'unique'],
+	        [['external_id'], 'unique'],
         ];
     }
 
@@ -83,6 +88,8 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             'access_token' => Yii::t('app', 'Access Token'),
             'otp_secret' => Yii::t('app', 'Otp Secret'),
             'status' => Yii::t('app', 'Is Active?'),
+            'external_id' => Yii::t('app', 'External Id'),
+            'last_renewal' => Yii::t('app', 'Last Renewal'),
             'created_at' => Yii::t('app', 'Created At'),
             'updated_at' => Yii::t('app', 'Updated At'),
         ];
@@ -91,6 +98,20 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public function getFullName()
     {
         return sprintf('%s %s', $this->first_name, $this->last_name);
+    }
+    
+    public function getFullNameWithMembership()
+    {
+        $text = $this->getFullName();
+        if (!$this->isMember) {
+            $text .= ' ⚠️ ' .Yii::t('app', 'Membership not renewed.');
+        }
+        return $text;
+    }
+    
+    public function getIsMember()
+    {
+        return $this->last_renewal == date('Y');
     }
 
     /**
@@ -146,6 +167,26 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {
         return $this->hasMany(Event::className(), ['user_id' => 'id']);
     }
+
+    /**
+    * Gets query for [[Notifications]]. 
+    * 
+    * @return \yii\db\ActiveQuery 
+    */ 
+    public function getNotifications() 
+    { 
+       return $this->hasMany(Notification::className(), ['user_id' => 'id']); 
+    } 
+
+    /** 
+    * Gets query for [[PeriodicalReportComments]]. 
+    * 
+    * @return \yii\db\ActiveQuery 
+    */ 
+    public function getPeriodicalReportComments() 
+    { 
+       return $this->hasMany(PeriodicalReportComment::className(), ['user_id' => 'id']); 
+    } 
 
     /**
      * Gets query for [[ProjectComments]].

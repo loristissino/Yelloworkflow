@@ -29,12 +29,13 @@ class PeriodicalReportsManagementController extends CController
      */
     public function actionIndex($active=null, $pagesize=100) // Lists all periodical reports 
     {        
-        $active = $active == 'false' ? false : true;
+        $activeStatus = $active == 'false' ? false : true;
+        $active = $activeStatus ? 'true': 'false';
         
         $searchModel = new PeriodicalReportSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams, PeriodicalReport::find()->active($activeStatus));
 
-        $dataProvider->sort->defaultOrder = ['end_date' => SORT_DESC];
+        $dataProvider->sort->defaultOrder = ['end_date' => SORT_DESC, 'begin_date' => SORT_DESC];
         
         $dataProvider->pagination = [
             'pageSize' => $pagesize,
@@ -80,6 +81,9 @@ class PeriodicalReportsManagementController extends CController
     public function actionCreateReports() // Creates a set of periodical reports
     {
         $model = new PeriodicalReportsBulkCreationForm();
+        
+        $model->name = Yii::$app->params['periodicalReports']['name'];
+        $model->required_attachments = Yii::$app->params['periodicalReports']['requiredAttachments'];
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['index']);
@@ -90,6 +94,26 @@ class PeriodicalReportsManagementController extends CController
         ]);
     }
 
+    public function actionSummary($type='balances')
+    {
+        $data = PeriodicalReport::getSummaryData($type);
+
+        return $this->render('summary-'.$type, [
+            'dataProvider' => $data['provider'],
+            'fields' => $data['fields'],
+            'enforcedBalances' => $data['enforcedBalances'],
+        ]);
+    }
+
+    public function actionRecap($type='general', $ou=null)
+    {
+        $data = PeriodicalReport::getRecapData($type, $ou);
+
+        return $this->render('summary-recap-' . $type, [
+            'dataProvider' => $data['provider'],
+            'fields' => $data['fields'],
+        ]);
+    }
 
     public function beforeAction($action)
     {

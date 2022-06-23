@@ -34,6 +34,15 @@ class AccountQuery extends \yii\db\ActiveQuery
     {
         return $this->andWhere(['>', 'accounts.shown_in_ou_view', 0]);
     }
+    
+    public function withBalanceField($organizational_unit_id)
+    {
+        return $this
+        ->joinWith('postings')
+        ->joinWith('periodicalReports')
+        ->andWhere(['=', 'periodical_reports.organizational_unit_id', $organizational_unit_id])
+        ;
+    }
 
     /**
      * {@inheritdoc}

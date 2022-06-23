@@ -36,6 +36,7 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
 {
     const HAS_OWN_PROJECTS        =        1;
     const HAS_OWN_CASH            =        2;
+    const CAN_SELL                =        4;
     
     /**
      * {@inheritdoc}
@@ -63,9 +64,11 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
             [['last_designation_date'], 'safe'],
             [['notes'], 'string'],
             [['name', 'email'], 'string', 'max' => 100],
+            [['name', 'notes', 'email'], 'trim'],
             [['ceiling_amount'], 'number', 'min'=>0, 'max' => 100000],
             [['possible_actions'], 'number', 'min' => 0],
             [['url'], 'string', 'max' => 255],
+            [['url'], 'url'],
         ];
     }
 
@@ -172,7 +175,7 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
     
     public function getPeriodicalReportByDate($date)
     {
-        return $this->getPeriodicalReports()->draft()->withWithinDate($date)->orderBy(['end_date'=>SORT_DESC])->one();
+        return $this->getPeriodicalReports()->open()->withWithinDate($date)->orderBy(['end_date'=>SORT_DESC])->one();
     }
     
     public function getViewLink($options=[])
@@ -180,6 +183,11 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
         return Html::a($this->name, ['organizational-units/view', 'id'=>$this->id], $options);
     }
 
+    public function getViewLinkWithEmail($options=[])
+    {
+        return sprintf('%s - %s', $this->name, Html::a($this->email, 'mailto:' . $this->email, $options));
+    }
+    
     public static function getActiveOrganizationalUnitsAsArray($options)
     {
         return
@@ -197,15 +205,19 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
     {
         $options = array_merge([
             'field_name' => 'organizational_unit_id',
-            'prompt' => 'Choose the organizational unit',
+            'prompt' => Yii::t('app', 'Choose the organizational unit'),
             'order_by' => ['rank' => SORT_ASC, 'name' => SORT_ASC],
             'possible_actions' => null,
+            'onchange' => null,
         ], $options);
         return $form
             ->field($model, $options['field_name'])
             ->dropDownList(
                 self::getActiveOrganizationalUnitsAsArray($options),
-                ["prompt"=>$options['prompt']]
+                [
+                    'prompt'=>$options['prompt'],
+                    'onchange'=>$options['onchange'],
+                ]
             );
     }
     
@@ -225,14 +237,24 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
         return join($links, '<br />');
     }
     
+    public function getHasOwnProjects()
+    {
+        return $this->possible_actions & self::HAS_OWN_PROJECTS;
+    }
+
     public function getHasOwnCash()
     {
         return $this->possible_actions & self::HAS_OWN_CASH;
     }
 
+    public function getCanSell()
+    {
+        return $this->possible_actions & self::CAN_SELL;
+    }
+
     public function getLinkToLedger(Account $account)
     {
-        return Html::a(Yii::$app->formatter->asCurrency($this->computeBalance($account)), ['statements/ledger', 'account'=>$account->id, 'ou'=>$this->id]);
+        return Html::a(Yii::$app->formatter->asCurrency($this->computeBalance($account)), ['statements/ledger', 'account'=>$account->id, 'ou'=>$this->id], ['target'=>'_blank']);
     }
     
     public function computeBalance(Account $account)

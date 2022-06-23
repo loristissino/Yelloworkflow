@@ -26,6 +26,9 @@ class PeriodicalReportCommentsController extends CController
         $model = new PeriodicalReportComment();
 
         if ($model->load(Yii::$app->request->post()) && $model->setPeriodicalReport($this->periodicalReport)->setUserId(Yii::$app->user->identity->id) && $model->save()) {
+            if ($model->immediately_question_periodical_report) {
+                return $this->redirect(['periodical-reports-management/change', 'id' => $this->periodicalReport->id, 'status'=>'questioned']);
+            }
             return $this->redirect([$controller.'/view', 'id' => $this->periodicalReport->id]);
         }
 

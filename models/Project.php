@@ -44,7 +44,7 @@ class Project extends \yii\db\ActiveRecord
     {
         return [
             TimestampBehavior::className(),
-            [
+            'workflowBehavior' => [
                 'class'                    => SimpleWorkflowBehavior::className(),
                 'statusAttribute'          => 'wf_status',
             ],
@@ -62,6 +62,7 @@ class Project extends \yii\db\ActiveRecord
             [['organizational_unit_id', 'created_at', 'updated_at'], 'integer'],
             [['title'], 'string', 'max' => 100],
             [['period', 'place'], 'string', 'max' => 255],
+            [['title', 'description', 'period', 'place', 'co_hosts', 'partners'], 'filter', 'filter'=>function($value) {return trim(strip_tags($value));}],
             [['wf_status'], 'string', 'max' => 40],
             [['organizational_unit_id'], 'exist', 'skipOnError' => true, 'targetClass' => OrganizationalUnit::className(), 'targetAttribute' => ['organizational_unit_id' => 'id']],
         ];
@@ -119,7 +120,7 @@ class Project extends \yii\db\ActiveRecord
     
     public function getIsDraft()
     {
-        return $this->getWorkflowStatus()->getId() == 'ProjectWorkflow/draft';
+        return $this->hasWfStatus('draft');
     }
     
     public function getViewLink($options=[])
@@ -138,11 +139,21 @@ class Project extends \yii\db\ActiveRecord
         return $this->title;
     }
     
-    public static function getProjectsAsArray($order_by, $organizational_unit_id)
+    public function hasWfStatus($status)
+    {
+        return $this->getWorkflowStatus()->getId() == 'ProjectWorkflow/' . $status;
+    }
+    
+    public function getIsApproved()
+    {
+        return $this->hasWfStatus('approved') or $this->hasWfStatus('partially-approved');
+    }
+    
+    public static function getProjectsAsArray($order_by, $organizational_unit_id, $also_ended=false)
     {
         return
           self::find()
-            ->approved()
+            ->approved($also_ended)
             ->withOrganizationalUnitId($organizational_unit_id)
             ->orderBy($order_by)
             ->select(['title'])
@@ -158,21 +169,26 @@ class Project extends \yii\db\ActiveRecord
             'prompt' => 'Choose the project',
             'order_by' => ['created_at' => SORT_DESC],
             'organizational_unit_id' => 0,
+            'alsoEnded' => false,
         ], $options);
+        
         return $form
             ->field($model, $options['field_name'])
             ->dropDownList(
-                self::getProjectsAsArray($options['order_by'], $options['organizational_unit_id']),
-                ["prompt"=>Yii::t('app', $options['prompt'])]
+                self::getProjectsAsArray($options['order_by'], $options['organizational_unit_id'], $options['alsoEnded']),
+                [
+                    'prompt'=>Yii::t('app', $options['prompt']),
+                ]
             );
     }
 
-    public function cloneModel()
+    public function cloneModel($organizationalUnitId)
     {
         $model = new Project();
         $model->attributes = $this->attributes;
         $model->title .= ' - ' . Yii::t('app', '(Copy)');
         $model->id = null;
+        $model->organizational_unit_id = $organizationalUnitId;
         $model->created_at = null;
         $model->updated_at = null;
         $model->sendToStatus(null);
@@ -217,6 +233,13 @@ class Project extends \yii\db\ActiveRecord
                 }
                 break;
 
+            case 'ProjectWorkflow/partially-approved':
+                if ( ! $this->_hasRecentComments() ) {
+                    $this->workflowError = 'To partially approve a project at least one comment is needed.';
+                    $event->invalidate($this->workflowError);
+                }
+                break;
+
             case 'ProjectWorkflow/rejected':
                 if ( ! $this->_hasRecentComments() ) {
                     $this->workflowError = 'To reject a project at least one comment is needed.';
@@ -248,7 +271,7 @@ class Project extends \yii\db\ActiveRecord
         
         $log .= $event->getTransition()->getId() . "\n";
         
-        $options = [];
+        $options = ['related'=>['frozenPlannedExpenses']];
 
         if ($event->getEndStatus()->getId() == 'ProjectWorkflow/draft') {
              Yii::$app->session->setFlash('info', Yii::t('app', 'The project must be submitted again after the edits.'));
@@ -258,7 +281,7 @@ class Project extends \yii\db\ActiveRecord
             $options['related'] = ['plannedExpenses'];
         }
 
-        if ($event->getEndStatus()->getId() == 'ProjectWorkflow/approved') {
+        if (in_array($event->getEndStatus()->getId(), ['ProjectWorkflow/approved','ProjectWorkflow/partially-approved'])) {
             $ou = $this->getOrganizationalUnit()->one();
             if (! $ou->hasOwnCash) {
                 $periodicalReport = new \app\models\PeriodicalReport();
@@ -268,6 +291,7 @@ class Project extends \yii\db\ActiveRecord
                 $periodicalReport->name = Yii::t('app', 'Expenses for «{title}»', ['title' => $this->title]);
                 $periodicalReport->save();
             }
+            $this->_createCommentAfterApproval();
         }
 
         if ($event->getEndStatus()->getId() == 'ProjectWorkflow/rejected') {
@@ -292,10 +316,22 @@ class Project extends \yii\db\ActiveRecord
     {
         return sizeof($this->getProjectComments()->after($this->LastLoggedActivityTime)->ofUser(Yii::$app->user->identity->id)->all()) > 0;
     }
+    
+    public function getLastComments()
+    {
+        $comments = $this->getProjectComments()->ofUser(Yii::$app->user->identity->id)->all();
+        
+        $text = '';
+        foreach($comments as $comment) {
+            $text .= $comment->comment . "\n\n";
+        }
+        
+        return $text;
+    }
 
     public function getAllRelatedExpenses()
     {
-        $query = Posting::find()->withRealAccount(false)->relatedToProject($this);
+        $query = Posting::find()->withRealAccount(false)->relatedToProject($this)->notWithTransactionStatus('TransactionWorkflow/rejected');
         
         $query
         ->joinWith('account')
@@ -304,14 +340,50 @@ class Project extends \yii\db\ActiveRecord
         
         return $query;
     }
-
+    
+    public function getFrozenPlannedExpenses()
+    {
+        $items = [];
+        foreach($this->getPlannedExpenses()->all() as $expense){
+            $text = Yii::t('app', '[{type}] {description}: {amount}', [
+                'type'=>$expense->expenseType->name,
+                'description'=>$expense->description,
+                'amount'=>Yii::$app->formatter->asCurrency($expense->amount),
+            ]);
+            
+            if ($expense->notes) {
+                $text .= Yii::t('app', ' -- {notes}', [
+                    'notes'=>$expense->notes
+                ]);
+            }
+            
+            $items[] = $text;
+        }
+        return $items;
+    }
+    
+    public function getFrozenPlannedExpensesAsText()
+    {
+        return '* ' . join("\n* ", $this->getFrozenPlannedExpenses());
+    }
+    
+    private function _createCommentAfterApproval()
+    {
+        $comment = new ProjectComment();
+        $comment->user_id = Yii::$app->user->identity->id;
+        $comment->project_id = $this->id;
+        $comment->comment = Yii::t('app', '[Autogenerated comment]') . ' - '. Yii::t('app', 'Submitted planned expenses') . "\n\n" . $this->getFrozenPlannedExpensesAsText();
+        $comment->save();
+        return $comment->id;
+    }
+    
     private function _allDeclaredExpensesAreRecorded()
     {
         $query = $this->getAllRelatedExpenses();
-        
+                
         return 
             $query->count()
-            ==
+            ===
             $query->withTransactionStatus('TransactionWorkflow/recorded')->count()
         ;
     }

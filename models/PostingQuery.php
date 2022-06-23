@@ -52,6 +52,24 @@ class PostingQuery extends \yii\db\ActiveQuery
         return $this->andWhere(['=', 'transactions.wf_status', $status]);
     }
 
+    public function notWithTransactionStatus($status)
+    {
+        return $this->andWhere(['<>', 'transactions.wf_status', $status]);
+    }
+    
+    public function inYear($year)
+    {
+        return $this
+            ->andWhere(['>=','transactions.date', $year . '-01-01'])
+            ->andWhere(['<=','transactions.date', $year . '-12-31'])
+            ;
+    }
+
+    public function rejected($rejected=true)
+    {
+        return $this->andWhere([$rejected ? '=' : '<>', 'transactions.wf_status', 'TransactionWorkflow/rejected']);
+    }
+
     /**
      * {@inheritdoc}
      * @return Posting[]|array

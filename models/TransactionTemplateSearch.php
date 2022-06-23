@@ -20,7 +20,7 @@ class TransactionTemplateSearch extends TransactionTemplate
     public function rules()
     {
         return [
-            [['id', 'organizational_unit_id', 'status', 'rank', 'needs_attachment', 'needs_project', 'needs_vendor'], 'integer'],
+            [['id', 'organizational_unit_id', 'status', 'rank', 'needs_attachment', 'needs_project', 'needs_vendor', 'is_sealable'], 'integer'],
             [['title', 'description', 'organizational_unit'], 'safe'],
         ];
     }
@@ -79,6 +79,7 @@ class TransactionTemplateSearch extends TransactionTemplate
             'needs_vendor' => $this->needs_vendor,
             'needs_attachment' => $this->needs_attachment,
             'needs_project' => $this->needs_project,
+            'is_sealable' => $this->is_sealable,
         ]);
 
         $query->andFilterWhere(['like', 'title', $this->title])

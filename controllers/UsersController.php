@@ -7,6 +7,7 @@ use app\models\User;
 use app\models\UserSearch;
 use yii\web\NotFoundHttpException;
 use app\components\CController;
+use app\models\UsersRenewalsForm;
 
 /**
  * UsersController implements the CRUD actions for User model.
@@ -20,13 +21,15 @@ class UsersController extends CController
      */
     public function actionIndex($active=null) // Lists all users
     {
-        $active = $active == 'false' ? false : true;
+        $activeStatus = $active == 'false' ? false : true;
+        $active = $activeStatus ? 'true': 'false';
         $searchModel = new UserSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams, User::find()->active($active));
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams, User::find()->active($activeStatus));
 
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+            'active' => $active,
         ]);
     }
 
@@ -82,6 +85,34 @@ class UsersController extends CController
         return $this->render('update', [
             'model' => $model,
         ]);
+    }
+    
+    public function actionRenewals()
+    {
+        $model = new UsersRenewalsForm();
+        
+        if ($model->load(Yii::$app->request->post()) && $model->validate() && $model->save()) {
+            $count = sizeof($model->updated);
+            $flash = Yii::t('app', 'Last renewal updated for {count,plural,=0{no users} =1{one user} other{# users}}.', ['count'=>$count]);
+            if ($count>0) {
+                $names = [];
+                foreach($model->updated as $user) {
+                    $names[]=$user->fullName;
+                }
+                $flash .= '<br />' . Yii::t('app', 'Updated users: {list}.', ['list'=>join(', ', $names)]);
+            }
+            Yii::$app->session->setFlash('success', $flash);
+            return $this->redirect(['index']);
+        }
+
+        if (!$model->year) {
+            $model->year = date('Y');
+        }
+        
+        return $this->render('renewals', [
+            'model' => $model,
+        ]);
+        
     }
 
     /*

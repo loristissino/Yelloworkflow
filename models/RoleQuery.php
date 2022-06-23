@@ -11,7 +11,12 @@ class RoleQuery extends \yii\db\ActiveQuery
 {
     public function active($active=true)
     {
-        return $this->andWhere(['=', 'status', $active ? 1 : 0]);
+        return $this->andWhere([$active? '>': '=', 'status', 0]);
+    }
+
+    public function withRequiredMembership()
+    {
+        return $this->andWhere(['=', 'status', 2]);
     }
 
     public function withId($id)

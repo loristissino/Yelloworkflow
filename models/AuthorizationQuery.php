@@ -95,7 +95,6 @@ class AuthorizationQuery extends \yii\db\ActiveQuery
          *    @ logged-in user
          *    ? anonymous user
          */
-
         if ($user->isGuest) {
             return $this->andWhere(new OrCondition([
                 ['=', 'type', '*'],

@@ -21,7 +21,12 @@ class TransactionTemplateQuery extends \yii\db\ActiveQuery
 
     public function officeOnly($office_only=true)
     {
-        return $office_only ? $this->andWhere(['<>', 'o_title', '']) : $this;
+        return $office_only ? $this->andWhere(['<>', 'office', 0]) : $this;
+    }
+
+    public function allowedForOrganizationaLUnit($allowed=true)
+    {
+        return $allowed ? $this->andWhere(['<>', 'office', 1]) : $this;
     }
 
     /**

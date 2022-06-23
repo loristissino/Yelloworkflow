@@ -41,7 +41,6 @@ switch($view) {
         break;
 
     case 'pivot':
-        //echo "<pre>";
         $dateField = Yii::t('app', 'Date');
         $columns = [
             $dateField,
@@ -53,7 +52,7 @@ switch($view) {
 
         foreach($dataProvider->models as $row) {
             $data[] = [
-                $dateField => $row['date'],
+                $dateField => Yii::$app->formatter->asDate($row['date']),
                 //$row['name']=> Yii::$app->formatter->asCurrency($row['amount']),
                 $row['name']=> $row['amount'], //is_numeric($row['amount']) ? floatval($row['amount']) : 0,
             ];
@@ -62,7 +61,6 @@ switch($view) {
             }
             $totals[$row['name']]+=$row['amount'];
         }
-
         
         foreach($dataProvider->models as $row) {
             if(!in_array($row['name'], $columns)) {
@@ -111,16 +109,6 @@ switch($view) {
             $data[] = $value;
         }
         
-       /*
-        print_r($data);
-        print_r($newdata);
-        print_r($totals);
-        
-        
-        print_r($columns);
-        
-        die();
-        */
         $dataProvider = new \yii\data\ArrayDataProvider([
             'allModels' => $data,
             'sort' => [

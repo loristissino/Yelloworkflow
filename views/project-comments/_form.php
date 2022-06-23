@@ -12,7 +12,11 @@ use yii\widgets\ActiveForm;
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'comment')->textarea(['rows' => 6]) ?>
+    <?= $form->field($model, 'comment')->textarea(['rows' => 6, 'autofocus'=>true, 'onfocus'=>'this.setSelectionRange(this.value.length,this.value.length);']) ?>
+
+    <?php if($controller=='projects-management' and $model->isNewRecord and $project->hasWfStatus('submitted')): ?>
+        <?= $form->field($model, 'immediately_question_project')->checkbox()->hint(Yii::t('app', 'By checking this box, the project will be immediately set to "questioned". Use it when there is only one comment.')) ?>
+    <?php endif ?>
 
     <?= $form->errorSummary($model) ?>
 

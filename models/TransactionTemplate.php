@@ -16,9 +16,12 @@ use yii\helpers\Html;
  * @property string $description
  * @property string $o_title // title from the main office's point of view
  * @property string $o_description // description from the main office's point of view
+ * @property string $request // extra request for notes field
  * @property int $needs_attachment
  * @property int $needs_project
  * @property int $needs_vendor
+ * @property int $is_sealable // 0=forbidden 1=required 2=allowed
+ * @property int $office // 0=forbidden (only organizational units) 1=required (only office) 2=allowed (both office and organizational units)
  *
  * @property TransactionTemplatePosting[] $transactionTemplatePostings
  * @property OrganizationalUnit $organizationalUnit
@@ -42,11 +45,26 @@ class TransactionTemplate extends \yii\db\ActiveRecord
     {
         return [
             [['organizational_unit_id', 'status', 'rank'], 'integer'],
-            [['status', 'rank', 'title', 'description', 'needs_attachment', 'needs_project', 'needs_vendor'], 'required'],
+            [['status', 'rank', 'title', 'description', 'needs_attachment', 'needs_project', 'needs_vendor', 'is_sealable', 'office'], 'required'],
             [['title', 'o_title'], 'string', 'max' => 60],
-            [['description', 'o_description'], 'string', 'max' => 255],
+            [['description', 'o_description', 'request'], 'string', 'max' => 255],
+            ['office', 'validateOfficeFields'],
             [['organizational_unit_id'], 'exist', 'skipOnError' => true, 'targetClass' => OrganizationalUnit::className(), 'targetAttribute' => ['organizational_unit_id' => 'id']],
         ];
+    }
+
+    public function validateOfficeFields($attribute, $params, $validator)
+    {
+        if ($this->office == 0) {
+            if ($this->o_title or $this->o_description) {
+                $this->addError($attribute, Yii::t('app', 'Office title and description cannot be set.'));
+            }
+        }
+        else {
+            if (!$this->o_title or !$this->o_description) {
+                $this->addError($attribute, Yii::t('app', 'Office title and description must be set.'));
+            }
+        }
     }
 
     /**
@@ -61,11 +79,14 @@ class TransactionTemplate extends \yii\db\ActiveRecord
             'rank' => Yii::t('app', 'Rank'),
             'title' => Yii::t('app', 'Title'),
             'description' => Yii::t('app', 'Description'),
+            'request' => Yii::t('app', 'Request'),
             'o_title' => Yii::t('app', 'Title from the Office\'s Point of View'),
             'o_description' => Yii::t('app', 'Description from the Office\'s Point of View'),
             'needs_attachment' => Yii::t('app', 'Needs attachment?'),
             'needs_project' => Yii::t('app', 'Project?'),
             'needs_vendor' => Yii::t('app', 'Needs vendor?'),
+            'is_sealable' => Yii::t('app', 'Sealable?'),
+            'office' => Yii::t('app', 'Preparable by the office?'),
         ];
     }
 
@@ -119,7 +140,8 @@ class TransactionTemplate extends \yii\db\ActiveRecord
     {
         return self::find()
             ->active()
-            ->select(['id', 'title', 'description', 'needs_attachment', 'needs_project', 'needs_vendor'])
+            ->allowedForOrganizationaLUnit()
+            ->select(['id', 'title', 'description', 'needs_attachment', 'needs_project', 'needs_vendor', 'request'])
             ->indexBy('id')
             ->orderBy(['rank' => SORT_ASC, 'title' => SORT_ASC])
             ->asArray()
@@ -132,14 +154,13 @@ class TransactionTemplate extends \yii\db\ActiveRecord
         return self::find()
             ->active()
             ->officeOnly()
-            ->select(['id', 'o_title AS title', 'o_description AS description', 'needs_attachment', 'needs_project', 'needs_vendor'])
+            ->select(['id', 'o_title AS title', 'o_description AS description', 'needs_attachment', 'needs_project', 'needs_vendor', 'request'])
             ->indexBy('id')
             ->orderBy(['rank' => SORT_ASC, 'title' => SORT_ASC])
             ->asArray()
             ->all()
              ;
     }
-
 
     public function getNeedsAttachmentView()
     {
@@ -154,6 +175,31 @@ class TransactionTemplate extends \yii\db\ActiveRecord
     public function getNeedsVendorView()
     {
         return $this->getBooleanRepresentation($this->needs_vendor);
+    }
+
+    public function getIsSealableView()
+    {
+        return $this->getTernarianRepresentation($this->is_sealable);
+    }
+
+    public function getOfficeView()
+    {
+        return $this->getTernarianRepresentation($this->office);
+    }
+    
+    public function getCanBeSealed()
+    {
+        return $this->is_sealable != 0;
+    }
+
+    public function getCantBeSealed()
+    {
+        return $this->is_sealable == 0;
+    }
+
+    public function getMustBeSealed()
+    {
+        return $this->is_sealable == 1;
     }
 
     public static function getDropdown($form, $model, $options=[])
@@ -179,13 +225,14 @@ class TransactionTemplate extends \yii\db\ActiveRecord
         $model->attributes = $this->attributes;
         $model->title .= ' - ' . Yii::t('app', '(Copy)');
         $model->id = null;
+        $model->status = 0;
         $model->save();
         
         foreach($this->transactionTemplatePostings as $item) {
             $newItem = new TransactionTemplatePosting();
             $newItem->attributes = $item->attributes;
             $newItem->id = null;
-            $newItem->transaction_template_id = $model->id;
+            $newItem->transaction_template_id = $model->id;            
             $newItem->save();
         }
     

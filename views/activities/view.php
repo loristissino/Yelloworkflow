@@ -1,6 +1,7 @@
 <?php
 
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\widgets\DetailView;
 use yii\helpers\Json;
 
@@ -49,6 +50,16 @@ if ($model->model_id) {
                 'label' => 'Authorization',
                 'format' => 'raw',
                 'value' => $model->authorization_id ? $model->authorization->viewLink : '',
+            ],
+            [
+                'label' => 'Workflow',
+                'format' => 'raw',
+                'value' => function($model) {
+                    if (!Yii::$app->user->hasAuthorizationFor('workflow')) {
+                        return '';
+                    }
+                    return Html::a(Yii::t('app', 'Edit Workflow Status'), ['workflow/update', 'type'=>$model->model, 'id'=>$model->model_id, 'return'=>Url::current()]);
+                }
             ],
         ],
     ]) ?>
