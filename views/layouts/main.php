@@ -5,10 +5,49 @@
 
 use app\widgets\Alert;
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
 use yii\widgets\Breadcrumbs;
 use app\assets\AppAsset;
+
+
+$this->registerJs(
+    "
+    let pingUrl = '". Url::toRoute(['site/ping']). "';
+    
+    let cnt = $('#user_info').html();
+
+    
+    async function ping() {
+        let response = await fetch(pingUrl);
+        let content = await response.json();
+        if (!content) {
+            return;
+        }
+        let users = content.users.map(x => x.fullName);
+        let tooltip = '';
+        let icon = '🙂';
+        if (users.length > 0) {
+            tooltip = '👥\\n' + users.join('\\n') + '\\n';
+            icon = '😌';
+        }
+        if (content.unseen_notifications > 0) {
+            tooltip += `\\n✉️ \${content.unseen_notifications}`;
+            icon = '🔔';
+        }
+        $('#user_info').attr('title', tooltip);
+        $('#user_info').html(cnt.replace('😶', icon));
+    }
+    
+    setTimeout(ping, 1000);
+    setInterval(ping, 10000);
+    
+    
+    ",
+    \yii\web\View::POS_READY,
+    'pinger'
+);
 
 AppAsset::register($this);
 ?>
@@ -45,6 +84,8 @@ AppAsset::register($this);
         $items[] = ['label' => 'Login', 'url' => ['/site/login']];
     }
     else {
+        $notifications = (int)Yii::$app->user->identity->getNumberOfUnseenNotifications();
+
         $items[] = ['label' => Yii::t('app', 'Dashboard'), 'url' => ['/site/dashboard']];
         
         if (Yii::$app->user->hasAuthorizationFor('users')) {
@@ -72,7 +113,21 @@ AppAsset::register($this);
             ];
         }
         
-        $items[] = ['label' => Yii::t('app', 'Handbook'), 'url' => ['/site/handbook'], 'linkOptions' => ['target'=>'_blank', 'title'=>Yii::t('app', 'Opens in a new tab')]];
+        $items[] = ['label' => Yii::t('app', 'Help'),
+            'items' => [
+                ['label' => Yii::t('app', 'Handbook'), 'url' => ['/site/handbook'], 'linkOptions' => ['target'=>'_blank', 'title'=>Yii::t('app', 'Opens in a new tab')]],
+                ['label' => Yii::t('app', 'Open an issue'), 'url' => ['/site/issues', 'reference'=>$this->title, 'url'=>urlencode(Yii::$app->request->url)]],
+                ['label' => Yii::t('app', 'Contacts'), 'url' => ['/site/about']],
+            ]
+        ];
+
+        $items[] = ['label' => '😶', 'options'=>['id'=>'user_info'],
+            'items' => [
+                ['label' => Yii::t('app', '{count,plural,=0{Notifications (empty)} =1{Notifications (one)} other{Notifications (#)}}', ['count'=>$notifications]), 'url' => ['/notifications/index']],
+                ['label' => Yii::t('app', 'Profile'), 'url' => ['/site/profile']],
+            ]
+        ];
+
         $items[] = (
                 '<li>'
                 . Html::beginForm(['/site/logout'], 'post')
@@ -84,14 +139,14 @@ AppAsset::register($this);
                 . '</li>'
                 );
         }
-    
+        
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => $items,
     ]);
     NavBar::end();
     ?>
-
+    
     <div class="container">
         <?= Breadcrumbs::widget([
             'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],

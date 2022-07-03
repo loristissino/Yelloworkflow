@@ -20,7 +20,7 @@ class TransactionFormAsset extends AssetBundle
 
     public $js = [
 
-        'js/transaction_form.js?v20220109',
+        'js/transaction_form.js?v20230703',
         'js/jsvat.js',
 
     ];

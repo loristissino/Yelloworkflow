@@ -7,13 +7,13 @@ use yii\grid\GridView;
 /* @var $dataProvider yii\data\ActiveDataProvider */
 /*
  */
-$this->title = Yii::t('app', 'Transactions');
+$title = Yii::t('app', 'Transactions');
 //$this->params['breadcrumbs'][] = $this->title;
 
 ?>
 <div class="transaction-index">
 
-    <h2><?= Html::encode($this->title) ?></h2>
+    <h2><?= Html::encode($title) ?></h2>
 
     <?php if ($periodicalReport->isDraft): ?>
         <p>

@@ -35,4 +35,14 @@ class AuthorizationFilter extends ActionFilter
         
         return parent::beforeAction($action);
     }
+
+    public function afterAction($action, $result)
+    {
+        if (!Yii::$app->user->isGuest) {
+            Yii::$app->user->identity->touchLastActionAt();
+        }
+        return parent::afterAction($action, $result);
+    }
+
 }
+

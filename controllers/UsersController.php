@@ -77,8 +77,10 @@ class UsersController extends CController
     public function actionUpdate($id) // Updates a specific user
     {
         $model = $this->findModel($id);
+        
+        $this->_lockModel($model);
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if ($model->load(Yii::$app->request->post()) && $model->save() && $model->unlock()) {
             return $this->redirect(['view', 'id' => $model->id]);
         }
 

@@ -8,7 +8,7 @@ use yii\web\Response;
 use app\models\LoginForm;
 use app\models\PwdResetForm;
 use app\models\PwdChangeForm;
-use app\models\ContactForm;
+use app\models\IssuesForm;
 use app\components\CController;
 use app\models\Authorization;
 use app\models\User;
@@ -44,7 +44,20 @@ class SiteController extends CController
     {
         return $this->render('index');
     }
-
+    
+    public function actionPing()
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        if (Yii::$app->user->isGuest) {
+            return '';
+        }
+        Yii::$app->user->identity->touchLastActionAt();
+        $content['users'] = Yii::$app->user->identity->getOtherOnlineUsersAsProcessedArray();
+        $content['unseen_notifications'] = Yii::$app->user->identity->getNumberOfUnseenNotifications();
+        
+        return $content;
+    }
+    
     /**
      * Login action.
      *
@@ -145,6 +158,7 @@ class SiteController extends CController
             \app\components\LogHelper::log('Logout', Yii::$app->user->identity, ['excluded'=>[
                 'first_name','last_name', 'email', 'auth_key', 'access_token','otp_secret','created_at', 'updated_at',
             ]]);
+            Yii::$app->user->identity->touchLastActionAt(true);
         }
         Yii::$app->user->logout();
         return $this->goHome();
@@ -155,7 +169,7 @@ class SiteController extends CController
      *
      * @return Response
      */
-    public function actionHandbook() // Makes the user log out
+    public function actionHandbook() 
     {
         return $this->redirect(Yii::$app->params['handbookUrl']);
     }
@@ -166,15 +180,16 @@ class SiteController extends CController
      *
      * @return Response|string
      */
-    public function actionContact() // Displays the "Contact us" page
+    public function actionIssues($reference, $url) // Displays the "Issues" page
     {
-        $model = new ContactForm();
-        if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
-            Yii::$app->session->setFlash('contactFormSubmitted');
-
-            return $this->refresh();
+        $model = new IssuesForm();
+        $model->reference = $reference;
+        $model->url = urldecode($url);
+        if ($model->load(Yii::$app->request->post()) && $model->notify()) {
+            Yii::$app->session->setFlash('success', Yii::t('app', 'Issue submitted.'));
+            return $this->redirect($model->url);
         }
-        return $this->render('contact', [
+        return $this->render('issues', [
             'model' => $model,
         ]);
     }
@@ -199,12 +214,14 @@ class SiteController extends CController
     {
         Yii::$app->session->setFlash('info', null);
         $controllers = array_merge([
+            /*
             'site/profile' => [
                 'icon' => 'user',
                 'color' => '#093609',
                 'title' => 'Profile',
                 'description' => 'About you',
             ],
+            */
         ], Authorization::getAuthorizedControllers());
         
         return $this->render('dashboard', [

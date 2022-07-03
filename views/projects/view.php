@@ -1,6 +1,7 @@
 <?php
 
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\widgets\DetailView;
 use app\models\PlannedExpense;
 use app\models\PlannedExpenseSearch;
@@ -47,7 +48,7 @@ if (!$model->isDraft) {
         'transitions' => $transitions
     ]) ?>
     </p>
-
+    
     <?= DetailView::widget([
         'model' => $model,
         'attributes' => [
@@ -109,4 +110,14 @@ if (!$model->isDraft) {
             'method' => 'post',
         ],
     ]) ?>
+<?php endif ?>
+
+<?php if(Yii::$app->user->hasAuthorizationFor('projects-management')): ?>
+    <?php $url=Url::toRoute(['projects-management/view', 'id'=>$model->id, 'template'=>'copyandpaste']); ?>
+    <?= Html::a(Yii::t('app', 'Copy and Paste View'), $url, ['target'=>'_blank']) ?>
+    <?php /*
+    <br />
+    <?= Html::a(Yii::t('app', 'Copy and Paste View (popup)'), $url, ['target'=>'popup', 'onclick'=>'window.open("' . $url . '","popup","width=600,height=600"); return false;']) ?>
+    */ ?>
+    
 <?php endif ?>

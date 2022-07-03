@@ -322,6 +322,15 @@ class PeriodicalReport extends \yii\db\ActiveRecord
             $this->due_date = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")+2, date("Y")));
             $this->save();
         }
+
+        if ($event->getEndStatus()->getId() == 'PeriodicalReportWorkflow/closed') {
+            $today = date('Y-m-d');
+            if ($this->end_date > $today) {
+                // this happens for periodical reports generated automatically when the submitting organizational unit has no cash management
+                $this->end_date = $today;
+                $this->save();
+            }
+        }
         
         $options = [];
         

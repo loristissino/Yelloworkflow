@@ -22,7 +22,7 @@ class NotificationsController extends CController
      * Lists all Notification models.
      * @return mixed
      */
-    public function actionIndex($seen=null, $pagesize=20) // Lists the notifications for the logged-in user
+    public function actionIndex($seen=null, $pagesize=50) // Lists the notifications for the logged-in user
     {
         $seen = $seen === 'true' ? true : false;
         

@@ -19,6 +19,8 @@ use Yii;
  */
 class Affiliation extends \yii\db\ActiveRecord
 {
+    use ModelTrait;
+    
     /**
      * {@inheritdoc}
      */

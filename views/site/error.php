@@ -6,6 +6,7 @@
 /* @var $exception Exception */
 
 use yii\helpers\Html;
+use yii\helpers\Url;
 
 $this->title = $name;
 ?>
@@ -18,10 +19,10 @@ $this->title = $name;
     </div>
 
     <p>
-        The above error occurred while the Web server was processing your request.
+        <?= Yii::t('app', 'The above error occurred while the Web server was processing your request.') ?>
     </p>
     <p>
-        Please contact us if you think this is a server error. Thank you.
+        <?= Yii::t('app', 'Please <a href="{contact_url}">contact</a> us if you think this is a server error, or try <a href="{reload_url}">reloading</a> the page. Thank you.', ['contact_url'=>Url::toRoute(['site/about']), 'reload_url'=>Yii::$app->request->url]) ?>
     </p>
 
 </div>

@@ -19,6 +19,8 @@ use Yii;
  */
 class PlannedExpense extends \yii\db\ActiveRecord
 {
+    use ModelTrait;
+    
     /**
      * {@inheritdoc}
      */

@@ -28,7 +28,10 @@ use \raoul2000\workflow\base\SimpleWorkflowBehavior;
  */
 class Project extends \yii\db\ActiveRecord
 {
+    private $_recentCommentsCache = '';
+    
     use WorkflowTrait;
+    use ModelTrait;
     
     //public $workflowError = 'Unspecified error.';
     
@@ -217,6 +220,7 @@ class Project extends \yii\db\ActiveRecord
 
     private function _runWorkflowChecks($event)
     {
+        $this->cacheRecentComments();
         switch ($event->getEndStatus()->getId()) {
             case 'ProjectWorkflow/submitted':
                 if (sizeof($this->getPlannedExpenses()->all())==0) {
@@ -317,16 +321,31 @@ class Project extends \yii\db\ActiveRecord
         return sizeof($this->getProjectComments()->after($this->LastLoggedActivityTime)->ofUser(Yii::$app->user->identity->id)->all()) > 0;
     }
     
+    public function cacheRecentComments()
+    {
+        $this->_recentCommentsCache = $this->getProjectComments()->after($this->LastLoggedActivityTime)->ofUser(Yii::$app->user->identity->id)->all();
+    }
+    
     public function getLastComments()
     {
-        $comments = $this->getProjectComments()->ofUser(Yii::$app->user->identity->id)->all();
+        // To save comments before a workflow state transition, it is recommended to call the method cacheRecentComments() before calling this one
+        if (!$this->_recentCommentsCache) {
+            $this->cacheRecentComments();
+        }
+        $comments = $this->_recentCommentsCache;
         
         $text = '';
         foreach($comments as $comment) {
-            $text .= $comment->comment . "\n\n";
+            $text .= Yii::t('app', "{comment}\n\n", ['comment'=>$comment->comment]);
         }
         
         return $text;
+    }
+    
+    public function getLastCommentsWithoutGTSign()
+    {
+        // this can be helpful in generated notifications, where we don't want '>' signs to be interpreted with the markdown meaning
+        return str_replace('>', '›', $this->getLastComments());
     }
 
     public function getAllRelatedExpenses()

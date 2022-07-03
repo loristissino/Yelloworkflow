@@ -229,13 +229,14 @@ class Authorization extends \yii\db\ActiveRecord
                 'title' => 'Events Management',
                 'description' => 'What\'s gonna happen',
             ],
+            /*
             'notifications' => [
                 'icon' => 'envelope',
                 'color' => '#093609',
                 'title' => 'Notifications',
                 'description' => 'Messages for you',
             ],
-            
+            */
         ];
         
         $authorizations = array_map(

@@ -5,6 +5,7 @@
         if (template) {
             let speed = 600;
             $('#template_description').text(template.description).show();
+            $('#notes_request').text(template.request).show();
             if (template.needs_project!=0) {
                 $('#project_fieldset').show(speed);
             }
@@ -23,6 +24,15 @@
             else {
                 $('#attachments_fieldset').hide(speed);
             }
+            console.log("passing thru...");
+            console.log(template.request);
+            if (!!template.request) {
+                console.log("showing...");
+                $('#notes_request').show(speed);
+            }
+            else {
+                $('#notes_request').hide(speed);
+            }
         }
         else {
             $('#template_description').text('').hide();
@@ -33,7 +43,21 @@
     $(document).ready(updateFieldsetsView);
     
     $('#transactionform-vat_number').on('blur', function() {
-        let number = $(this).val();
+        let typed = $(this).val();
+        let number = typed;
+        let vendor = '';
+        
+        let index = typed.indexOf(' - ');
+        
+        if (index > -1) {
+            number = typed.substring(0, index);
+            vendor = typed.substring(index+3, 9999);
+            $(this).val(number);
+            if (!$('#transactionform-vendor').val()) {
+                $('#transactionform-vendor').val(vendor); // we won't overwrite typed values
+            }
+        }
+        
         let saveButton = $('#save_button');
         let msg = $('#vat_number_check');
         

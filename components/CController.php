@@ -142,6 +142,17 @@ class CController extends Controller
         return $this->redirect($redirect);
     }
     
+    protected function _lockModel($model)
+    {
+        $info = $model->getLocker();
+        if ($info) {
+            throw new LockedHttpException(Yii::t('app', 'This item has been locked for an update by {user} {minutes,plural,=0{a few seconds} =1{one minute} other{# minutes}} ago.', ['user'=>$info['user']->fullName, 'minutes'=>(int)round($info['seconds']/60)]) . ' ' . Yii::t('app', 'The lock expires automatically after a few minutes of their inactivity.'));
+        }
+        else {
+            $model->lock();
+        }
+    }
+    
     protected function _changeWorkflowStatus($model, $status, $redirect=null)
     {
         if ($model->sendToStatus($status)) {

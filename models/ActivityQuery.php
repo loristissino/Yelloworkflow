@@ -24,6 +24,22 @@ class ActivityQuery extends \yii\db\ActiveQuery
         return $this->andWhere(['=', 'model_id', $model_id]);
     }
 
+    public function withActivityType($type)
+    {
+        return $this->andWhere(['=', 'activity_type', $type]);
+    }
+    
+    public function withUserIdDifferentFrom($user_id)
+    {
+        return $this->andWhere(['<>', 'user_id', $user_id]);
+    }
+    
+    public function recent($seconds=600)
+    {
+        return $this->andWhere(['>', 'happened_at', time()-$seconds]);
+    }
+    
+
     /**
      * {@inheritdoc}
      * @return Activity[]|array

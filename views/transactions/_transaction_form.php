@@ -3,7 +3,8 @@
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\ActiveForm;
-use zhuravljov\yii\widgets\DatePicker;
+//use zhuravljov\yii\widgets\DatePicker;
+use yii\jui\AutoComplete;
 
 use nemmo\attachments\components\AttachmentsInput;
 use app\assets\TransactionFormAsset;
@@ -20,6 +21,8 @@ $vat_number_messages = [
     'ok' => Yii::t('app', 'VAT Number seems to be OK.'),
     'wrong' => Yii::t('app', 'VAT Number seems to be wrong.'),
 ];
+
+$date_field_message = Yii::t('app', 'Your browser does not seem to support date picking. Write the date using the format <em>yyyy-mm-dd</em>.');"Il tuo browser non sembra supportare la scelta delle date: scrivile usando il formato <em>anno-mese-giorno</em>";
 
 $this->registerJs(
     "
@@ -79,6 +82,29 @@ if ($model->organizational_unit_id) {
     );
 }
 
+$this->registerJs(
+    "
+    
+    function isDateSupported() {
+        var input = document.createElement('input');
+        var value = 'a';
+        input.setAttribute('type', 'date');
+        input.setAttribute('value', value);
+        return (input.value !== value);
+    };
+    
+    if (!isDateSupported()) {
+        document.querySelectorAll('.date-field').forEach((item)=>{console.log(item); item.type='text'; item.placeholder='aaaa-mm-gg';});
+        document.querySelector('#html5info').innerHTML = '" . $date_field_message . "';
+        document.querySelector('#html5info').style = 'padding: 10px; background-color: #FFD78F';
+    }
+
+    ",
+    \yii\web\View::POS_READY,
+    'not_html5_date_ready_fix'
+);
+
+
 $allowedAttachmentExtensions = ['png', 'pdf', 'jpeg', 'jpg'];
 
 $showAlsoEndedProjects = false;
@@ -110,7 +136,14 @@ if (Yii::$app->controller->id == 'office-transactions') {
     
     <div class="info-block" style="display:none" id="template_description"></div>
 
-	<?= $form->field($model, 'date')->widget(DatePicker::class, [
+    <div id="html5info"></div>
+    <?= $form->field($model, 'date')->input('date', [
+            'class'=>'date-field form-control',
+            'min' => $model->begin_date,
+            'max' => $model->end_date,
+        ]) ?>
+
+	<?php /*= $form->field($model, 'date')->widget(DatePicker::class, [
 		'clientOptions' => [
 			'format' => 'yyyy-mm-dd',
 			'language' => Yii::$app->language,
@@ -119,7 +152,7 @@ if (Yii::$app->controller->id == 'office-transactions') {
 			'endDate' => $model->end_date,
 		],
 		'clientEvents' => [],
-	]) ?> 
+	]) */?> 
 
     <?= $form->field($model, 'description')->textInput(['maxlength' => true]) ?>
 
@@ -135,7 +168,17 @@ if (Yii::$app->controller->id == 'office-transactions') {
 
     <fieldset id="vendor_fieldset">
         <legend><?= Yii::t('app', 'Vendor') ?></legend>
-        <?= $form->field($model, 'vat_number')->textInput(['maxlength' => true])->hint(Yii::t('app', 'You can omit the VAT number, but if it is present it must be correct.')) ?>
+        
+        <?= $form->field($model, 'vat_number')->widget(\yii\jui\AutoComplete::classname(), [
+            'options' => [
+                'class'=>'form-control',
+            ],
+            'clientOptions' => [
+                'source' => \app\models\Transaction::getKnownVATNumbers(),
+            ],
+        ])->hint(Yii::t('app', 'You can omit the VAT number, but if it is present it must be correct.'))
+         ?>
+        
         <div class="info-block" style="display:none" id="vat_number_check"></div>
         <?= $form->field($model, 'vendor')->textInput(['maxlength' => true]) ?>
         <?= $form->field($model, 'invoice')->textInput(['maxlength' => true])->hint(Yii::t('app', 'Number and date of the invoice or description of the document (for instance, "Receipt number X").')) ?>

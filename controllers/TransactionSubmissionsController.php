@@ -9,6 +9,7 @@ use app\models\TransactionSearch;
 use app\models\TransactionTemplate;
 use yii\web\NotFoundHttpException;
 use yii\web\ForbiddenHttpException;
+use app\components\LockedHttpException;
 use app\components\CController;
 
 /**
@@ -101,6 +102,8 @@ class TransactionSubmissionsController extends CController
             throw new ForbiddenHttpException(Yii::t('app', 'Not updatable in this state.'));
         }
         
+        $this->_lockModel($transaction);
+        
         $model = new TransactionForm();
         $model->importDataFromTransaction($transaction);
         $model->begin_date = $this->periodicalReport->begin_date;
@@ -108,7 +111,7 @@ class TransactionSubmissionsController extends CController
         
         $model->templates = TransactionTemplate::getActiveTransactionTemplatesAsArray();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if ($model->load(Yii::$app->request->post()) && $model->save() && $model->transaction->unlock()) {
             return $this->redirect(['/transaction-submissions/view', 'id'=>$id]);
         }        
         

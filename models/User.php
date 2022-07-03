@@ -24,6 +24,7 @@ use \app\models\Apikey;
  * @property int|null $last_renewal
  * @property int|null $created_at
  * @property int|null $updated_at
+ * @property int|null $last_action_at
  *
  * @property Affiliation[] $affiliations
  * @property OrganizationalUnit[] $organizationalUnits
@@ -38,6 +39,10 @@ use \app\models\Apikey;
  */
 class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
+    use ModelTrait;
+    
+    private $_doNotLog = false;
+    
     /**
      * {@inheritdoc}
      */
@@ -49,7 +54,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public function behaviors()
     {
         return [
-            TimestampBehavior::className(),
+            'timestampBehavior' => TimestampBehavior::class,
         ];
     }
 
@@ -61,6 +66,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         return [
             [['username', 'first_name', 'last_name', 'email', 'auth_key'], 'required'],
             [['status', 'external_id', 'last_renewal', 'created_at', 'updated_at'], 'integer'],
+            [['last_action_at'], 'safe'],
             [['username'], 'string', 'max' => 20],
             [['first_name', 'last_name'], 'string', 'max' => 40],
             [['email', 'auth_key'], 'string', 'min'=>4, 'max' => 100], // TODO The min limit is for debugging purposes
@@ -90,6 +96,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             'status' => Yii::t('app', 'Is Active?'),
             'external_id' => Yii::t('app', 'External Id'),
             'last_renewal' => Yii::t('app', 'Last Renewal'),
+            'last_action_at' => Yii::t('app', 'Last Action At'),
             'created_at' => Yii::t('app', 'Created At'),
             'updated_at' => Yii::t('app', 'Updated At'),
         ];
@@ -349,17 +356,45 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 
     public function afterSave($insert, $changedAttributes)
     {
-        \app\components\LogHelper::log($insert ? 'created':'updated', $this, ['excluded'=>[
-            'id',
-            'auth_key',
-            'access_token',
-            'otp_secret',
-            'created_at',
-            'updated_at',
-        ]]);
+        if (!$this->_doNotLog) {
+            \app\components\LogHelper::log($insert ? 'created':'updated', $this, ['excluded'=>[
+                'id',
+                'auth_key',
+                'access_token',
+                'otp_secret',
+                'created_at',
+                'updated_at',
+            ]]);
+        }
         return parent::afterSave($insert, $changedAttributes);
     }
+    
+    public function touchLastActionAt($clear=false)
+    {
+        $this->_doNotLog = true;
+        $this->last_action_at = $clear ? null : time();
+        $this->save();
+    }
 
+    public function getOtherOnlineUsers()
+    {
+        return User::find()->online()->excludingId($this->id)->select('`id`, `first_name`, `last_name`')->asArray()->all();
+    }
+
+    public function getOtherOnlineUsersAsProcessedArray()
+    {
+        $users = [];
+        foreach($this->getOtherOnlineUsers() as $user) {
+            $users[] = ['id'=>$user['id'], 'fullName' => $user['first_name'] . ' ' . $user['last_name']];
+        }
+        return $users;
+    }
+    
+    public function getNumberOfUnseenNotifications()
+    {
+        return $this->getNotifications()->seen(false)->count();
+    }
+    
     /**
      * {@inheritdoc}
      * @return UserQuery the active query used by this AR class.

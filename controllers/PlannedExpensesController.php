@@ -47,7 +47,9 @@ class PlannedExpensesController extends CController
     {
         $model = $this->findModel($id);
         
-        if ($model->load(Yii::$app->request->post())  && $model->setProject($this->project) && $model->save()) {
+        $this->_lockModel($model);
+        
+        if ($model->load(Yii::$app->request->post())  && $model->setProject($this->project) && $model->save() && $model->unlock()) {
             return $this->redirect(['project-submissions/view', 'id' => $this->project->id]);
         }
 

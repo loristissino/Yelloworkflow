@@ -446,8 +446,27 @@ class Transaction extends \yii\db\ActiveRecord
 /*
 
 */
-
-
+    public static function getKnownVendors()
+    {
+        $provider = new SqlDataProvider([
+            'sql' => "SELECT DISTINCT `vat_number`, `vendor` from `transactions` where `vat_number` is not null and not `vat_number` = '' order by `vendor`",
+            'pagination' => [
+                'pageSize' => 99999,
+            ],
+        ]);
+        return $provider;
+    }
+    
+    public static function getKnownVATNumbers()
+    {
+        $provider = self::getKnownVendors();
+        $items = [];
+        foreach($provider->models as $model) {
+            $items[] = sprintf('%s - %s', $model['vat_number'], str_replace(['"', "'"], '', $model['vendor'])); 
+        }
+        return $items;
+    }
+    
     /**
      * {@inheritdoc}
      * @return TransactionQuery the active query used by this AR class.

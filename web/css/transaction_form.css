@@ -7,6 +7,10 @@
   background-color: #90EE90;
 }
 
+.alert {
+  background-color: #FFFF00;
+}
+
 .vat-number-ok {
   padding: 0px;
   background-color: white;

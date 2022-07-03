@@ -53,9 +53,12 @@ class ProjectsManagementController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id) // Displays a submitted project, given its id
+    public function actionView($id, $template='view') // Displays a submitted project, given its id
     {
-        return $this->render('projects/view', [
+        if ($template=='copyandpaste') {
+            $this->layout = 'print';
+        }
+        return $this->render('projects/' . $template, [
             'model' => $this->findModel($id),
         ]);
     }

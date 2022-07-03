@@ -62,4 +62,42 @@ trait ModelTrait
         }
         return $this;
     }
+
+    public function lock() {
+        $activity = new Activity();
+        $activity->user_id = \Yii::$app->user->id;
+        $activity->activity_type = 'locked';
+        $activity->model = $this::className();
+        $activity->model_id = $this->id;
+        return $activity->save(false);
+    }
+    
+    public function unlock() {
+        foreach($this->getLocks()->all() as $lock){
+            $lock->delete();
+        }
+        return true;
+    }
+    
+    public function getLocker()
+    {
+        $info = null;
+        if ($lock = $this->getLocks()->withUserIdDifferentFrom(\Yii::$app->user->id)->one()) {
+            $locker = \app\models\User::find()->online()->withId($lock->user_id)->one();
+            // FIXME do this with one query
+            $info = ['user'=>$locker, 'seconds'=>time() - $lock->happened_at];
+        }
+        return $info;
+    }
+    
+    public function getLocks()
+    {
+        return Activity::find()
+            ->withModel($this::className())
+            ->withModelId($this->id)
+            ->withActivityType('locked')
+            ->recent(600)
+            ;
+    }
+
 }

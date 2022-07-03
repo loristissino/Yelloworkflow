@@ -34,6 +34,8 @@ use yii\helpers\Url;
  */
 class OrganizationalUnit extends \yii\db\ActiveRecord
 {
+    use ModelTrait;
+    
     const HAS_OWN_PROJECTS        =        1;
     const HAS_OWN_CASH            =        2;
     const CAN_SELL                =        4;

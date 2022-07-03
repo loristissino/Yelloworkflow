@@ -19,6 +19,11 @@ class UserQuery extends \yii\db\ActiveQuery
         return $this->andWhere(['=', 'id', $id]);
     }
 
+    public function excludingId($id)
+    {
+        return $this->andWhere(['<>', 'id', $id]);
+    }
+
     public function withUsername($username)
     {
         return $this->andWhere(['=', 'username', $username]);
@@ -27,6 +32,11 @@ class UserQuery extends \yii\db\ActiveQuery
     public function withEmail($email)
     {
         return $this->andWhere(['=', 'email', $email]);
+    }
+        
+    public function online()
+    {
+        return $this->andWhere(['>', 'last_action_at', time()-600]);
     }
 
     /**

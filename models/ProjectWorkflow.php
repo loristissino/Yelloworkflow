@@ -63,7 +63,7 @@ class ProjectWorkflow implements IWorkflowDefinitionProvider
                             "$managementController/view" => '*',
                             "$submissionsController/view" => 'ou',
                         ],
-                        'notification_fields' => ['title', 'organizationalUnit', 'lastComments'],
+                        'notification_fields' => ['title', 'organizationalUnit', 'lastComments', 'lastCommentsWithoutGTSign'],
                     ],
                 ],
                 'rejected' => [
@@ -77,7 +77,7 @@ class ProjectWorkflow implements IWorkflowDefinitionProvider
                             "$managementController/view" => '*',
                             "$submissionsController/view" => 'ou',
                         ],
-                        'notification_fields' => ['title', 'organizationalUnit'],
+                        'notification_fields' => ['title', 'organizationalUnit', 'lastComments', 'lastCommentsWithoutGTSign'],
                     ],
                 ],
                 'questioned' => [
@@ -90,7 +90,7 @@ class ProjectWorkflow implements IWorkflowDefinitionProvider
                             "$managementController/view" => '*',
                             "$submissionsController/view" => 'ou',
                         ],
-                        'notification_fields' => ['title', 'organizationalUnit'],
+                        'notification_fields' => ['title', 'organizationalUnit', 'lastComments', 'lastCommentsWithoutGTSign'],
                     ],
                ],
                 'deleted' => [

@@ -100,9 +100,9 @@ class Notification extends \yii\db\ActiveRecord
     public static function getBulkActionMessage($action)
     {
         $messages = [
-            'markSeen' => "{count,plural,=0{no notification has} =1{One notification has} other{# notifications have}} been marked seen.",
-            'markUnseen' => "{count,plural,=0{no notification has} =1{One notification has} other{# notifications have}} been marked unseen.",
-            'delete' => "{count,plural,=0{no notification has} =1{One notification has} other{# notifications have}} been deleted.",
+            'markSeen' => "{count,plural,=0{No notification has} =1{One notification has} other{# notifications have}} been marked seen.",
+            'markUnseen' => "{count,plural,=0{No notification has} =1{One notification has} other{# notifications have}} been marked unseen.",
+            'delete' => "{count,plural,=0{No notification has} =1{One notification has} other{# notifications have}} been deleted.",
         ];
         return ArrayHelper::getValue($messages, $action, '');
     }
@@ -129,6 +129,15 @@ class Notification extends \yii\db\ActiveRecord
         else {
             return false;
         }
+    }
+
+    public function cloneModel()
+    {
+        $model = new Notification();
+        $model->attributes = $this->attributes;
+        $model->id = null;
+        $model->save();
+        return $model;
     }
 
     /**

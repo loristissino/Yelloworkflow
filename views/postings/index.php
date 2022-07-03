@@ -6,11 +6,11 @@ use yii\grid\GridView;
 /* @var $searchModel app\models\PostingSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = Yii::t('app', 'Postings');
+$title = Yii::t('app', 'Postings');
 ?>
 <div class="posting-index">
 
-    <h2><?= Html::encode($this->title) ?></h2>
+    <h2><?= Html::encode($title) ?></h2>
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Creato il: Giu 23, 2022 alle 16:49
+-- Creato il: Lug 03, 2022 alle 09:59
 -- Versione del server: 10.1.48-MariaDB-0ubuntu0.18.04.1
 -- Versione PHP: 7.2.24-0ubuntu0.18.04.12
 
@@ -451,6 +451,7 @@ CREATE TABLE `users` (
   `status` int(11) NOT NULL DEFAULT '1',
   `external_id` int(11) DEFAULT NULL,
   `last_renewal` int(4) DEFAULT NULL,
+  `last_action_at` int(11) DEFAULT NULL,
   `created_at` int(11) DEFAULT NULL,
   `updated_at` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -720,7 +721,8 @@ ALTER TABLE `users`
   ADD KEY `first_name` (`first_name`),
   ADD KEY `last_name` (`last_name`),
   ADD KEY `status` (`status`),
-  ADD KEY `last_renewal` (`last_renewal`);
+  ADD KEY `last_renewal` (`last_renewal`),
+  ADD KEY `last_visit_at` (`last_action_at`);
 
 --
 -- Indici per le tabelle `user_agents`
@@ -743,7 +745,7 @@ ALTER TABLE `accounts`
 -- AUTO_INCREMENT per la tabella `activities`
 --
 ALTER TABLE `activities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10072;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21940;
 --
 -- AUTO_INCREMENT per la tabella `affiliations`
 --
@@ -758,12 +760,12 @@ ALTER TABLE `apikeys`
 -- AUTO_INCREMENT per la tabella `attachments`
 --
 ALTER TABLE `attachments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1122;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1147;
 --
 -- AUTO_INCREMENT per la tabella `authorizations`
 --
 ALTER TABLE `authorizations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1499;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1501;
 --
 -- AUTO_INCREMENT per la tabella `co_hosting`
 --
@@ -783,7 +785,7 @@ ALTER TABLE `expense_types`
 -- AUTO_INCREMENT per la tabella `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8896;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9163;
 --
 -- AUTO_INCREMENT per la tabella `notification_templates`
 --
@@ -803,27 +805,27 @@ ALTER TABLE `periodical_reports`
 -- AUTO_INCREMENT per la tabella `periodical_report_comments`
 --
 ALTER TABLE `periodical_report_comments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=201;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=206;
 --
 -- AUTO_INCREMENT per la tabella `planned_expenses`
 --
 ALTER TABLE `planned_expenses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=244;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=219;
 --
 -- AUTO_INCREMENT per la tabella `postings`
 --
 ALTER TABLE `postings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3485;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3567;
 --
 -- AUTO_INCREMENT per la tabella `projects`
 --
 ALTER TABLE `projects`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=169;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=158;
 --
 -- AUTO_INCREMENT per la tabella `project_comments`
 --
 ALTER TABLE `project_comments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=166;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=112;
 --
 -- AUTO_INCREMENT per la tabella `reimbursements`
 --
@@ -838,7 +840,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT per la tabella `transactions`
 --
 ALTER TABLE `transactions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=942;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=954;
 --
 -- AUTO_INCREMENT per la tabella `transaction_templates`
 --
