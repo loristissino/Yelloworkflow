@@ -23,6 +23,17 @@ $this->params['breadcrumbs'][] = $this->title;
                 'method' => 'post',
             ],
         ]) ?>
+
+        <?php if ($model->otp_secret): ?>
+        <?= Html::a(Yii::t('app', 'Disable two-factor authentication'), ['disable-two-factor-authentication', 'id' => $model->id], [
+            'class' => 'btn btn-warning',
+            'data' => [
+                'method' => 'post',
+                'confirm' => Yii::t('app', 'Do you really want to disable two-factor authentication for this user?'),
+            ],
+        ]) ?>
+        <?php endif ?>
+
     </p>
 
     <?= DetailView::widget([
@@ -38,6 +49,10 @@ $this->params['breadcrumbs'][] = $this->title;
                 'value' => $model->status == 1 ? 'Active': 'Inactive',
             ],
             [
+                'label' => Yii::t('app', 'Two-factor authentication'),
+                'value' => $model->otp_secret ? 'Active': 'Inactive',
+            ],
+            [
                 'label' => Yii::t('app', 'External Id'),
                 'format' => 'raw',
                 'value' => function($model) {
@@ -45,8 +60,27 @@ $this->params['breadcrumbs'][] = $this->title;
                 }
             ],
             'last_renewal',
-            'created_at:datetime',
-            'updated_at:datetime',
+            [
+                'attribute'=>'created_at',
+                'format'=>'raw',
+                'value'=>function($data) {
+                    return sprintf('%s %s', Yii::$app->formatter->asDate($data['created_at']), Yii::$app->formatter->asTime($data['created_at']));
+                },
+            ],
+            [
+                'attribute'=>'updated_at',
+                'format'=>'raw',
+                'value'=>function($data) {
+                    return sprintf('%s %s', Yii::$app->formatter->asDate($data['updated_at']), Yii::$app->formatter->asTime($data['updated_at']));
+                },
+            ],
+            [
+                'attribute'=>'last_action_at',
+                'format'=>'raw',
+                'value'=>function($data) {
+                    return sprintf('%s %s', Yii::$app->formatter->asDate($data['last_action_at']), Yii::$app->formatter->asTime($data['last_action_at']));
+                },
+            ],
         ],
     ]) ?>
     

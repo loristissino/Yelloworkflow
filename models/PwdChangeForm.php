@@ -45,6 +45,12 @@ class PwdChangeForm extends Model
             $user->encryptPassword();
             if ($user->save()) {
                 Yii::$app->session->setFlash('success', Yii::t('app', 'Password successfully reset.'));
+                $activity = new Activity();
+                $activity->user_id = $id;
+                $activity->activity_type = 'Password Change';
+                $activity->model = \app\models\User::className();
+                $activity->model_id = $id;
+                $activity->save(false);
                 return true;
             }
             else {

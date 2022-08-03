@@ -146,6 +146,21 @@ class UsersController extends CController
         
     }
 
+    public function actionDisableTwoFactorAuthentication($id) // Disables 2fa for a user
+    {
+        $model = $this->findModel($id);
+        $model->otp_secret = null;
+        $model->save();
+        \app\components\LogHelper::log('2FA disabled', $model, ['excluded'=>[
+            'first_name','last_name', 'email', 'auth_key', 'access_token','otp_secret','created_at', 'updated_at',
+        ]]);
+        $model->sendEmailToInformAbout2FADisabling();
+
+        Yii::$app->session->setFlash('success', Yii::t('app', 'Two-factor authentication disabled.'));
+
+        return $this->redirect(['view', 'id' => $model->id]);
+    }
+
     public function beforeAction($action)
     {
         $this->modelClass = User::className();

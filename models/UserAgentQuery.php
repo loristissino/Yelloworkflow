@@ -13,6 +13,21 @@ class UserAgentQuery extends \yii\db\ActiveQuery
     {
         return $this->andWhere('[[status]]=1');
     }*/
+    
+    public function withHash($hash)
+    {
+        return $this->andWhere(['=', 'hash', $hash]);
+    }
+
+    public function withId($id)
+    {
+        return $this->andWhere(['=', 'id', $id]);
+    }
+
+    public function withUserId($id)
+    {
+        return $this->andWhere(['=', 'user_id', $id]);
+    }
 
     /**
      * {@inheritdoc}

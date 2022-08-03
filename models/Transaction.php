@@ -443,13 +443,12 @@ class Transaction extends \yii\db\ActiveRecord
         return $provider;
     }
 
-/*
-
-*/
-    public static function getKnownVendors()
+    public static function getKnownVendors($withId=false)
     {
+        $id = $withId ? '`id`, ' : '';
+        $sql = "SELECT DISTINCT $id `vat_number`, `vendor` from `transactions` where `wf_status` <> 'TransactionWorflow/draft' and `vat_number` is not null and not `vat_number` = '' order by `vendor`";
         $provider = new SqlDataProvider([
-            'sql' => "SELECT DISTINCT `vat_number`, `vendor` from `transactions` where `vat_number` is not null and not `vat_number` = '' order by `vendor`",
+            'sql' => $sql,
             'pagination' => [
                 'pageSize' => 99999,
             ],

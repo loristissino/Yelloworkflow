@@ -44,7 +44,7 @@ class PwdResetForm extends Model
         $user = $this->getUser();
         
         if ($user) {
-            
+                        
             $notification = new Notification();
             
             $u = sprintf('%d_%d', $user->id, time()+3600);
@@ -57,7 +57,7 @@ class PwdResetForm extends Model
             //$notification->save();
             $notification->sendEmail();
             
-            Yii::$app->session->setFlash('success', Yii::t('app', 'Email sent to {email}. The link expires in one hour. Check your spam folder.', ['email'=> $this->reduceEmailAddress($user->email)]));
+            Yii::$app->session->setFlash('success', Yii::t('app', 'Email sent to {email}. The link expires in one hour. Check your spam folder.', ['email'=> \app\models\Notification::reduceEmailAddress($user->email)]));
             return true;
         }
         else {
@@ -66,10 +66,6 @@ class PwdResetForm extends Model
         }
     }
     
-    public function reduceEmailAddress($email) {
-        return substr($email, 0, 3) . '…@…' . substr($email, strlen($email) -4, 4);
-    }
-
     /**
      * Finds user by [[username]]
      *

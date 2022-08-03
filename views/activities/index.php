@@ -19,7 +19,13 @@ $this->params['breadcrumbs'][] = $this->title;
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'columns' => [
-            'happened_at:datetime',
+            [
+                'attribute'=>'happened_at',
+                'format'=>'raw',
+                'value'=>function($data) {
+                    return sprintf('%s %s', Yii::$app->formatter->asDate($data['happened_at']), Yii::$app->formatter->asTime($data['happened_at']));
+                },
+            ],
             [
                 'attribute'=>'full_name',
                 'format'=>'raw',

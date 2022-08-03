@@ -17,6 +17,7 @@ class LoginForm extends Model
     public $password;
     public $rememberMe = true;
     public $authMethod = "db";
+    public $needsToken = false;
 
     private $_user = false;
 
@@ -63,6 +64,11 @@ class LoginForm extends Model
             if (!$user || !$user->$callable($this->password)) {
                 $this->addError($attribute, Yii::t('app', 'Incorrect username or password.'));
             }
+            
+            if (!$user->usesATrustedUserAgent and $user->otp_secret) {
+                $this->needsToken = true;
+            }
+            
         }
     }
 

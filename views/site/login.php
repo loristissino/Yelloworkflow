@@ -47,7 +47,7 @@ $this->registerJs("
         <?= $form->field($model, 'username')->textInput(['autofocus' => true]) ?>
 
         <?= $form->field($model, 'password')->passwordInput()->label($pwdLabel) ?>
-     
+
         <?= $form->field($model, 'authMethod')->dropDownList($model->authMethods) ?>
 
         <?= $form->field($model, 'rememberMe')->checkbox([

@@ -30,7 +30,7 @@ use \app\models\Apikey;
  * @property OrganizationalUnit[] $organizationalUnits
  * @property Apikey[] $apikeys
  * @property Authorization[] $authorizations
- * @property Event[] $events
+ * @property Activity[] $activities
  * @property Notification[] $notifications 
  * @property PeriodicalReportComment[] $periodicalReportComments
  * @property ProjectComment[] $projectComments
@@ -120,6 +120,52 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {
         return $this->last_renewal == date('Y');
     }
+    
+    public function getUsesATrustedUserAgent()
+    {
+        $requestCookies = Yii::$app->request->cookies;
+        
+        $ua = $requestCookies->getValue('ywf_ua', '');
+        
+        $ua = $this->getUserAgents()->withHash($ua)->one();
+        
+        return $ua != null;
+    }
+    
+    public function revokeUA($id)
+    {
+        $ua = $this->getUserAgents()->withId($id)->one();
+        if ($ua) {
+            $ua->delete();
+            return true;
+        }
+        return false;
+    }
+    
+    public function trustUserAgent()
+    {
+        if ($this->usesATrustedUserAgent) {
+            return true;
+        }
+        
+        $cookie = bin2hex(random_bytes(20));
+        
+        // get the cookie collection (yii\web\CookieCollection) from the "response" component
+        $responseCookies = Yii::$app->response->cookies;
+
+        // add a new cookie to the response to be sent
+        $responseCookies->add(new \yii\web\Cookie([
+            'name' => 'ywf_ua',
+            'value' => $cookie,
+            'expire' => time()+24*60*60*30,
+        ]));
+        
+        $userAgent = new UserAgent();
+        $userAgent->hash = $cookie;
+        $userAgent->user_id = $this->id;
+        $userAgent->info = Yii::$app->request->getUserAgent();
+        return $userAgent->save();
+    }
 
     /**
      * Gets query for [[Affiliations]].
@@ -166,13 +212,13 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     }
 
     /**
-     * Gets query for [[Events]].
+     * Gets query for [[Activities]].
      *
-     * @return \yii\db\ActiveQuery|EventQuery
+     * @return \yii\db\ActiveQuery|ActivityQuery
      */
-    public function getEvents()
+    public function getActivities()
     {
-        return $this->hasMany(Event::className(), ['user_id' => 'id']);
+        return $this->hasMany(Activity::className(), ['user_id' => 'id']);
     }
 
     /**
@@ -348,9 +394,10 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 
     public function setRandomValuesForUnusedFields()
     {
-        // these are not used anyway
+        // this is not used anyway
         $this->access_token = rand(100000000, 999999999);
-        $this->otp_secret = rand(100000000, 999999999);
+        // this is used for two-factor authentication, but only when the user activates it
+        $this->otp_secret = null;
         return $this;
     }
 
@@ -393,6 +440,43 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public function getNumberOfUnseenNotifications()
     {
         return $this->getNotifications()->seen(false)->count();
+    }
+    
+    public function getLastLogins()
+    {
+        return $this->getActivities()->withActivityType('Login')->orderBy(['happened_at' => SORT_DESC])->limit(5)->all();
+    }
+    
+    public function sendEmailToConfirm2FADisabling()
+    {
+        $notification = new Notification();
+        $user = $this;
+        
+        $u = sprintf('%d_%d', $user->id, time()+3600);
+        $link = Url::to(['site/disable-tfa', 'u'=>$u, 'c'=>md5($u . Yii::$app->params['notificationsKey'])], true);
+        
+        $notification->user_id = $this->id;
+        $notification->subject = Yii::t('app', 'Do you confirm you want two-factor authentication disabled?');
+        $notification->plaintext_body = Yii::t('app', 'Hi, {first_name}.\nIf you really want to disable two-factor authentication, click here:\n{link}\n\n(The link expires in one hour.)', ['username'=>$user->first_name, 'link'=>$link]);
+        $notification->html_body = \yii\helpers\Markdown::process(Yii::t('app', "Hi, {first_name}.\n\nIf you really want to disable two-factor authentication, click [here]({link}). The link expires in one hour.", ['first_name'=>$user->first_name, 'link'=>$link]));
+        $notification->sendEmail(false);
+        
+        Yii::$app->session->setFlash('success', Yii::t('app', 'Please read the email that has been sent to you ({email}) to confirm the operation.', ['email'=> \app\models\Notification::reduceEmailAddress($user->email)]));
+        return true;
+    }
+
+    public function sendEmailToInformAbout2FADisabling()
+    {
+        $notification = new Notification();
+        $user = $this;
+                
+        $notification->user_id = $this->id;
+        $notification->subject = Yii::t('app', 'Two-factor authentication');
+        $notification->plaintext_body = Yii::t('app', 'Hi, {first_name}.\nTwo-factor authentication has been disabled by an administrator.');
+        $notification->html_body = \yii\helpers\Markdown::process(Yii::t('app', "Hi, {first_name}.\n\nTwo-factor authentication has been disabled by an administrator.", ['first_name'=>$user->first_name]));
+        $notification->sendEmail(false);
+        
+        return true;
     }
     
     /**

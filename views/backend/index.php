@@ -10,6 +10,7 @@ use yii\helpers\Html;
 <p><?= Html::a(Yii::t('app', 'Expense Types'), ['expense-types/index']) ?></p>
 <p><?= Html::a(Yii::t('app', 'Transaction Templates'), ['transaction-templates/index']) ?></p>
 <p><?= Html::a(Yii::t('app', 'Notification Templates'), ['notification-templates/index']) ?></p>
+<p><?= Html::a(Yii::t('app', 'Vendors'), ['vendors/index']) ?></p>
 
 <hr />
 

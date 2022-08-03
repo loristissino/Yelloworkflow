@@ -140,6 +140,10 @@ class Notification extends \yii\db\ActiveRecord
         return $model;
     }
 
+    public static function reduceEmailAddress($email) {
+        return substr($email, 0, 3) . '…@…' . substr($email, strlen($email) -4, 4);
+    }
+
     /**
      * {@inheritdoc}
      * @return NotificationQuery the active query used by this AR class.

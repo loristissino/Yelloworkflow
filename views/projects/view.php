@@ -70,8 +70,20 @@ if (!$model->isDraft) {
                 'format' => 'raw',
                 'value' => $model->organizationalUnit->viewLink,
             ],
-            'created_at:datetime',
-            'updated_at:datetime',
+            [
+                'attribute'=>'created_at',
+                'format'=>'raw',
+                'value'=>function($data) {
+                    return sprintf('%s %s', Yii::$app->formatter->asDate($data['created_at']), Yii::$app->formatter->asTime($data['created_at']));
+                },
+            ],
+            [
+                'attribute'=>'updated_at',
+                'format'=>'raw',
+                'value'=>function($data) {
+                    return sprintf('%s %s', Yii::$app->formatter->asDate($data['updated_at']), Yii::$app->formatter->asTime($data['updated_at']));
+                },
+            ],
         ],
     ]) ?>
 

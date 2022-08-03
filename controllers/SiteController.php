@@ -6,6 +6,7 @@ use Yii;
 use yii\filters\AccessControl;
 use yii\web\Response;
 use app\models\LoginForm;
+use app\models\TokenForm;
 use app\models\PwdResetForm;
 use app\models\PwdChangeForm;
 use app\models\IssuesForm;
@@ -72,26 +73,113 @@ class SiteController extends CController
         if (isset(Yii::$app->params['loginInfo'])) {
             Yii::$app->session->setFlash('info', Yii::$app->params['loginInfo']);
         }
-
+        
         $model = new LoginForm();
+        
+        /*
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
             \app\components\LogHelper::log('Login', $model->getUser(), ['excluded'=>[
                 'first_name','last_name', 'email', 'auth_key', 'access_token','otp_secret','created_at', 'updated_at',
             ]]);
             return $this->_back();
-            /*
-            $return_url = Yii::$app->request->get('return');
-            if ($return_url) {
-                return $this->redirect($return_url);
+        }
+        */
+
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            
+            if ($model->needsToken) {
+                Yii::$app->session->set('user2FA', $model);
+                return $this->redirect(['site/token']);
             }
-            return $this->goBack(['site/dashboard']);
-            */
+            
+            $model->login();
+            \app\components\LogHelper::log('Login', $model->getUser(), ['excluded'=>[
+                'first_name','last_name', 'email', 'auth_key', 'access_token','otp_secret','created_at', 'updated_at',
+            ]]);
+            return $this->_back();
         }
 
         $model->password = '';
         return $this->render('login', [
             'model' => $model,
         ]);
+    }
+
+    public function actionToken() // Displays the token page
+    {
+        $loginForm = Yii::$app->session->get('user2FA');
+        if (!$loginForm){
+            throw new ForbiddenHttpException('Invalid session.');
+        }
+        
+        $model = new TokenForm();
+        $model->user = $loginForm->getUser();
+        Yii::$app->session->setFlash('info', null);
+        
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            $loginForm->login();
+            
+            $user = $loginForm->getUser();
+            
+            if ($model->trust_user_agent) {
+                $user->trustUserAgent();
+            }
+            
+            \app\components\LogHelper::log('Login', $user, ['excluded'=>[
+                'first_name','last_name', 'email', 'auth_key', 'access_token','otp_secret','created_at', 'updated_at',
+            ]]);
+            return $this->_back();
+        }
+
+        return $this->render('token', [
+            'model' => $model,
+        ]);
+    }
+    
+    public function actionEnableTwoFactorAuthentication()
+    {
+        $model = new TokenForm();
+        $model->secret = Yii::$app->session->get('2FA_secret');
+        
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            Yii::$app->user->identity->otp_secret =$model->secret;
+            Yii::$app->user->identity->save();
+            \app\components\LogHelper::log('2FA enabled', Yii::$app->user->identity, ['excluded'=>[
+                'first_name','last_name', 'email', 'auth_key', 'access_token','otp_secret','created_at', 'updated_at',
+            ]]);
+            Yii::$app->session->setFlash('success', Yii::t('app', 'Two-factor authentication enabled.'));
+            return $this->redirect(['site/profile']);
+        }
+
+        return $this->render('two-factor-authentication', [
+            'model' => $model,
+        ]);
+    }
+
+    public function actionDisableTwoFactorAuthentication()
+    {
+        Yii::$app->user->identity->sendEmailToConfirm2FADisabling();
+        return $this->redirect(['site/profile']);
+    }
+
+    public function actionDisableTfa($u, $c)
+    {
+        $id = $this->getIdFromEmail($u, $c);
+        
+        $user = User::findOne($id);
+        if ($user) {
+            $user->otp_secret = null;
+            foreach ($user->getUserAgents()->all() as $ua){
+                $ua->delete();
+            }
+            $user->save();
+        }
+        \app\components\LogHelper::log('2FA disabled', $user, ['excluded'=>[
+            'first_name','last_name', 'email', 'auth_key', 'access_token','otp_secret','created_at', 'updated_at',
+        ]]);
+
+        Yii::$app->session->setFlash('success', Yii::t('app', 'Two-factor authentication disabled.'));
+        return $this->redirect(['site/profile']);
     }
 
     public function actionPwdreset() // Displays the "Forgot your password?" page
@@ -117,15 +205,7 @@ class SiteController extends CController
 
     public function actionPwd($u, $c) // Allows the password to be reset
     {
-        if (strpos($u, '_')<1 or (md5($u . Yii::$app->params['notificationsKey'])!=$c)) {
-            throw new ForbiddenHttpException('Wrong link.');
-        }
-        
-        list($id, $timestamp) = explode('_', $u);
-
-        if (time() > $timestamp) {
-            throw new ForbiddenHttpException('Link expired.');
-        }
+        $id = $this->getIdFromEmail($u, $c);
                 
         $model = new PwdChangeForm();
         if ($model->load(Yii::$app->request->post()) && $model->resetPassword($id)) {
@@ -136,6 +216,16 @@ class SiteController extends CController
         return $this->render('pwdchange', [
             'model' => $model,
         ]);
+    }
+    
+    public function actionRevokeUa($id){
+        if (Yii::$app->user->identity->revokeUA($id)) {
+            Yii::$app->session->setFlash('success', Yii::t('app', 'User Agent revoked.'));
+        }
+        else {
+            Yii::$app->session->setFlash('error', Yii::t('app', 'The User Agent could not be revoked.'));
+        }
+        return $this->redirect(['site/profile']);
     }
 
     private function _back()
@@ -207,7 +297,16 @@ class SiteController extends CController
     public function actionProfile() // Displays the "Profile" page
     {
         Yii::$app->session->setFlash('info', null);
-        return $this->render('profile');
+
+        $secret_key = '';
+        if (!Yii::$app->user->identity->otp_secret) {
+            $secret_key = \app\components\Google2FA::generate_secret_key();
+            Yii::$app->session->set('2FA_secret', $secret_key);
+        }
+        
+        return $this->render('profile', [
+            'secret_key' => $secret_key
+        ]);
     }
     
     public function actionDashboard() // Displays the "Dashboard" page
@@ -289,4 +388,17 @@ class SiteController extends CController
         return $this->goBack(['site/profile']);
 
     }
+    
+    public function getIdFromEmail($u, $c)
+    {
+        if (strpos($u, '_')<1 or (md5($u . Yii::$app->params['notificationsKey'])!=$c)) {
+            throw new ForbiddenHttpException('Wrong link.');
+        }
+        list($id, $timestamp) = explode('_', $u);
+        if (time() > $timestamp) {
+            throw new ForbiddenHttpException('Link expired.');
+        }
+        return $id;
+    }
+    
 }
