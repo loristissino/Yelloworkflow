@@ -65,7 +65,7 @@ class LoginForm extends Model
                 $this->addError($attribute, Yii::t('app', 'Incorrect username or password.'));
             }
             
-            if (!$user->usesATrustedUserAgent and $user->otp_secret) {
+            if ($user and !$user->usesATrustedUserAgent and $user->otp_secret) {
                 $this->needsToken = true;
             }
             

@@ -50,7 +50,7 @@ class IssuesForm extends Model
             $notification->plaintext_body = sprintf("%s\n\n------\n\n[%s](%s)\n\n%s", 
                 $this->description,
                 $this->reference,
-                $this->url,
+                Yii::$app->params['baseUrl'] . $this->url,
                 Yii::$app->user->identity->getFullName()
             );
             $notification->html_body = Markdown::process($notification->plaintext_body);

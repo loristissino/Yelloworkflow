@@ -33,6 +33,11 @@ class UserQuery extends \yii\db\ActiveQuery
     {
         return $this->andWhere(['=', 'email', $email]);
     }
+    
+    public function actuallyMember($condition=true)
+    {
+        return $this->andWhere([$condition?'<>':'=', 'last_renewal', -1]);
+    }
         
     public function online()
     {

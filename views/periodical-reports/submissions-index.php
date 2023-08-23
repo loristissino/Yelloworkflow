@@ -67,4 +67,6 @@ $this->params['breadcrumbs'][] = $this->title;
 
 <hr>
 
-<?= Html::a(Yii::t('app', 'Balances'), ['statements/index']) ?>
+<?= Html::a(Yii::t('app', 'Balances'), ['statements/index']) ?><br>
+<?= Html::a(Yii::t('app', 'List of all attached documents'), ['documents/index']) ?><br>
+

@@ -14,6 +14,8 @@ require_once(__DIR__ . '/../../vendor/rmrevin/yii2-fontawesome/component/Icon.ph
 
 rmrevin\yii\fontawesome\AssetBundle::register($this);
 
+$this->title = Yii::t('app', 'Dashboard');
+
 ?>
 
 <?php if(sizeof($controllers)>0): ?>
@@ -717,8 +719,8 @@ foreach([
 "meetup",
 
 ] as $icon) {
-    // echo FA::icon($icon)->size(FA::SIZE_5X);
-    // echo " " . $icon . "<br/>";
+    //echo FA::icon($icon)->size(FA::SIZE_5X);
+    //echo " " . $icon . "<br/>";
 }
 /*
 echo FA::icon('home'); // <i class="fa fa-home"></i>

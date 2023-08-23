@@ -46,7 +46,8 @@ class Role extends \yii\db\ActiveRecord
             [['rank', 'status'], 'integer'],
             [['name'], 'required'],
             [['name'], 'string', 'max' => 50],
-            [['description', 'permissions'], 'string', 'max' => 255],
+            [['description'], 'string', 'max' => 255],
+            [['permissions'], 'string', 'max' => 511],
             [['email'], 'string', 'max' => 100],
             [['name', 'description', 'email'], 'trim'],
         ];

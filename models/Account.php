@@ -7,6 +7,7 @@ use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\behaviors\TimestampBehavior;
+use yii\data\SqlDataProvider;
 
 /**
  * This is the model class for table "accounts".
@@ -15,6 +16,7 @@ use yii\behaviors\TimestampBehavior;
  * @property int|null $organizational_unit_id
  * @property int|null $rank
  * @property string $name
+ * @property string $reversed_name
  * @property int $status
  * @property string|null $code
  * @property string $debits_header
@@ -57,6 +59,7 @@ class Account extends \yii\db\ActiveRecord
             [['organizational_unit_id', 'rank', 'status', 'shown_in_ou_view'], 'integer'],
             [['name', 'debits_header', 'credits_header'], 'required'],
             [['name'], 'string', 'max' => 100],
+            [['reversed_name'], 'string', 'max' => 100],
             [['code'], 'string', 'max' => 40],
             [['code', 'debits_header', 'credits_header'], 'string', 'max' => 60],
             [['represents', 'enforced_balance'], 'string', 'max' => 1],
@@ -74,6 +77,7 @@ class Account extends \yii\db\ActiveRecord
             'organizational_unit_id' => Yii::t('app', 'Organizational Unit'),
             'rank' => Yii::t('app', 'Rank'),
             'name' => Yii::t('app', 'Name'),
+            'reversed_name' => Yii::t('app', 'Reversed Name'),
             'status' => Yii::t('app', 'Is Active?'),
             'code' => Yii::t('app', 'Code'),
             'debits_header' => Yii::t('app', 'Debits Header'),
@@ -131,6 +135,49 @@ class Account extends \yii\db\ActiveRecord
     public function getHeader($amount)
     {
         return $amount > 0 ? $this->debits_header : $this->credits_header;
+    }
+
+    public static function getBalancesDataProviderForRealAccounts($organizationalUnitId, $weight = null, $before = null)
+    {
+        if (!$weight) {
+            $weight = 2047;
+        }
+        if (!$before){
+            $before = '2100-01-01';
+        }
+        
+        $sql = "SELECT `accounts`.`id` as `id`, `accounts`.`name` as `name`, `accounts`.`enforced_balance` as `enforced_balance`, SUM(`amount`) as `amount_sum` FROM `postings` JOIN `accounts` ON `postings`.`account_id`=`accounts`.`id` JOIN `transactions` ON `postings`.`transaction_id`=`transactions`.`id` JOIN `periodical_reports` ON `periodical_reports`.`id` = `transactions`.`periodical_report_id` WHERE `periodical_reports`.`organizational_unit_id` = :id AND `accounts`.`represents`='R' AND `transactions`.`wf_status` IN " . Transaction::getSqlSetForStatuses($weight) . " AND `transactions`.`date` <= :before GROUP BY `accounts`.`id`, `accounts`.`name`, `accounts`.`debits_header`, `accounts`.`credits_header`";
+
+        return new SqlDataProvider([
+            'sql' => $sql,
+            'params' => [':id' => $organizationalUnitId, ':before' => $before],
+            'sort' => [
+                'attributes' => [
+                    'rank',
+                    'name',
+                    ],
+                ],
+            'pagination' => false,
+            ]
+        );
+    }
+
+    public static function getBalancesDataProviderForTemporaryAccounts($organizationalUnitId, $year)
+    {
+       $sql = "SELECT `accounts`.`id` as `id`, `accounts`.`name` as `name`, `accounts`.`debits_header` as `debits_header`, `accounts`.`credits_header` as `credits_header`, SUM(`amount`) as `amount_sum` FROM `postings` JOIN `accounts` ON `postings`.`account_id`=`accounts`.`id` JOIN `transactions` ON `postings`.`transaction_id`=`transactions`.`id` JOIN `periodical_reports` ON `periodical_reports`.`id` = `transactions`.`periodical_report_id` WHERE `periodical_reports`.`organizational_unit_id` = :id AND `accounts`.`represents` IN ('E', 'C', 'S', 'D') AND `transactions`.`wf_status` <> 'TransactionWorkflow/rejected' AND `transactions`.`date` >= MAKEDATE(:year, 1) AND `transactions`.`date` < MAKEDATE(:year +1, 1) GROUP BY `accounts`.`id`, `accounts`.`name`, `accounts`.`debits_header`, `accounts`.`credits_header`";
+       
+        return new SqlDataProvider([
+            'sql' => $sql,
+            'params' => [':id' => $organizationalUnitId, ':year' => $year],
+            'sort' => [
+                'attributes' => [
+                    'rank',
+                    'name',
+                    ],
+                ],
+            'pagination' => false,
+            ]
+        );
     }
 
     public static function getActiveAccountsAsArray($order_by)

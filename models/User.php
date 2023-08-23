@@ -22,6 +22,7 @@ use \app\models\Apikey;
  * @property int $status
  * @property int|null $external_id
  * @property int|null $last_renewal
+ * @property string $preferences
  * @property int|null $created_at
  * @property int|null $updated_at
  * @property int|null $last_action_at
@@ -76,6 +77,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             [['username'], 'unique'],
             [['email'], 'unique'],
 	        [['external_id'], 'unique'],
+            [['preferences'], 'safe'],
         ];
     }
 
@@ -96,6 +98,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             'status' => Yii::t('app', 'Is Active?'),
             'external_id' => Yii::t('app', 'External Id'),
             'last_renewal' => Yii::t('app', 'Last Renewal'),
+            'preferences' => Yii::t('app', 'Preferences'),
             'last_action_at' => Yii::t('app', 'Last Action At'),
             'created_at' => Yii::t('app', 'Created At'),
             'updated_at' => Yii::t('app', 'Updated At'),
@@ -105,6 +108,11 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public function getFullName()
     {
         return sprintf('%s %s', $this->first_name, $this->last_name);
+    }
+
+    public function getFormattedEmail()
+    {
+        return sprintf('%s <%s>', $this->fullName, $this->email);
     }
     
     public function getFullNameWithMembership()
@@ -118,7 +126,12 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     
     public function getIsMember()
     {
-        return $this->last_renewal == date('Y');
+        return $this->last_renewal >= date('Y');
+    }
+
+    public function getHasRenewedForNextYear()
+    {
+        return $this->last_renewal > date('Y');
     }
     
     public function getUsesATrustedUserAgent()
@@ -479,6 +492,26 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         return true;
     }
     
+    public function getPreferences()
+    {
+        return json_decode($this->preferences, true);
+    }
+    
+    public function getPreference($key, $default='')
+    {
+        return \yii\helpers\ArrayHelper::getValue($this->getPreferences(), $key, $default);
+    }
+    
+    public function setPreference($key, $value)
+    {
+        $this->_doNotLog = true;
+        $preferences = $this->getPreferences();
+        $preferences[$key] = $value;
+        $this->preferences = json_encode($preferences);
+        Yii::debug("pref: " . $this->preferences);
+        return $this;
+    }
+        
     /**
      * {@inheritdoc}
      * @return UserQuery the active query used by this AR class.

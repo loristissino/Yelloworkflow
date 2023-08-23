@@ -312,16 +312,7 @@ class SiteController extends CController
     public function actionDashboard() // Displays the "Dashboard" page
     {
         Yii::$app->session->setFlash('info', null);
-        $controllers = array_merge([
-            /*
-            'site/profile' => [
-                'icon' => 'user',
-                'color' => '#093609',
-                'title' => 'Profile',
-                'description' => 'About you',
-            ],
-            */
-        ], Authorization::getAuthorizedControllers());
+        $controllers = Authorization::getAuthorizedControllers();
         
         return $this->render('dashboard', [
             'controllers'=>$controllers,
@@ -387,6 +378,17 @@ class SiteController extends CController
 
         return $this->goBack(['site/profile']);
 
+    }
+    
+    public function actionSetPreference($returnUrl='')
+    {
+        $model = new \app\models\TransactionStatusesForm();
+        if ($model->load(Yii::$app->request->post()) && $model->validate() && $model->save()) {
+            Yii::$app->session->setFlash('success', Yii::t('app', 'Change applied.'));
+            return $this->redirect($returnUrl);
+        }
+        print_r($model);
+        die();
     }
     
     public function getIdFromEmail($u, $c)

@@ -3,6 +3,7 @@
 return [
     'Approved' => 'Approvata',
     'Archived' => 'Archiviata',
+    'Canceled' => 'Annullata',
     'Closed' => 'Chiusa',
     'Confirmed' => 'Confermata',
     'Created' => 'Creata',

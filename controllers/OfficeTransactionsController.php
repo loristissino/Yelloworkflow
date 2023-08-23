@@ -42,11 +42,15 @@ class OfficeTransactionsController extends CController
     public function actionIndex($active=null, $recorded=null) // Lists all transactions prepared by office workers
     {
         $active = $active == 'false' ? false : true;
-
-        $statuses = ['TransactionWorkflow/prepared', 'TransactionWorkflow/notified'];
         
         if ($recorded=='true') {
             $statuses = ['TransactionWorkflow/recorded', 'TransactionWorkflow/reimbursed', 'TransactionWorkflow/archived'];
+        }
+        else if($recorded=='extra') {
+            $statuses = ['TransactionWorkflow/extra'];
+        }
+        else {
+            $statuses = ['TransactionWorkflow/prepared', 'TransactionWorkflow/notified'];
         }
         
         $searchModel = new TransactionSearch();
@@ -54,12 +58,12 @@ class OfficeTransactionsController extends CController
             Yii::$app->request->queryParams, 
             Transaction::find()->active($active)->withOneOfStatuses($statuses)
         );
-        $dataProvider->sort->defaultOrder = ['date' => SORT_DESC];
+        $dataProvider->sort->defaultOrder = ['date' => SORT_DESC, 'id' => SORT_DESC];
         
         return $this->render('/transactions/office-index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
-            'recorded'=>$recorded=='true',
+            'recorded'=>$recorded,
         ]);
     }
 
@@ -68,7 +72,7 @@ class OfficeTransactionsController extends CController
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate($organizational_unit_id=null, $project_id=null, $amount=null) // Creates a transaction [office workers]
+    public function actionCreate($organizational_unit_id=null, $project_id=null, $amount=null, $type='R') // Creates a transaction [office workers]
     {
         $model = new TransactionForm();
         $model->begin_date = date('Y-m-d', mktime(0, 0, 0, 1, 1, date('Y')-1));
@@ -80,7 +84,7 @@ class OfficeTransactionsController extends CController
             $model->transaction->save();
 
             if ($model->immediateNotification) {
-                $model->transaction->sendToStatus('notified');
+                $model->transaction->sendToStatus($model->transaction->isExtra ? 'extra': 'notified');
                 $model->transaction->save(false);
             }
 
@@ -98,7 +102,19 @@ class OfficeTransactionsController extends CController
         if($project_id) {
             $project = \app\models\Project::findOne($project_id);
             if ($project) {
-                $model->description = Yii::t('app', 'Reimbursement for project «{title}»', ['title'=>$project->title]);
+                switch($type) {
+                    case 'DP':
+                        $model->description = Yii::t('app', 'Direct payment for project «{title}»', ['title'=>$project->title]);
+                        break;
+                    case 'AP':
+                        $model->description = Yii::t('app', 'Advance payment for project «{title}»', ['title'=>$project->title]);
+                        break;
+                    case 'R':
+                        $model->description = Yii::t('app', 'Reimbursement for project «{title}»', ['title'=>$project->title]);
+                        break;
+                    default:
+                        $model->description = '';
+                }
                 $model->project_id = $project->id;
             }
         }
@@ -133,7 +149,7 @@ class OfficeTransactionsController extends CController
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             if ($model->immediateNotification) {
-                $model->transaction->sendToStatus('notified');
+                $model->transaction->sendToStatus($model->transaction->isExtra ? 'extra': 'notified');
                 $model->transaction->save(false);
             }
             return $this->redirect(['/office-transactions/view', 'id'=>$id]);
@@ -189,7 +205,8 @@ class OfficeTransactionsController extends CController
         if (!$ou){
             return '';
         }
-        return Yii::t('app', 'Ceiling Amount') . ': <strong>'. $ou->getFormattedCeilingAmount() . '</strong><br />' . $ou->getSignificantLedgers();
+        $weight = Yii::$app->user->identity->getPreference('transaction_statuses', 768);
+        return Yii::t('app', 'Ceiling Amount') . ': <strong>'. $ou->getFormattedCeilingAmount() . '</strong><br />' . $ou->getSignificantLedgers($weight);
     }
 
     /**

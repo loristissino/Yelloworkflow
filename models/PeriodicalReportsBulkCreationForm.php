@@ -33,6 +33,16 @@ class PeriodicalReportsBulkCreationForm extends Model
         ->indexBy('id')
         ->orderBy(['possible_actions'=>SORT_DESC, 'rank'=>SORT_ASC, 'name'=>SORT_ASC])
         ->column();
+        
+        
+        $begin = mktime(0, 0, 0, getdate()['mday']>15 ? getdate()['mon']+1: getdate()['mon'], 1, getdate()['year']);
+        $this->begin_date = date('Y-m-d', $begin); // first day of month
+        $this->end_date = date('Y-m-d', mktime(0, 0, 0, getdate()['mday']>15 ? getdate()['mon']+2: getdate()['mon']+1, 0, getdate()['year'])); // last day of month
+        $this->due_date = date('Y-m-d', mktime(0, 0, 0, getdate()['mday']>15 ? getdate()['mon']+2: getdate()['mon']+1, 5, getdate()['year'])); // five days after end of month
+
+        $this->name = Yii::t('app', 'Periodical Report') . ' - ' . Yii::t('app', date('F', $begin)) . ' ' . date('Y', $begin);
+                
+        $this->required_attachments = Yii::$app->params['periodicalReports']['requiredAttachments'];
     }
 
     /**

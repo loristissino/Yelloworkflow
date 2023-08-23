@@ -1,6 +1,7 @@
 <?php
 
 use yii\helpers\Html;
+use yii\helpers\ArrayHelper;
 use yii\widgets\DetailView;
 
 use app\models\Posting;
@@ -35,6 +36,11 @@ $this->registerJs(
             vn.removeClass('ok').addClass('bad').attr('title', vat_number_messages.wrong);
         
     })(window.jQuery);
+    
+    $('#transaction-project').change(function() {
+        $('#project-selection-button').prop('disabled', !$('#transaction-project').val())
+    });
+    
     ",
     \yii\web\View::POS_END,
     'transaction_js_code_end'
@@ -90,6 +96,22 @@ switch($controller) {
 
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
+
+if (!$model->project) {
+    $projectChoice = null;
+    if ($controller == 'transaction-submissions') {
+        $projects = $model->periodicalReport->organizationalUnit->getProjects()->approved()->all();
+        if (sizeof($projects)>0) {
+            $html =
+                Html::beginForm(['connect', 'id'=>$model->id]) .
+                Html::activeDropDownList($model, 'project', ArrayHelper::map($projects, 'id', 'title'), ['prompt'=>Yii::t('app', 'Connect to a project')]) .
+                Html::submitButton(Yii::t('app', 'Connect'), ['id'=>'project-selection-button', 'disabled'=>'disabled']) .
+                Html::endForm();
+            $projectChoice = $html;
+        }
+    }
+}
+
 ?>
 <div class="transaction-view">
 
@@ -123,7 +145,7 @@ $this->params['breadcrumbs'][] = $this->title;
     </p>
 
     <?php if($model->canBeSealed): ?>
-        <p>🔔 <?= Yii::t('app', 'Please use the «Seal» button for transactions that must be dealt immediately by the office, like membership fees proceeds or withholding payments.') ?></p>
+        <p>🔔 <?= Yii::t('app', 'Please use the «Seal» button for transactions that must be dealt immediately by the office, like membership fees proceeds, withholding payments or invoices without applied VAT. Do not use it for ordinary transactions.') ?></p>
     <?php endif ?>
 
     <?= DetailView::widget([
@@ -182,7 +204,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'label' => Yii::t('app', 'Project'),
                 'format' => 'raw',
-                'value' => $model->project ? $model->project->$projectViewLink : null,
+                'value' => $model->project ? $model->project->$projectViewLink : '<span class="not-set">' . Yii::t('yii', '(not set)') . '</span><br>' . $projectChoice,
             ],
             //'event_id',
             'vendor',

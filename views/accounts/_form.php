@@ -18,6 +18,8 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
 
+    <?= $form->field($model, 'reversed_name')->textInput(['maxlength' => true])->hint(Yii::t('app', 'Used for accounts that must be shown differently from the central point of view.')) ?>
+
     <?= $form->field($model, 'status')->checkbox() ?>
 
     <?= $form->field($model, 'code')->textInput(['maxlength' => true]) ?>

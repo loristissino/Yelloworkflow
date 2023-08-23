@@ -153,10 +153,19 @@ class ProjectSubmissionsController extends CController
         ]);
     }
 
+    public function actionCloneConfirm($id) // Previews a project and ask confirmation for cloning
+    {
+        $model = $this->findModel($id, false, false);
+        return $this->render('projects/clone', [
+            'model' => $model,
+        ]);
+    }
+
     public function actionClone($id) // Clones a project
     {
         // we need to redeclare this because of the false parameter to use
         $model = $this->findModel($id, false, false)->cloneModel($this->organizationalUnit->id);
+        
         Yii::$app->session->setFlash('success', Yii::t('app', "Project cloned."));
         return $this->redirect(['index']);//, 'id' => $model->id]);
     }

@@ -38,6 +38,8 @@ use yii\widgets\ActiveForm;
 
     <?= $model->getTernarianRadioList($form, ['field_name'=>'office']) ?>
 
+    <?= $form->field($model, 'extra')->checkbox() ?>
+
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app', 'Save'), ['class' => 'btn btn-success']) ?>
     </div>

@@ -27,7 +27,7 @@ class ProjectWorkflow implements IWorkflowDefinitionProvider
                     ],
                 ],
                 'submitted' => [
-                    'transition' => ['approved', 'partially-approved', 'rejected', 'questioned'],
+                    'transition' => ['approved', 'partially-approved', 'rejected', 'questioned', 'draft'],
                     'metadata'   => [
                         'color' => '#009ACC',
                         'verb' => 'Submit',
@@ -41,7 +41,7 @@ class ProjectWorkflow implements IWorkflowDefinitionProvider
                     ],
                 ],
                 'approved' => [
-                    'transition' => ['draft', 'suspended', 'ended'],
+                    'transition' => ['draft', 'suspended', 'ended', 'canceled'],
                     'metadata'   => [
                         'color' => 'green',
                         'verb' => 'Approve',
@@ -50,7 +50,7 @@ class ProjectWorkflow implements IWorkflowDefinitionProvider
                             "$managementController/view" => '*',
                             "$submissionsController/view" => 'ou',
                         ],
-                        'notification_fields' => ['title', 'organizationalUnit', 'frozenPlannedExpensesAsText'],
+                        'notification_fields' => ['title', 'organizationalUnit', 'lastComments', 'lastCommentsWithoutGTSign', 'frozenPlannedExpensesAsText'],
                     ],
                 ],
                 'partially-approved' => [
@@ -117,7 +117,7 @@ class ProjectWorkflow implements IWorkflowDefinitionProvider
                     ],
                 ],
                 'ended' => [
-                    'transition' => ['reimbursed'],
+                    'transition' => ['reimbursed', 'canceled'],
                     'metadata'   => [
                         'color' => '#7F7F7F',
                         'verb' => 'Mark ended',
@@ -136,8 +136,21 @@ class ProjectWorkflow implements IWorkflowDefinitionProvider
                     'transition' => ['archived'],
                     'metadata'   => [
                         'color' => '#738579',
-                        'verb' => 'Mark Reimbursed',
+                        'verb' => 'Mark reimbursed',
                         'permission' => "$managementController/suspend",
+                        'notifications' => [
+                            "$managementController/view" => '*',
+                            "$submissionsController/view" => 'ou',
+                        ],
+                        'notification_fields' => ['title', 'organizationalUnit'],
+                    ],
+                ],
+                'canceled' => [
+                    'transition' => ['archived'],
+                    'metadata'   => [
+                        'color' => '#C602C6',
+                        'verb' => 'Mark canceled',
+                        'permission' => "$managementController/cancel",
                         'notifications' => [
                             "$managementController/view" => '*',
                             "$submissionsController/view" => 'ou',

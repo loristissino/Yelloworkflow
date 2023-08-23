@@ -11,6 +11,7 @@ use yii\web\NotFoundHttpException;
 use yii\web\ForbiddenHttpException;
 use app\components\LockedHttpException;
 use app\components\CController;
+use app\components\LogHelper;
 
 /**
  * TransactionSubmissionsController implements the CRUD actions for Transaction model.
@@ -118,6 +119,41 @@ class TransactionSubmissionsController extends CController
         return $this->render('/transactions/update', [
             'model' => $model,
         ]);
+    }
+
+    public function actionConnect($id) // Connects a transaction to a project
+    {
+        $transaction = $this->findModel($id);
+        
+        $this->periodicalReport = $transaction->periodicalReport;
+        
+        if (! $this->periodicalReport->isOwnedByCurrentUser)
+        {
+            throw new ForbiddenHttpException(Yii::t('app', 'Not authorized.'));
+        }
+
+        if ($transaction->project_id)
+        {
+            throw new ForbiddenHttpException(Yii::t('app', 'The transaction is already linked to a project.'));
+        }
+
+        try {
+            $project_id = Yii::$app->request->post()['Transaction']['project'];
+            $project = \app\models\Project::findOne($project_id);
+            if ($project && $project->organizational_unit_id == $this->periodicalReport->organizational_unit_id) {
+                $transaction->project_id = $project_id;
+                $transaction->save();
+                LogHelper::log('Project connected', $transaction);
+                Yii::$app->session->setFlash('success', Yii::t('app', 'The project has been connected.'));
+                return $this->redirect(['view', 'id'=>$transaction->id]);
+            }
+            else {
+                throw new NotFoundHttpException(Yii::t('app', 'Project not specified.'));
+            }
+        }
+        catch (Exception $e) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Project not found or not owned.'));
+        }
     }
 
     /**

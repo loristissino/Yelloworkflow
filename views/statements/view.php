@@ -24,6 +24,11 @@ $balanceDescription = $balance >=0 ?
     sprintf('%s − %s', $model->credits_header, $model->debits_header)
     ;
 
+$inconsistency = '';
+if (($balance >0 and $model->enforced_balance == 'C') or ($balance <0 and $model->enforced_balance == 'D')) {
+    $inconsistency = ' 🔔 ' . Yii::t('app', 'This balance is inconsistent with the account definition.');
+}
+
 $this->title = $model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Statements'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
@@ -41,7 +46,8 @@ $this->params['breadcrumbs'][] = $this->title;
             Yii::t('app', 'Balance: {amount} ({description}).', [
                 'amount'=>Yii::$app->formatter->asCurrency(abs($balance)),
                 'description'=>$balanceDescription,
-            ]),
+            ]) .
+            $inconsistency,
         'footerRowOptions' => ['class'=>'grid_footer'],
         'columns' => [
             [

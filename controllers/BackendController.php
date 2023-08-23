@@ -35,7 +35,21 @@ class BackendController extends CController
     {
         return $this->_workflowRepresentation(new \app\models\Transaction(), $seed);
     }
+    
+    public function actionAttachments($pagesize=500)
+    {
+        $searchModel = new \app\models\AttachmentSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $dataProvider->pagination = [
+            'pageSize' => $pagesize,
+        ];
 
+        return $this->render('attachments', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+        ]);
+    }
+    
     private function _workflowRepresentation($model, $seed)
     {
         return $this->render('workflow_representation', [

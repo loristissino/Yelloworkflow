@@ -141,6 +141,11 @@ a.desc:after {
 
 .amount {
     text-align: right;
+    min-width: 100px; 
+}
+
+.amount.header {
+    text-align: left;
 }
 
 .grid_footer {

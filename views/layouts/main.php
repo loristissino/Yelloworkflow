@@ -109,6 +109,16 @@ AppAsset::register($this);
                     ['label' => Yii::t('app', 'Balances'), 'url' => ['periodical-reports-management/summary', 'type'=>'balances']],
                     ['label' => Yii::t('app', 'Recap'), 'url' => ['periodical-reports-management/recap', 'type'=>'general']],
                     ['label' => Yii::t('app', 'Submitted Periodical Reports'), 'url' => ['periodical-reports-management/recap', 'type'=>'submitted']],
+                    ['label' => Yii::t('app', 'Ceiling Amounts'), 'url' => ['organizational-units/ceiling-amounts']],
+                ]
+            ];
+        }
+
+        // FIXME: add customization of menu directly from users
+        if (!Yii::$app->user->hasAuthorizationFor('roles') && Yii::$app->user->hasAuthorizationFor('roles', 'renewals')) {
+            $items[] = ['label' => Yii::t('app', 'Users'),
+                'items' => [
+                    ['label' => Yii::t('app', 'Renewals Check'), 'url' => ['roles/renewals']],
                 ]
             ];
         }
@@ -159,7 +169,7 @@ AppAsset::register($this);
 <footer class="footer">
     <div class="container">
         <p class="pull-left">
-            <?= Html::a('&copy; 2020-2021 LT (GNU Affero GPL)', 'https://github.com/loristissino/Yelloworkflow') ?>
+            <?= Html::a('&copy; 2020-2023 LT (GNU Affero GPL)', 'https://github.com/loristissino/Yelloworkflow') ?>
             <?php /*- 
             <?php foreach(\Yii::$app->controller->authorization_ids as $id=>$value): ?>
                 <?= Html::a($value, ['authorizations/view', 'id'=>$id]) ?> 

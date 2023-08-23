@@ -30,6 +30,8 @@ use \raoul2000\workflow\base\SimpleWorkflowBehavior;
 class PeriodicalReport extends \yii\db\ActiveRecord
 {
     use WorkflowTrait;
+    
+    private $_problem = '';
         
     /**
      * {@inheritdoc}
@@ -185,7 +187,8 @@ class PeriodicalReport extends \yii\db\ActiveRecord
                 'TransactionWorkflow/notified',
                 'TransactionWorkflow/recorded',
                 'TransactionWorkflow/sealed',
-                'TransactionWorkflow/handled', 
+                'TransactionWorkflow/handled',
+                'TransactionWorkflow/extra',
             ])->count()
             ==
             $this->getTransactions()->count() - $this->getTransactions()->withStatus('TransactionWorkflow/rejected')->count() 
@@ -195,9 +198,15 @@ class PeriodicalReport extends \yii\db\ActiveRecord
     public function getHasAllTransactionsRecorded()
     {
         return 
-            $this->getTransactions()->withStatus('TransactionWorkflow/recorded')->count()
+            $this->getTransactions()->withStatus('TransactionWorkflow/recorded')->count() 
+            +
+            $this->getTransactions()->withStatus('TransactionWorkflow/reimbursed')->count()
             ==
-            $this->getTransactions()->count() - $this->getTransactions()->withStatus('TransactionWorkflow/rejected')->count()
+            $this->getTransactions()->count()
+            -
+            $this->getTransactions()->withStatus('TransactionWorkflow/rejected')->count()
+            -
+            $this->getTransactions()->withStatus('TransactionWorkflow/extra')->count()
             ;
     }
 
@@ -210,6 +219,27 @@ class PeriodicalReport extends \yii\db\ActiveRecord
     public function getSubmissionDateIsOK()
     {
         return date('Y-m-d') >= $this->end_date or !$this->organizationalUnit->hasOwnCash;
+    }
+    
+    public function getBalancesChecksAreOK()
+    {
+        $before = $this->nextDay($this->end_date);
+        $balancesDataProvider = Account::getBalancesDataProviderForRealAccounts($this->organizational_unit_id, 2046, $this->nextDay($this->end_date));
+        
+        foreach($balancesDataProvider->models as $model) {
+            if ($model['enforced_balance'] == 'D' and $model['amount_sum'] < 0) {
+                $this->_problem = Yii::t('app', 'The account <b>{name}</b> cannot have a negative balance.', ['name'=>$model['name']]). ' ' . 
+                    Html::a(Yii::t('app', 'Check it'), ['statements/index', 'before'=>$this->nextDay($this->end_date)]) . '.';
+                return false;
+            }
+            if ($model['enforced_balance'] == 'C' and $model['amount_sum'] > 0) {
+                $this->_problem = Yii::t('app', 'The account <b>{name}</b> cannot have a positive balance.', ['name'=>$model['name']]). ' ' . 
+                    Html::a(Yii::t('app', 'Check it'), ['statements/index', 'before'=>$this->nextDay($this->end_date)]) . '.';
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function getRequiredAttachments()
@@ -264,6 +294,10 @@ class PeriodicalReport extends \yii\db\ActiveRecord
                     $this->workflowError = 'A periodical report cannot be submitted before its end date.';
                     $event->invalidate($this->workflowError);
                 }                
+                if (!$this->balancesChecksAreOK) {
+                    $this->workflowError = $this->_problem;
+                    $event->invalidate($this->workflowError);
+                }                
                 break;
             case 'PeriodicalReportWorkflow/questioned':
                 if ( ! $this->_hasRecentComments() ) {
@@ -299,6 +333,7 @@ class PeriodicalReport extends \yii\db\ActiveRecord
                         'TransactionWorkflow/sealed',
                         'TransactionWorkflow/handled',
                         'TransactionWorkflow/rejected',
+                        'TransactionWorkflow/extra',
                     ])) {
                     // a transaction could have been recorded, but the periodical report could have been questioned
                     // if a transaction has been notified from the office, its status should not be changed
@@ -338,21 +373,24 @@ class PeriodicalReport extends \yii\db\ActiveRecord
                 
     }
 
-    public static function getSummaryData($type)
+    public static function getSummaryData($type, $weight=0, $before=null)
     {
+        $transactions = Transaction::getSqlSetForStatuses($weight);
+        
         switch($type){
             case 'balances':
                 $realAccounts = Account::find()->where(['=', 'represents', 'R'])->orderBy(['rank'=>'ASC'])->all();
                 $accounts=[];
                 $enforcedBalances = [];
                 foreach($realAccounts as $account) {
-                    $accounts[$account->name]=0;
-                    $enforcedBalances[$account->name]=$account->enforced_balance;
+                    $name = $account->shown_in_ou_view == 2 ? $account->reversed_name : $account->name; 
+                    $accounts[$name]=0;
+                    $enforcedBalances[$name]=$account->enforced_balance;
                 }
                 
                 $tuples = new SqlDataProvider([
-                    'sql' => "SELECT SUM(`amount`) as `amount`, `organizational_units`.`name` as `ou`, `organizational_units`.`status` as `status`, `organizational_units`.`ceiling_amount` as `ceiling_amount`, `accounts`.`name` as `account`, `accounts`.`enforced_balance` as `encorced_balance` FROM `organizational_units` LEFT JOIN `periodical_reports` ON `periodical_reports`.`organizational_unit_id` = `organizational_units`.`id` LEFT JOIN `transactions` ON `transactions`.`periodical_report_id` = `periodical_reports`.`id` LEFT JOIN `postings` ON `postings`.`transaction_id` = `transactions`.`id` LEFT JOIN `accounts` ON `accounts`.`id` = `postings`.`account_id` WHERE (`accounts`.`represents` = 'R' OR `accounts`.`represents` IS NULL) AND (`transactions`.`wf_status` IN ('TransactionWorkflow/recorded', 'TransactionWorkflow/reimbursed') OR `transactions`.`wf_status` IS NULL) AND `organizational_units`.`possible_actions` & 2 GROUP BY `organizational_units`.`name`, `organizational_units`.`status`, `accounts`.`name` ORDER BY `organizational_units`.`name`, `accounts`.`rank`",
-                    //'params' => [':status' => 1],
+                    'sql' => "SELECT SUM(`amount`) as `amount`, `organizational_units`.`name` as `ou`, `organizational_units`.`status` as `status`, `organizational_units`.`ceiling_amount` as `ceiling_amount`, IF (`accounts`.`shown_in_ou_view` = 2, `accounts`.`reversed_name`, `accounts`.`name`) as `account`, `accounts`.`enforced_balance` as `encorced_balance`, `accounts`.`shown_in_ou_view` as `shown_in_ou_view` FROM `organizational_units` LEFT JOIN `periodical_reports` ON `periodical_reports`.`organizational_unit_id` = `organizational_units`.`id` LEFT JOIN `transactions` ON `transactions`.`periodical_report_id` = `periodical_reports`.`id` LEFT JOIN `postings` ON `postings`.`transaction_id` = `transactions`.`id` LEFT JOIN `accounts` ON `accounts`.`id` = `postings`.`account_id` WHERE `transactions`.`date` < :before AND (`accounts`.`represents` = 'R' OR `accounts`.`represents` IS NULL) AND (`transactions`.`wf_status` IN $transactions OR `transactions`.`wf_status` IS NULL) AND `organizational_units`.`possible_actions` & 2 GROUP BY `organizational_units`.`name`, `organizational_units`.`status`, `accounts`.`name` ORDER BY `organizational_units`.`name`, `accounts`.`rank`",
+                    'params' => [':before' => $before],
                     'pagination' => [
                         'pageSize' => 1000,
                     ],
@@ -360,14 +398,23 @@ class PeriodicalReport extends \yii\db\ActiveRecord
                 
                 $basicData = [];
                 
+                $t = [];
+                
                 foreach($tuples->getModels() as $tuple) {
                     $basicData[$tuple['ou']]=$accounts;
+                    $t[] = $tuple;
                 }
+
+                /*
+                echo "<pre>";
+                print_r($t);
+                die();
+                */
 
                 foreach($tuples->getModels() as $tuple) {
                     $basicData[$tuple['ou']]['ceiling_amount'] = $tuple['ceiling_amount'];
                     $basicData[$tuple['ou']]['status'] = $tuple['status'];
-                    $basicData[$tuple['ou']][$tuple['account']] = $tuple['amount'];
+                    $basicData[$tuple['ou']][$tuple['account']] = $tuple['shown_in_ou_view'] == 2 ? - $tuple['amount'] : $tuple['amount'] ;
                 }
                 
                 $data = [];

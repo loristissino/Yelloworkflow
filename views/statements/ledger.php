@@ -21,7 +21,10 @@ $balance = $sumOfDebits - $sumOfCredits;
 
 // for some accounts the condition is inverted here (because everything is seen from the opposite point of view)
 
+$this->title = sprintf('%s (%s)', $model->name, $ou->name);
+
 if ($model->shown_in_ou_view == 2) {
+    $this->title = sprintf('%s (%s)', $model->reversed_name, $ou->name);
     $balanceDescription = $balance < 0 ?
         sprintf('%s − %s', $model->debits_header, $model->credits_header)
         : 
@@ -39,11 +42,11 @@ else {
     $columnsShown = [ 'Debit', 'Credit' ];
 }
 
-$this->title = sprintf('%s (%s)', $model->name, $ou->name);
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', '?')];
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Dashboard'), 'url'=>['site/dashboard']];
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
 ?>
+
 <div class="account-view">
 
     <h1><?= Html::encode($this->title) ?></h1>
@@ -52,11 +55,15 @@ $this->params['breadcrumbs'][] = $this->title;
         'dataProvider' => $postingDataProvider,
         'showFooter' => true,
         'summary' => Yii::t('app', 'Number of postings found: {count}.' ) . 
-            '<br/>' . 
+            '<br>' . 
             Yii::t('app', 'Balance: {amount} ({description}).', [
                 'amount'=>Yii::$app->formatter->asCurrency(abs($balance)),
                 'description'=>$balanceDescription,
-            ]),
+            ]) .
+            '<br>' .
+            '💡 ' . Yii::t('app', 'Only the transactions in the selected statuses are taken into consideration.') .
+            ' ' . Html::a(Yii::t('app', 'Check/Edit Preferences'), ['periodical-reports-management/summary', 'type'=>'balances', '#'=>'statuses'], ['target'=>'_blank'])
+            ,
         'footerRowOptions' => ['class'=>'grid_footer'],
         'columns' => [
             [

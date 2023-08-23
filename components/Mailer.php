@@ -28,6 +28,14 @@ class Mailer extends Component
         $this->_data['apikey'] = $this->_transport['apikey'];
         return $this;
     }
+    
+    public function setApikey($apikey)
+    {
+        // to use a different apikey in specific cases
+        // to be called after compose()
+        $this->_data['apikey'] = $apikey;
+        return $this;
+    }
 
     public function setFrom($email)
     {

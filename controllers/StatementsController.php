@@ -40,50 +40,21 @@ class StatementsController extends CController
      * Lists all Account models.
      * @return mixed
      */
-    public function actionIndex($year=null) // Lists all available ledgers for the available accounts
+    public function actionIndex($year=null, $before=null) // Lists all available ledgers for the available accounts
     {
         if (!$year) {
-            return $this->redirect(['index', 'year'=>date('Y')]);
+            $redirect = ['index', 'year'=>date('Y')];
+            if ($before) {
+                $redirect['before']=$before;
+            }
+            return $this->redirect($redirect);
         }
-        
-       $sql = "SELECT `accounts`.`id` as `id`, `accounts`.`name` as `name`, `accounts`.`enforced_balance` as `enforced_balance`, SUM(`amount`) as `amount_sum` FROM `postings` JOIN `accounts` ON `postings`.`account_id`=`accounts`.`id` JOIN `transactions` ON `postings`.`transaction_id`=`transactions`.`id` JOIN `periodical_reports` ON `periodical_reports`.`id` = `transactions`.`periodical_report_id` WHERE `periodical_reports`.`organizational_unit_id` = :id AND `accounts`.`represents`='R' AND `transactions`.`wf_status` <> 'TransactionWorkflow/rejected' GROUP BY `accounts`.`id`, `accounts`.`name`, `accounts`.`debits_header`, `accounts`.`credits_header`";
-
-        $dataProviderForRealAccounts = new SqlDataProvider([
-            'sql' => $sql,
-            'params' => [':id' => $this->organizationalUnit->id],
-            'sort' => [
-                'attributes' => [
-                    'rank',
-                    'name',
-                    ],
-                ],
-            'pagination' => false,
-            ]
-        );
-
-       $sql = "SELECT `accounts`.`id` as `id`, `accounts`.`name` as `name`, `accounts`.`debits_header` as `debits_header`, `accounts`.`credits_header` as `credits_header`, SUM(`amount`) as `amount_sum` FROM `postings` JOIN `accounts` ON `postings`.`account_id`=`accounts`.`id` JOIN `transactions` ON `postings`.`transaction_id`=`transactions`.`id` JOIN `periodical_reports` ON `periodical_reports`.`id` = `transactions`.`periodical_report_id` WHERE `periodical_reports`.`organizational_unit_id` = :id AND `accounts`.`represents` IN ('E', 'C', 'S', 'D') AND `transactions`.`wf_status` <> 'TransactionWorkflow/rejected' AND `transactions`.`date` >= MAKEDATE(:year, 1) AND `transactions`.`date` < MAKEDATE(:year +1, 1) GROUP BY `accounts`.`id`, `accounts`.`name`, `accounts`.`debits_header`, `accounts`.`credits_header`";
-       
-        $dataProviderForTemporaryAccounts = new SqlDataProvider([
-            'sql' => $sql,
-            'params' => [':id' => $this->organizationalUnit->id, ':year' => $year],
-            'sort' => [
-                'attributes' => [
-                    'rank',
-                    'name',
-                    ],
-                ],
-            'pagination' => false,
-            ]
-        );
 
         return $this->render('index', [
-            'dataProviderForRealAccounts' => $dataProviderForRealAccounts,
-            'dataProviderForTemporaryAccounts' => $dataProviderForTemporaryAccounts,
+            'dataProviderForRealAccounts' => Account::getBalancesDataProviderForRealAccounts($this->organizationalUnit->id, null, $before),
+            'dataProviderForTemporaryAccounts' => Account::getBalancesDataProviderForTemporaryAccounts($this->organizationalUnit->id, $year),
             'year' => $year,
         ]);
-
-
-
     }
 
     /**
@@ -122,7 +93,9 @@ class StatementsController extends CController
         
         $postingSearchModel = new PostingSearch();
         
-        $query = Posting::find()->orderBy('date')->select('postings.*, transactions.*')->withAccountId($model->id)->joinWith('periodicalReports')->withOrganizationalUnitId($ou);
+        $weight = Yii::$app->user->identity->getPreference('transaction_statuses', 768);
+        
+        $query = Posting::find()->orderBy('date')->select('postings.*, transactions.*')->withAccountId($model->id)->joinWith('periodicalReports')->withOrganizationalUnitId($ou)->withOneOfTransactionStatuses($weight);
         
         $postingDataProvider = $postingSearchModel->search(Yii::$app->request->queryParams, $query);
         

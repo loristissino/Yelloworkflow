@@ -229,6 +229,18 @@ class Authorization extends \yii\db\ActiveRecord
                 'title' => 'Events Management',
                 'description' => 'What\'s gonna happen',
             ],
+            'shorteners' => [
+                'icon' => 'link',
+                'color' => '#008000',
+                'title' => 'Shorteners',
+                'description' => 'Customized short URLs',
+            ],
+            'social-media' => [
+                'icon' => 'rocket',
+                'color' => '#F908DF',
+                'title' => 'Social Media',
+                'description' => 'Schedule the posts',
+            ],
             /*
             'notifications' => [
                 'icon' => 'envelope',

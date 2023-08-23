@@ -8,6 +8,8 @@ use app\models\PeriodicalReportSearch;
 use yii\web\NotFoundHttpException;
 use app\components\CController;
 use app\models\PeriodicalReportsBulkCreationForm;
+use app\models\TransactionStatusesForm;
+use yii\helpers\Url;
 
 /**
  * PeriodicalReportsManagementController implements the CRUD actions for PeriodicalReport model.
@@ -82,9 +84,6 @@ class PeriodicalReportsManagementController extends CController
     {
         $model = new PeriodicalReportsBulkCreationForm();
         
-        $model->name = Yii::$app->params['periodicalReports']['name'];
-        $model->required_attachments = Yii::$app->params['periodicalReports']['requiredAttachments'];
-
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['index']);
         }
@@ -94,14 +93,24 @@ class PeriodicalReportsManagementController extends CController
         ]);
     }
 
-    public function actionSummary($type='balances')
+    public function actionSummary($type='balances', $before=null)
     {
-        $data = PeriodicalReport::getSummaryData($type);
+        if (!$before) {
+            $before = '2100-01-01';
+        }
+        $model = new TransactionStatusesForm();
+        $model->loadValuesFromUserSettings();
+        
+        $data = PeriodicalReport::getSummaryData($type, $model->weight, $before);
+        
+        $model->url = Url::to(['summary', ['type'=>'balances']]);
 
         return $this->render('summary-'.$type, [
             'dataProvider' => $data['provider'],
             'fields' => $data['fields'],
             'enforcedBalances' => $data['enforcedBalances'],
+            'model' => $model,
+            'before'=>$before,
         ]);
     }
 

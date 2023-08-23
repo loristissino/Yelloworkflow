@@ -23,6 +23,11 @@ class TransactionTemplateQuery extends \yii\db\ActiveQuery
     {
         return $office_only ? $this->andWhere(['<>', 'office', 0]) : $this;
     }
+    
+    public function isExtra($extra=true)
+    {
+        return $this->andWhere([$extra? '=': '<>', 'extra', 1]);
+    }
 
     public function allowedForOrganizationaLUnit($allowed=true)
     {

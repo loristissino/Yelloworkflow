@@ -79,11 +79,11 @@ if ($amountToBeReimbursed < 0) {
                 'value' => 'formattedDebitAmount',
                 'footer' => Yii::$app->formatter->asCurrency($debitsTotalAmount),
                 'contentOptions' => ['class' => 'amount'],
-                'headerOptions' => ['class' => 'amount'],
+                'headerOptions' => ['class' => 'amount header'],
                 'footerOptions' => ['class' => 'amount'],
             ],
             [
-                'label' => Yii::t('app', 'Donation'),
+                'label' => Yii::t('app', 'Donation / Advance Payment'),
                 'format' => 'raw',
                 'value' => 'formattedCreditAmount',
                 'footer' => Yii::$app->formatter->asCurrency($creditsTotalAmount),
@@ -94,10 +94,11 @@ if ($amountToBeReimbursed < 0) {
         ],
     ]); ?>
 
-    <?php if ($amountToBeReimbursed > 0 and Yii::$app->user->hasAuthorizationFor('office-transactions/create')): ?>
-        <?=Html::a(Yii::t('app', 'Create Reimbursement Transaction'), ['office-transactions/create', 'organizational_unit_id'=>$project->organizational_unit_id, 'project_id'=>$project->id, 'amount'=>$amountToBeReimbursed]) ?>
+    <?php if(Yii::$app->user->hasAuthorizationFor('office-transactions/create')): ?>
+        <?php if ($amountToBeReimbursed > 0): ?>
+            <?=Html::a(Yii::t('app', 'Create Reimbursement Transaction'), ['office-transactions/create', 'organizational_unit_id'=>$project->organizational_unit_id, 'project_id'=>$project->id, 'type'=>'R', 'amount'=>$amountToBeReimbursed]) ?><br>
+        <?php endif ?>
     <?php endif ?>
-
 
 </div>
 <?php endif ?>

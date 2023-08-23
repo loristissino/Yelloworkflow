@@ -4,9 +4,11 @@ namespace app\controllers;
 
 use Yii;
 use app\models\Notification;
+use app\models\Message;
 use app\models\NotificationSearch;
 use app\models\NotificationTemplate;
 use app\models\PeriodicalReport;
+use app\models\PetitionSignature;
 use app\components\LogHelper;
 use yii\web\NotFoundHttpException;
 use yii\web\ForbiddenHttpException;
@@ -59,7 +61,7 @@ class NotificationsController extends CController
         ]);
     }
     
-    public function actionSend($key) // Sends ready notifications via email
+    public function actionSend($key) // Sends ready notifications and email messages via email
     {
         $this->enableCsrfValidation = false;
         if ($key!=Yii::$app->params['notificationsKey'])
@@ -74,11 +76,26 @@ class NotificationsController extends CController
             throw new MethodNotAllowedHttpException(Yii::t('app', 'Method not allowed.'));
         }
         */
-        $notifications = Notification::find()->sent(false)->orderBy(['created_at' => SORT_ASC])->limit(6)->all();
+
         $this->layout = false;
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-        $data = ['notifications' => [] ];
+        $data = ['notifications' => [], 'messages' => [] ];
+
+        $messages = Message::find()->sent(false)->orderBy(['created_at' => SORT_ASC])->limit(6)->all();
+
+        $count = 0;
+        foreach($messages as $message) {
+            $status = $message->sendEmail() ? 'sent': 'not sent';
+            $data['messages'][] = [
+                'message_id' => $message->id,
+                'status' => $status,
+            ];
+            sleep(1); // let's wait one second between each email...
+            $count++;
+        }
+
+        $notifications = Notification::find()->sent(false)->orderBy(['created_at' => SORT_ASC])->limit(6-$count)->all();
         
         foreach($notifications as $notification) {
             $status = $notification->sendEmail() ? 'sent': 'not sent';
@@ -88,10 +105,12 @@ class NotificationsController extends CController
             ];
             sleep(1); // let's wait one second between each email...
         }
+
+
         return $this->renderContent($data);
     }
 
-    public function actionPrepareReminders($key) // Prepare reminders as notifications
+    public function actionPrepareReminders($key, $type='workflow', $petition_key='') // Prepare reminders as notifications
     {
         $this->enableCsrfValidation = false;
         if ($key!=Yii::$app->params['notificationsKey'])
@@ -103,23 +122,31 @@ class NotificationsController extends CController
         $this->layout = false;
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         
-        $reports = PeriodicalReport::find()->toRemindToday()->all();
-        
-        $template = NotificationTemplate::find()->withCode('PeriodicalReportWorkflow/remind')->one();
-        
-        $data = [];
-        
-        if ($template) {
-            foreach($reports as $report){
-                $count = LogHelper::notify($report, $template);
-                $data[] = [
-                    'report' => $report->id,
-                    'due_date' => $report->dueDate,
-                    'notifications' => $count,
-                    ];
+        if ($type=='workflow') {
+            $reports = PeriodicalReport::find()->toRemindToday()->all();
+            $template = NotificationTemplate::find()->withCode('PeriodicalReportWorkflow/remind')->one();
+            $data = [];
+            if ($template) {
+                foreach($reports as $report){
+                    $count = LogHelper::notify($report, $template);
+                    $data[] = [
+                        'report' => $report->id,
+                        'due_date' => $report->dueDate,
+                        'notifications' => $count,
+                        ];
+                }
             }
         }
-
+        elseif ($type=='petition_signatures') {
+            $data = [];
+            $signatures = PetitionSignature::find()->confirmed(false)->reminded(false)->createdBefore(time() - 24*60*60)->all();
+            foreach($signatures as $signature) {
+                $signature->prepareRemindEmail($petition_key);
+                $data[] = [
+                    'signature' => $signature->id,
+                ];
+            }
+        }
         return $this->renderContent($data);
     }
 

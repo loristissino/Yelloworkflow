@@ -24,7 +24,7 @@ class LogHelper {
         $activity->user_id = \Yii::$app->user->isGuest ? null : \Yii::$app->user->id;
         $activity->activity_type = $activity_type;
         $activity->model = $model::className();
-        $activity->model_id = $model->id;
+        $activity->model_id = isset($model->id) ? $model->id: 0;
 
         $values = array_diff_key(
             ArrayHelper::toArray($model),

@@ -22,6 +22,7 @@ use yii\helpers\Html;
  * @property int $needs_vendor
  * @property int $is_sealable // 0=forbidden 1=required 2=allowed
  * @property int $office // 0=forbidden (only organizational units) 1=required (only office) 2=allowed (both office and organizational units)
+ * @property int $extra // 0=no, 1=yes
  *
  * @property TransactionTemplatePosting[] $transactionTemplatePostings
  * @property OrganizationalUnit $organizationalUnit
@@ -45,7 +46,7 @@ class TransactionTemplate extends \yii\db\ActiveRecord
     {
         return [
             [['organizational_unit_id', 'status', 'rank'], 'integer'],
-            [['status', 'rank', 'title', 'description', 'needs_attachment', 'needs_project', 'needs_vendor', 'is_sealable', 'office'], 'required'],
+            [['status', 'rank', 'title', 'description', 'needs_attachment', 'needs_project', 'needs_vendor', 'is_sealable', 'office', 'extra'], 'required'],
             [['title', 'o_title'], 'string', 'max' => 60],
             [['description', 'o_description', 'request'], 'string', 'max' => 255],
             ['office', 'validateOfficeFields'],
@@ -87,6 +88,7 @@ class TransactionTemplate extends \yii\db\ActiveRecord
             'needs_vendor' => Yii::t('app', 'Needs vendor?'),
             'is_sealable' => Yii::t('app', 'Sealable?'),
             'office' => Yii::t('app', 'Preparable by the office?'),
+            'extra' => Yii::t('app', 'Is it a transaction that does not have effects on OU\'s reports?'),
         ];
     }
 
@@ -186,6 +188,11 @@ class TransactionTemplate extends \yii\db\ActiveRecord
     {
         return $this->getTernarianRepresentation($this->office);
     }
+
+    public function getExtraView()
+    {
+        return $this->getBooleanRepresentation($this->extra);
+    }
     
     public function getCanBeSealed()
     {
@@ -200,6 +207,11 @@ class TransactionTemplate extends \yii\db\ActiveRecord
     public function getMustBeSealed()
     {
         return $this->is_sealable == 1;
+    }
+    
+    public function getIsExtra()
+    {
+        return $this->extra == 1;
     }
 
     public static function getDropdown($form, $model, $options=[])
@@ -226,7 +238,7 @@ class TransactionTemplate extends \yii\db\ActiveRecord
         $model->title .= ' - ' . Yii::t('app', '(Copy)');
         $model->id = null;
         $model->status = 0;
-        $model->save();
+        $model->save(false); // it failed for descriptions too long
         
         foreach($this->transactionTemplatePostings as $item) {
             $newItem = new TransactionTemplatePosting();

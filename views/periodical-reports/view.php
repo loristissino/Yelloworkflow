@@ -193,3 +193,5 @@ $attributes[] =
         
     </div>
 <?php endif ?>
+<hr>
+<?= Html::a(Yii::t('app', 'Balances'), ['statements/index']) ?><br>

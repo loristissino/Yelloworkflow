@@ -8,9 +8,17 @@ use app\models\OrganizationalUnit;
 /* @var $model app\models\PeriodicalReport */
 /* @var $form yii\widgets\ActiveForm */
 
+$currentDate = new DateTime();
+
 $this->registerJs(
     "
     (function ($) {
+        $('.ous').each(function(index, item) {
+            if (item.parentElement.innerText.indexOf('*')>=0) {
+                item.checked = false;
+            }
+        });
+    
         $('#invert_selection').click(function() {
             $('.ous').each(function(index, item) {
                 item.checked = !item.checked;
@@ -38,7 +46,7 @@ $this->registerJs(
         [
             'itemOptions' => [
                 'checked' => 'checked',
-                'class' => 'ous'
+                'class' => 'ous',
                 ],
             'separator'=>'<br/>'
         ]) ?>

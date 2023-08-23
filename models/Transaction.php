@@ -265,6 +265,11 @@ class Transaction extends \yii\db\ActiveRecord
         return false; // this is used by the interface, in the section where we must choose to show the button or not
     }
     
+    public function getIsExtra()
+    {
+        return $this->transactionTemplate->isExtra;
+    }
+    
     public function getHasDateInValidRange()
     {
         return $this->date >= $this->periodicalReport->begin_date and $this->date <= $this->periodicalReport->end_date;
@@ -348,11 +353,11 @@ class Transaction extends \yii\db\ActiveRecord
         $log = "Running workflow routines...\n";
         
         $log .= $event->getTransition()->getId() . "\n";
-        
+
         $options = [];
-                
-        \app\components\LogHelper::log($event->getEndStatus()->getId(), $this, $options);
         
+        \app\components\LogHelper::log($event->getEndStatus()->getId(), $this, $options);
+      
     }
 
     public function addPostings(TransactionTemplate $template, $amount)
@@ -464,6 +469,31 @@ class Transaction extends \yii\db\ActiveRecord
             $items[] = sprintf('%s - %s', $model['vat_number'], str_replace(['"', "'"], '', $model['vendor'])); 
         }
         return $items;
+    }
+
+    public static function getWeightedStatuses($translated=true)
+    {
+        $statuses = array_filter(\app\models\TransactionWorkflow::getDefinition()['status'],
+            function($item) {return $item['metadata']['weigth']!=-1;}
+        );
+        $filtered = [];
+        foreach($statuses as $key=>$value) {
+            $filtered[$value['metadata']['weigth']] = $translated ? Yii::t(Yii::t('app', 'app\models\Transaction'), ucfirst($key)) : $key;
+        }
+        return $filtered;
+    }
+    
+    public static function getSqlSetForStatuses($weight)
+    {
+        $statuses = self::getWeightedStatuses(false);
+        $values = [];
+        $values[] = "'TransactionWorkflow/xxxxxxx'"; // to avoid problems in case of no weight given
+        foreach($statuses as $key=>$value) {
+            if ($key & $weight) {
+                $values[] = "'TransactionWorkflow/$value'";
+            }
+        }
+        return '(' . join(', ', $values) . ')';
     }
     
     /**

@@ -16,6 +16,8 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'description')->textarea(['rows' => 6]) ?>
 
+    <?= $form->field($model, 'bond')->textarea(['rows' => 6])->hint(Yii::$app->params['project_bond_hint']) ?>
+
     <?= $form->field($model, 'co_hosts')->textarea(['rows' => 6]) ?>
 
     <?= $form->field($model, 'partners')->textarea(['rows' => 6]) ?>

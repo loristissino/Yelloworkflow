@@ -5,6 +5,7 @@ namespace app\controllers;
 use Yii;
 use app\models\OrganizationalUnit;
 use app\models\OrganizationalUnitSearch;
+use app\models\OrganizationalUnitsCeilingAmountsForm;
 use yii\web\NotFoundHttpException;
 use app\components\CController;
 
@@ -85,6 +86,24 @@ class OrganizationalUnitsController extends CController
             'model' => $model,
         ]);
     }
+    
+    public function actionCeilingAmounts() // Views and updates organizational units' plafonds
+    {
+        $model = new OrganizationalUnitsCeilingAmountsForm();
+
+        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            Yii::$app->session->setFlash('success', Yii::t('app', 'Ceiling amounts updated for {count,plural,=0{no Organizational Unit} =1{one Organizational Unit} other{# Organizational Units}}.', ['count'=>$model->updatesCount]));
+            return $this->redirect(['ceiling-amounts']);
+        }
+        
+        $model->loadValues();
+
+        return $this->render('ceiling-amounts', [
+            'model' => $model,
+        ]);
+    }
+    
+    
 
 
     /**

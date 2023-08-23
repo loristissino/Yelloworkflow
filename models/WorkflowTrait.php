@@ -120,4 +120,11 @@ trait WorkflowTrait
         return Activity::find()->withModel($this::className())->withModelId($this->id);
     }
     
+    public function nextDay($date='2099-12-31')
+    {
+        $info = date_parse_from_format("Y-m-d", $date);
+        $next = mktime(0,0,0, $info['month'], $info['day']+1, $info['year']);
+        return date('Y-m-d', $next);
+    }
+    
 }

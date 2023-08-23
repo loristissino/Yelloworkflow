@@ -57,6 +57,11 @@ class PostingQuery extends \yii\db\ActiveQuery
         return $this->andWhere(['<>', 'transactions.wf_status', $status]);
     }
     
+    public function withOneOfTransactionStatuses($weight)
+    {
+        return $this->andWhere('transactions.wf_status IN ' . Transaction::getSqlSetForStatuses($weight));
+    }
+    
     public function inYear($year)
     {
         return $this

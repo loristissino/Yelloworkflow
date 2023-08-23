@@ -55,6 +55,7 @@ if (!$model->isDraft) {
             'id',
             'title',
             'description:ntext',
+            'bond:ntext',
             'co_hosts:ntext',
             'partners:ntext',
             'period',
@@ -116,15 +117,22 @@ if (!$model->isDraft) {
 
 <?php if ($model->organizationalUnit->hasLoggedInUser()): ?>
     <hr />
-    <?= Html::a(Yii::t('app', 'Clone Project'), ['clone', 'id' => $model->id], [
-        'class' => 'btn btn-info',
-        'data' => [
-            'method' => 'post',
-        ],
+    <?= Html::a(Yii::t('app', 'Clone Project') . ' ' . Yii::t('app', '(you will be asked to confirm)') , ['clone-confirm', 'id' => $model->id], [
+        //'class' => 'btn btn-info',
     ]) ?>
 <?php endif ?>
 
 <?php if(Yii::$app->user->hasAuthorizationFor('projects-management')): ?>
+
+    <?php if(Yii::$app->user->hasAuthorizationFor('office-transactions/create')): ?>
+        <?=Html::a(Yii::t('app', 'Create Advance Payment Transaction'), ['office-transactions/create', 'organizational_unit_id'=>$model->organizational_unit_id, 'project_id'=>$model->id, 'type'=>'AP']) ?><br>
+        <?php /*if ($amountToBeReimbursed > 0): ?>
+            <?=Html::a(Yii::t('app', 'Create Reimbursement Transaction'), ['office-transactions/create', 'organizational_unit_id'=>$model->organizational_unit_id, 'project_id'=>$model->id, 'type'=>'R', 'amount'=>$amountToBeReimbursed]) ?><br>
+        <?php endif */ ?>
+        <?=Html::a(Yii::t('app', 'Create Direct Payment Transaction'), ['office-transactions/create', 'organizational_unit_id'=>$model->organizational_unit_id, 'project_id'=>$model->id, 'type'=>'DP']) ?><br>
+    <?php endif ?>
+
+    <hr>
     <?php $url=Url::toRoute(['projects-management/view', 'id'=>$model->id, 'template'=>'copyandpaste']); ?>
     <?= Html::a(Yii::t('app', 'Copy and Paste View'), $url, ['target'=>'_blank']) ?>
     <?php /*

@@ -155,12 +155,21 @@ class CController extends Controller
     
     protected function _changeWorkflowStatus($model, $status, $redirect=null)
     {
-        if ($model->sendToStatus($status)) {
-            $model->save();
+        if ($model->sendToStatus($status) && $model->save()) {
             Yii::$app->session->setFlash('success', Yii::t('app', 'Status changed to {name}.', ['name'=>$status]));
         }
         else {
-            Yii::$app->session->setFlash('error', Yii::t('app', $model->workflowError));
+            if (sizeof($model->getErrors())>0) {
+                $texts = [];
+                foreach($model->getErrors() as $key=>$value){
+                    $texts[] = $key . ': ' . implode(', ', $value);
+                }
+                $errors = implode(', ', $texts);
+            }
+            else {
+                $errors = Yii::t('app', $model->workflowError);
+            }
+            Yii::$app->session->setFlash('error', $errors);
         }
         if (!$redirect) {
             $redirect = ['view', 'id' => $model->id];

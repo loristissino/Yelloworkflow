@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\helpers\Url;
 
 /**
  * This is the model class for table "attachments".
@@ -63,4 +64,5 @@ class Attachment extends \yii\db\ActiveRecord
     {
         return new AttachmentQuery(get_called_class());
     }
+    
 }

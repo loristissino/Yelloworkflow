@@ -228,15 +228,16 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
         return  Yii::$app->formatter->asCurrency($this->ceiling_amount);
     }    
 
-    public function getSignificantLedgers()
+    public function getSignificantLedgers($weight=0)
     {
         if (! $this->hasOwnCash)
             return '';
         $significantAccounts = Account::find()->shownInOUView()->all();
         foreach ($significantAccounts as $account) {
-            $links[] = sprintf('%s: %s', $account->name, $this->getLinkToLedger($account));
+            $name = $account->shown_in_ou_view == 2 ? $account->reversed_name : $account->name;
+            $links[] = sprintf('%s: %s', $name, $this->getLinkToLedger($account, $weight));
         }
-        return join($links, '<br />');
+        return join($links, '<br>') . '<br>💡 ' . Yii::t('app', 'Only the transactions in the selected statuses are taken into consideration.');
     }
     
     public function getHasOwnProjects()
@@ -254,15 +255,15 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
         return $this->possible_actions & self::CAN_SELL;
     }
 
-    public function getLinkToLedger(Account $account)
+    public function getLinkToLedger(Account $account, $weight=0)
     {
-        return Html::a(Yii::$app->formatter->asCurrency($this->computeBalance($account)), ['statements/ledger', 'account'=>$account->id, 'ou'=>$this->id], ['target'=>'_blank']);
+        return Html::a(Yii::$app->formatter->asCurrency($this->computeBalance($account, $weight)), ['statements/ledger', 'account'=>$account->id, 'ou'=>$this->id], ['target'=>'_blank']);
     }
     
-    public function computeBalance(Account $account)
+    public function computeBalance(Account $account, $weight=0)
     {
-        $amount = Posting::find()->select('postings.*, transactions.*')->joinWith('account')->draft(false)->withAccountId($account->id)->joinWith('periodicalReports')->withOrganizationalUnitId($this->id)->sum('amount');
-        return $account->shown_in_ou_view == 1 ? $amount : - $amount;
+        $amount = Posting::find()->select('postings.*, transactions.*')->joinWith('account')->withOneOfTransactionStatuses($weight)->withAccountId($account->id)->joinWith('periodicalReports')->withOrganizationalUnitId($this->id)->sum('amount');
+        return $account->shown_in_ou_view == 2 ? -$amount : $amount;
     }
 
     public function afterSave($insert, $changedAttributes)

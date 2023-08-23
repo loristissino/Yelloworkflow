@@ -41,10 +41,13 @@ if (!$model->isDraft) {
     <h1><?= Html::encode($this->title) ?></h1>
 
     <h2><?= Yii::t('app', 'Description') ?></h2>
-    <?= Html::encode($model->description) ?>
+    <?= nl2br(Html::encode($model->description)) ?>
+
+    <h2><?= Yii::t('app', 'Bond') ?></h2>
+    <?= nl2br(Html::encode($model->bond)) ?>
 
     <?php if ($model->co_hosts): ?>
-        <h2><?= Yii::t('app', 'Co-hosts') ?></h2>
+        <h2><?= Yii::t('app', 'Co Hosts') ?></h2>
         <?= Html::encode($model->co_hosts) ?>
     <?php endif ?>
 
@@ -73,5 +76,16 @@ if (!$model->isDraft) {
         ]) ?></li>
     <?php endforeach ?>
     </ul>
+
+    <h2><?= Yii::t('app', 'Comments') ?></h2>
+    <ul>
+    <?php foreach($model->projectComments as $comment): ?>
+        <li>
+            <em><strong><?= $comment->user; ?></strong></em><br>
+            <tt><?= nl2br($comment->comment); ?></tt>
+        </li>
+    <?php endforeach ?>
+    </ul>
+
 
 </div>

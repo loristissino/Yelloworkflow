@@ -65,6 +65,11 @@ $this->params['breadcrumbs'][] = $this->title;
                 'value' => 'postingsView'
             ],
             [
+                'label' => Yii::t('app', 'Project'),
+                'format' => 'raw',
+                'value' => 'project'
+            ],
+            [
                 'attribute'=>'wf_status',
                 'format'=>'raw',
                 'value'=>'workflowLabel',
@@ -105,5 +110,15 @@ $this->params['breadcrumbs'][] = $this->title;
     <p><?= Yii::t('app', 'No transactions.') ?></p>
 
     <?php endif ?>
+    
+    <hr>
+    
+    <p>
+        <?php if($recorded=='extra'): ?>
+            <?= Html::a(Yii::t('app', 'Ordinary transactions'), ['index']) ?>
+        <?php else: ?>
+            <?= Html::a(Yii::t('app', '«Extra» transactions'), ['index', 'recorded'=>'extra']) ?>
+        <?php endif ?>
+    </p>
 
 </div>
