@@ -56,7 +56,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'showFooter' => true,
         'summary' => Yii::t('app', 'Number of postings found: {count}.' ) . 
             '<br>' . 
-            Yii::t('app', 'Balance: {amount} ({description}).', [
+            Yii::t('app', 'Final balance: {amount} ({description}).', [
                 'amount'=>Yii::$app->formatter->asCurrency(abs($balance)),
                 'description'=>$balanceDescription,
             ]) .

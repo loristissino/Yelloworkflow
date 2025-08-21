@@ -12,6 +12,9 @@ use yii\helpers\Html;
 <p><?= Html::a(Yii::t('app', 'Notification Templates'), ['notification-templates/index']) ?></p>
 <p><?= Html::a(Yii::t('app', 'Vendors'), ['vendors/index']) ?></p>
 <p><?= Html::a(Yii::t('app', 'Attachments'), ['attachments', 'pagesize'=>666, 'sort'=>'-id']) ?></p>
+<p><?= Html::a(Yii::t('app', 'Contact Method Types'), ['contact-method-types/index']) ?></p>
+<p><?= Html::a(Yii::t('app', 'Subscription Types'), ['subscription-types/index']) ?></p>
+
 
 <hr />
 

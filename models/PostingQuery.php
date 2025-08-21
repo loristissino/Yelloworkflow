@@ -70,6 +70,21 @@ class PostingQuery extends \yii\db\ActiveQuery
             ;
     }
 
+    public function beforeYear($year)
+    {
+        return $this
+            ->andWhere(['<','transactions.date', $year . '-01-01'])
+            ;
+    }
+    
+    public function withHash($hash)
+    {
+        return $this
+            ->andWhere(['LIKE','transactions.notes', '#' . $hash ])
+            ;
+    }
+    
+
     public function rejected($rejected=true)
     {
         return $this->andWhere([$rejected ? '=' : '<>', 'transactions.wf_status', 'TransactionWorkflow/rejected']);

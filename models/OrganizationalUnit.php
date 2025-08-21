@@ -237,7 +237,9 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
             $name = $account->shown_in_ou_view == 2 ? $account->reversed_name : $account->name;
             $links[] = sprintf('%s: %s', $name, $this->getLinkToLedger($account, $weight));
         }
-        return join($links, '<br>') . '<br>💡 ' . Yii::t('app', 'Only the transactions in the selected statuses are taken into consideration.');
+        return join('<br>', $links) .
+        '<br>💡 ' .
+        Yii::t('app', 'Only the transactions in the selected statuses are taken into consideration.');
     }
     
     public function getHasOwnProjects()
@@ -262,7 +264,10 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
     
     public function computeBalance(Account $account, $weight=0)
     {
-        $amount = Posting::find()->select('postings.*, transactions.*')->joinWith('account')->withOneOfTransactionStatuses($weight)->withAccountId($account->id)->joinWith('periodicalReports')->withOrganizationalUnitId($this->id)->sum('amount');
+        if (!$weight) {
+            $weight = Yii::$app->user->identity->getPreference('transaction_statuses', 768);
+        }
+        $amount = Posting::find()->joinWith('account')->withOneOfTransactionStatuses($weight)->withAccountId($account->id)->joinWith('periodicalReports')->withOrganizationalUnitId($this->id)->sum('amount');
         return $account->shown_in_ou_view == 2 ? -$amount : $amount;
     }
 

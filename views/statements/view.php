@@ -1,6 +1,8 @@
 <?php
 
 use yii\helpers\Html;
+use yii\helpers\Url;
+use app\components\ViewHelper;
 use yii\grid\GridView;
 
 /* @var $this yii\web\View */
@@ -8,7 +10,18 @@ use yii\grid\GridView;
 
 $debitsTotalAmount = 0;
 $creditsTotalAmount = 0;
+
+if ($historicalBalance) {
+    if ($historicalBalance > 0) {
+        $debitsTotalAmount = $historicalBalance;
+    }
+    if ($historicalBalance < 0) {
+        $creditsTotalAmount = -$historicalBalance;
+    }
+}
+
 foreach($postingDataProvider->models as $posting) {
+        
     if ($posting->amount > 0) {
         $debitsTotalAmount += $posting->amount;
     }
@@ -18,18 +31,28 @@ foreach($postingDataProvider->models as $posting) {
 }
 
 $balance = $debitsTotalAmount - $creditsTotalAmount;
-$balanceDescription = $balance >=0 ?
-    sprintf('%s − %s', $model->debits_header, $model->credits_header)
-    : 
-    sprintf('%s − %s', $model->credits_header, $model->debits_header)
-    ;
+$balanceDescription = $model->getBalanceDescription($balance);
+
+$historicalBalanceDescription = $model->getBalanceDescription($historicalBalance);
 
 $inconsistency = '';
 if (($balance >0 and $model->enforced_balance == 'C') or ($balance <0 and $model->enforced_balance == 'D')) {
     $inconsistency = ' 🔔 ' . Yii::t('app', 'This balance is inconsistent with the account definition.');
 }
 
+$hashLinkParams = ['view', 'id'=>$model->id]; 
+
 $this->title = $model->name;
+if ($year) {
+    $this->title = sprintf('%s (%s)', $model->name, $year);
+    $hashLinkParams['year']=$year;
+}
+if ($hash) {
+    $this->title .= ' #' . $hash;
+}
+
+$hashLink = Url::toRoute($hashLinkParams);
+
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Statements'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
@@ -42,18 +65,27 @@ $this->params['breadcrumbs'][] = $this->title;
         'dataProvider' => $postingDataProvider,
         'showFooter' => true,
         'summary' => Yii::t('app', 'Number of postings found: {count}.' ) . 
-            '<br/>' . 
-            Yii::t('app', 'Balance: {amount} ({description}).', [
+            '<br/>' . ( 
+            $historicalBalance ? 
+                Yii::t('app', 'Initial balance: {amount} ({description}).', [
+                    'amount'=>Yii::$app->formatter->asCurrency(abs($historicalBalance)),
+                    'description'=>$historicalBalanceDescription,
+                ]) . '<br>' 
+                :
+                '' ) . 
+            '<strong>' . Yii::t('app', 'Final balance: {amount} ({description}).', [
                 'amount'=>Yii::$app->formatter->asCurrency(abs($balance)),
                 'description'=>$balanceDescription,
-            ]) .
-            $inconsistency,
+            ]) . '</strong>' .
+            $inconsistency
+            ,
         'footerRowOptions' => ['class'=>'grid_footer'],
         'columns' => [
+            'transaction.id',
             [
                 'label' => Yii::t('app', 'Date'),
                 'format' => 'raw',
-                'attribute' => 'transaction.date',
+                'attribute' => 'date',
                 'value'=>function($data) {
                     return Yii::$app->formatter->asDate($data['transaction']['date']);
                 },
@@ -71,7 +103,9 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => Yii::t('app', 'Notes'),
                 'format' => 'raw',
-                'value' => 'transaction.notes',
+                'value' => function($data) use($hashLink) {
+                    return ViewHelper::convertHashtagsToLinks($data['transaction']['notes'], $hashLink);
+                },
             ],
             [
                 'attribute' => Yii::t('app', 'Status'),
@@ -100,3 +134,8 @@ $this->params['breadcrumbs'][] = $this->title;
     ]); ?>
 
 </div>
+
+<?php if ($year and $year > 2021): $linkedYear = $year-1 ?>
+    <hr>
+    <?= Html::a(Yii::t('app', 'Previous year ({year})', ['year'=>$linkedYear]), ['view', 'id'=>$model->id, 'year'=>$linkedYear]) ?>
+<?php endif ?>

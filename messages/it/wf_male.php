@@ -14,6 +14,7 @@ return [
     'Partially Approved' => 'Approvato con riserve',
     'Partially-approved' => 'Approvato con riserve',
     'Prepared' => 'Preparato',
+    'Published' => 'Pubblicato',
     'Questioned' => 'Messo in discussione',  
     'Recorded' => 'Registrato',
     'Reimbursed' => 'Rimborsato',

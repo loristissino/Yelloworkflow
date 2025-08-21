@@ -20,6 +20,8 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'rank')->textInput() ?>
 
+    <?= $form->field($model, 'email')->textInput()->hint(Yii::t('app', 'Used to specify an email address related to this affiliation.')) ?>
+
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app', 'Save'), ['class' => 'btn btn-success']) ?>
     </div>

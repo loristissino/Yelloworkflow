@@ -71,6 +71,8 @@ $dataProvider = $mastodon->getScheduledPosts();
     
     <?= $form->field($model, 'image')->fileInput() ?>
 
+    <?= $form->field($model, 'description')->textarea(['rows' => 6])->hint(Yii::t('app', 'A meaningful description of the image to improve accessibility.')) ?>
+
     <?= $form->field($model, 'at')->textInput(['type'=>'datetime-local', 'min'=>date('Y-m-d\TH:i')]) ?>
 
     <div class="form-group">

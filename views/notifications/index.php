@@ -48,7 +48,15 @@ $this->params['breadcrumbs'][] = $this->title;
 
             ['class' => 'yii\grid\ActionColumn',
                 'template'=>'{view}',
-            ]        ],
+                'buttons'=>[
+                    'view' => function ($url, $model) use ($pagesize) {
+                        return Html::a('<span class="glyphicon glyphicon-eye-open"></span>', ['notifications/view', 'id'=>$model->id, 'pagesize'=>$pagesize], [
+                            'title'=>Yii::t('app', 'View'),
+                            ]);
+                        },
+                ],
+            ]
+        ],
     ]); ?>
     
     <?= Yii::t('app', 'With the selected notifications: ') ?>

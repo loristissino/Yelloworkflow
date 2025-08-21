@@ -46,6 +46,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'value' => $model->role->viewLink,
             ],
             'rank',
+            'email',
         ],
     ]) ?>
 

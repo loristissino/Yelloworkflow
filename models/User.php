@@ -110,9 +110,12 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         return sprintf('%s %s', $this->first_name, $this->last_name);
     }
 
-    public function getFormattedEmail()
+    public function getFormattedEmail($email='')
     {
-        return sprintf('%s <%s>', $this->fullName, $this->email);
+        if (!$email) {
+            $email = $this->email;
+        }
+        return sprintf('%s <%s>', $this->fullName, $email);
     }
     
     public function getFullNameWithMembership()
@@ -460,6 +463,22 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         return $this->getActivities()->withActivityType('Login')->orderBy(['happened_at' => SORT_DESC])->limit(5)->all();
     }
     
+    public function getAffiliationsWithEmail()
+    {
+        $result = [];
+                
+        foreach ($this->getAffiliations()->all() as $affiliation) {
+            if ($affiliation->email) {
+                $result[] = $affiliation;
+            }
+            elseif ($affiliation->organizationalUnit->email){
+                $affiliation->ouEmail = $affiliation->organizationalUnit->email;
+                $result[] = $affiliation;
+            }
+        }
+        return $result;
+    }
+        
     public function sendEmailToConfirm2FADisabling()
     {
         $notification = new Notification();

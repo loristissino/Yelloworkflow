@@ -60,7 +60,7 @@ $postingDataProvider = $postingSearchModel->search(Yii::$app->request->queryPara
     Posting::find()->ofTransaction($model)
 );
 
-$postingDataProvider->sort->defaultOrder = ['amount' => SORT_DESC];
+$postingDataProvider->sort->defaultOrder = ['id' => SORT_ASC];
 
 $this->title = $model->description;
 
@@ -114,7 +114,6 @@ if (!$model->project) {
 
 ?>
 <div class="transaction-view">
-
     <h1><?= Html::encode($this->title) ?></h1>
     
     <p>
@@ -157,6 +156,11 @@ if (!$model->project) {
                 'value' => $model->date,
             ],
             'description',
+            [
+                'label' => Yii::t('app', 'Organizational Unit'),
+                'format' => 'raw',
+                'value' => $model->periodicalReport->organizationalUnit,
+            ],
             'notes',
             'handling',
             [
@@ -185,7 +189,7 @@ if (!$model->project) {
 
 <div class="attachments-view">
     <h2><?= Yii::t('app', 'Attachments') ?></h2>
-    <?= \nemmo\attachments\components\AttachmentsTable::widget(['model' => $model, 'showDeleteButton'=>$is_draft]) ?>
+    <?= \nemmo\attachments\components\AttachmentsTable::widget(['model' => $model, 'showDeleteButton'=>$is_draft, 'viewLink'=>['site/show']]) ?>
 </div>
 
 <div class="transaction-view">

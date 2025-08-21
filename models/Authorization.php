@@ -241,6 +241,13 @@ class Authorization extends \yii\db\ActiveRecord
                 'title' => 'Social Media',
                 'description' => 'Schedule the posts',
             ],
+            'my-organizational-unit' => [
+                'icon' => 'picture-o',
+                'color' => '#FFA500',
+                'title' => 'My Organizational Unit',
+                'description' => 'People I work with',
+            ],
+            
             /*
             'notifications' => [
                 'icon' => 'envelope',

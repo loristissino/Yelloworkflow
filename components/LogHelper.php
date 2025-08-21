@@ -125,6 +125,20 @@ class LogHelper {
                 $notification->subject = $subject;
                 $notification->plaintext_body = str_replace('{url}', $url, $plaintextBody);
                 $notification->html_body = Markdown::process(str_replace('{url}', $url, $markdownBody));
+                
+                $accepted_notifications = $authorization->user->getPreference('notifications', false);
+                                
+                if (($accepted_notifications !== false) and !in_array($template->id, $accepted_notifications)) {
+                    $notification->sent_at = -1;
+                }
+                
+                /*
+                $template->id lo abbiamo
+                $authorization->user è l'utente
+                getPreference di quell'utente ci dice se deve essere mandata l'email
+                se non deve essere mandata mettiamo sent_at al valore -1 (poi bisogna cambiare la vista)
+                */
+                
                 $notification->save();
                 $count++;
                 // $notification->sendEmail(); // we'll send the email later, see notifications/send 

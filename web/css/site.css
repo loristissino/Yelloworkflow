@@ -172,3 +172,73 @@ a.desc:after {
 .alert-info:before {
     content: '💡 ';
 }
+
+.radio {
+    padding-left: 20px;
+    margin-bottom: 5px;
+}
+
+.radio input[type="radio"] {
+    margin-left: -20px;
+    position: relative;
+    top: 2px;
+}
+
+.checkbox {
+    padding-left: 20px;
+    margin-bottom: 5px;
+}
+
+.checkbox input[type="checkbox"] {
+    margin-left: -20px;
+    position: relative;
+    top: 2px;
+}
+
+/* Styles for JSON Pretty Print with Coloring */
+.json-display-container {
+    background-color: #f8f8f8; /* Light background for the code block */
+    padding: 15px;
+    border-radius: 5px;
+    font-family: 'Fira Code', 'Cascadia Code', 'Consolas', 'Monaco', monospace; /* Use a monospace font for code */
+    font-size: 0.9em;
+    line-height: 1.4;
+    overflow-x: auto; /* Enable horizontal scrolling for long lines */
+    white-space: pre-wrap; /* Allows wrapping of long lines while preserving indentation */
+    
+    border: 1px solid #eee; /* Light border */
+    word-break: break-all; /* Optional: Breaks words if they are too long and don't fit */
+
+}
+
+.json-key {
+    color: #92207b; /* Purple for object keys */
+    font-weight: bold;
+}
+
+.json-string {
+    color: #2a6a38; /* Green for string values */
+}
+
+.json-number {
+    color: #1a0dab; /* Blue for number values */
+}
+
+.json-boolean {
+    color: #880000; /* Red for boolean values (true/false) */
+}
+
+.json-null {
+    color: #808080; /* Grey for null values */
+}
+
+.json-brace,
+.json-bracket {
+    color: #00008b; /* Dark blue for curly braces {} and square brackets [] */
+    font-weight: bold;
+}
+
+.json-comma,
+.json-colon {
+    color: #333; /* Dark grey for commas and colons */
+}

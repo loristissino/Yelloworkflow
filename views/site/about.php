@@ -13,7 +13,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Yii::t('app', 'YWF is an application to ease administrative tasks.') ?>
+        <?= Yii::t('app', 'Yellow is an application to ease administrative tasks.') ?>
     </p>
     
     <h2><?= Html::encode(Yii::t('app', 'Contacts')) ?></h2>

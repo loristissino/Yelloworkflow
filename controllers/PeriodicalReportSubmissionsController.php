@@ -74,8 +74,9 @@ class PeriodicalReportSubmissionsController extends CController
      */
     public function actionView($id) // Displays a periodical report, given its id
     {
+        $model = $this->findModel($id);
         return $this->render('/periodical-reports/view', [
-            'model' => $this->findModel($id),
+            'model' => $model,
         ]);
     }
 

@@ -35,7 +35,20 @@ $this->params['breadcrumbs'][] = $this->title;
                 'headerOptions' => ['class' => 'amount'],
                 'footerOptions' => ['class' => 'amount'],
             ],
-            'last_designation_date:date',
+            [
+                'attribute' => 'last_designation_date',
+                'format' => 'date',
+                'contentOptions' => function ($model, $key, $index, $column) {
+                    $date = new \DateTime($model->last_designation_date);
+                    $twoYearsAgo = (new \DateTime())->modify('-2 years');
+                    
+                    if ($date < $twoYearsAgo) {
+                        return ['style' => 'background-color: yellow;'];
+                    }
+                    
+                    return [];
+                },
+            ],
             //'url:url',
             //'created_at',
             //'updated_at',

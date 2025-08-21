@@ -18,6 +18,8 @@ use yii\widgets\ActiveForm;
         <?= $form->field($model, 'immediately_question_project')->checkbox()->hint(Yii::t('app', 'By checking this box, the project will be immediately set to "questioned". Use it when there is only one comment.')) ?>
     <?php endif ?>
 
+    <?= $form->field($model, 'immediately_notify_comment')->checkbox()->hint(Yii::t('app', 'By checking this box, the comment will be immediately notified to the concerned users. Otherwise, it will be notified at the workflow change of the project.')) ?>
+
     <?= $form->errorSummary($model) ?>
 
     <div class="form-group">

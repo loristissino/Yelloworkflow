@@ -11,7 +11,7 @@ trait SubmissionsTrait
     public function setOrganizationalUnit()
     {
         $_organizationalUnitId = \Yii::$app->session->get('organizational_unit_id', null);
-
+        
         if (!$_organizationalUnitId) {
             // if it is not set, we redirect to choice
             $this->redirect(['/site/choose-organizational-unit', 'return'=>\Yii::$app->request->url]);

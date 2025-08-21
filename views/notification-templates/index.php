@@ -39,3 +39,7 @@ $this->params['breadcrumbs'][] = $this->title;
     ]); ?>
 
 </div>
+
+<hr>
+
+<?= Html::a(Yii::t('app', 'Email test'), ['notification-templates/email-test']) ?>

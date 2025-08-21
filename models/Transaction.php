@@ -164,9 +164,9 @@ class Transaction extends \yii\db\ActiveRecord
 
     public function getViewLink($options=[])
     {
-        return Yii\helpers\Html::a($this->description, ['transaction-submissions/view', 'id'=>$this->id], $options);
+return Yii\helpers\Html::a($this->description, ['transaction-submissions/view', 'id'=>$this->id], $options);
     }
-
+    
     public function beforeSave($insert)
     {
         if ($insert) {
@@ -198,7 +198,7 @@ class Transaction extends \yii\db\ActiveRecord
     {
         $html = '';
         foreach ($this->getPostings()->all() as $posting) {
-            $html .= sprintf('%s (%s)<br />', $posting->account->getViewLink($options), $posting->getAmountDescribed($posting->account));
+            $html .= sprintf('%s (%s)<br />', $posting->account->getViewLink($options, date('Y', strtotime($this->date))), $posting->getAmountDescribed($posting->account));
         }
         return $html;
     }
@@ -473,7 +473,8 @@ class Transaction extends \yii\db\ActiveRecord
 
     public static function getWeightedStatuses($translated=true)
     {
-        $statuses = array_filter(\app\models\TransactionWorkflow::getDefinition()['status'],
+        $t = new \app\models\TransactionWorkflow(); // in order to call a static method
+        $statuses = array_filter($t->getDefinition()['status'],
             function($item) {return $item['metadata']['weigth']!=-1;}
         );
         $filtered = [];

@@ -36,6 +36,11 @@ class TransactionQuery extends \yii\db\ActiveQuery
         return $this->andWhere(['=', 'periodical_report_id', $pr->id]);
     }
 
+    public function ofOrganizationalUnit(OrganizationalUnit $ou)
+    {
+        return $this->andWhere(['=', 'periodical_reports.organizational_unit_id', $ou->id]);
+    }
+
     public function withStatus($status)
     {
         return $this->andWhere(['=', 'transactions.wf_status', $status]);
@@ -48,6 +53,11 @@ class TransactionQuery extends \yii\db\ActiveQuery
             $array[] = ['=', 'transactions.wf_status', $status];
         }
         return $this->andWhere(new OrCondition($array));
+    }
+    
+    public function withOneOfTransactionStatuses($weight)
+    {
+        return $this->andWhere('transactions.wf_status IN ' . Transaction::getSqlSetForStatuses($weight));
     }
 
     /**

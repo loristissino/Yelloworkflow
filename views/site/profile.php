@@ -10,6 +10,8 @@ $this->params['breadcrumbs'][] = $this->title;
 
 $userAgents = Yii::$app->user->identity->userAgents;
 
+$affiliations = Yii::$app->user->identity->getAffiliationsWithEmail();
+
 $this->registerJs(
     "
     $('.loader').on('click', function(event){
@@ -21,15 +23,35 @@ $this->registerJs(
 );
 
 ?>
-<div class="site-about">
+<div class="site-profile">
     <h1><?= Html::encode($this->title) ?></h1>
 
+    <h2><?= Yii::t('app', 'Email') ?></h2>
+
     <p>
-        <?= Yii::t('app', 'Email: ') ?>
+        <?= Yii::t('app', 'Personal email address:') ?> 
         <?= Yii::$app->user->identity->email ?>
     </p>
-    <p>
-        <?= Yii::t('app', 'Last logins: ') ?>
+    <div>
+        <?= Yii::t('app', 'Other email addresses:') ?>
+        <ul>
+        <?php foreach($affiliations as $affiliation): ?>
+            <li>
+                <div>
+                    <?= Yii::t('app', 'Organizational Unit') ?>: <b><?= $affiliation->organizationalUnit ?></b><br>
+                    <?= Yii::t('app', 'Role') ?>: <?= $affiliation->role ?><br>
+                    <?= Yii::t('app', 'Email') ?>: <?= $affiliation->email ? $affiliation->email : $affiliation->ouEmail . ' 🧑‍🧑‍🧒‍🧒' ?><br>
+                </div>
+            </li>
+        <?php endforeach ?>
+        </ul>
+        
+    </div>
+    
+    <h2><?= Yii::t('app', 'Application Usage') ?></h2>
+    
+    <div>
+        <?= Yii::t('app', 'Last logins:') ?>
         <ul>
             <?php foreach(Yii::$app->user->identity->lastLogins as $login): ?>
                 <li>
@@ -37,9 +59,16 @@ $this->registerJs(
                 </li>
             <?php endforeach ?>
         </ul>
-    </p>
+    </div>
     
-    <hr />
+    <hr>
+    
+    <h2><?= Yii::t('app', 'Notifications') ?></h2>
+    
+    <p><?= Html::a(Yii::t('app', 'View'), ['notifications/index']) ?></p>
+    <p><?= Html::a(Yii::t('app', 'Settings'), ['notifications/settings']) ?></p>
+    
+    <hr>
 
     <h2><?= Yii::t('app', 'API keys') ?></h2>
     <?= \app\components\UnorderedListWidget::widget([
@@ -49,9 +78,9 @@ $this->registerJs(
         'link'=>null,
     ]) ?>
     
-    <?= Html::a("Create an API key", ['site/apikey', 'action'=>'create'], ['data-method'=>'post'])?>
+    <?= Html::a(Yii::t('app', 'Create an API key'), ['site/apikey', 'action'=>'create'], ['data-method'=>'post'])?>
     
-    <hr />
+    <hr>
     
     <h2><?= Yii::t('app', 'Two-factor authentication') ?></h2>
     

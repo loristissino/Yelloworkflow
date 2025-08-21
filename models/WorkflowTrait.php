@@ -19,8 +19,10 @@ trait WorkflowTrait
 
     public function beforeDelete()
     {
-        foreach($this->files as $attachment) {
-            $attachment->delete();
+        if (property_exists($this, 'files')){
+            foreach($this->files as $attachment) {
+                $attachment->delete();
+            }
         }
         \app\components\LogHelper::log('deleted', $this);
         return parent::beforeDelete();
@@ -28,7 +30,7 @@ trait WorkflowTrait
 
     public function beforeSave($insert)
     {
-        if (!$this->organizational_unit_id) {
+        if (property_exists($this, 'organizational_unit_id') && !$this->organizational_unit_id) {
             $this->organizational_unit_id = Yii::$app->session->get('organizational_unit_id');
         }
         if ($insert) {

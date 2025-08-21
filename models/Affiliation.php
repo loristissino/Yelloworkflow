@@ -12,6 +12,7 @@ use Yii;
  * @property int $organizational_unit_id
  * @property int $role_id
  * @property int $rank
+ * @property string $email
  *
  * @property User $user
  * @property OrganizationalUnit $organizationalUnit
@@ -20,6 +21,8 @@ use Yii;
 class Affiliation extends \yii\db\ActiveRecord
 {
     use ModelTrait;
+    
+    public $ouEmail;
     
     /**
      * {@inheritdoc}
@@ -41,6 +44,7 @@ class Affiliation extends \yii\db\ActiveRecord
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
             [['organizational_unit_id'], 'exist', 'skipOnError' => true, 'targetClass' => OrganizationalUnit::className(), 'targetAttribute' => ['organizational_unit_id' => 'id']],
             [['role_id'], 'exist', 'skipOnError' => true, 'targetClass' => Role::className(), 'targetAttribute' => ['role_id' => 'id']],
+            [['email'], 'string', 'max' => 100],
         ];
     }
 
@@ -58,6 +62,7 @@ class Affiliation extends \yii\db\ActiveRecord
             'role' => Yii::t('app', 'Role'),
             'role_id' => Yii::t('app', 'Role'),
             'rank' => Yii::t('app', 'Rank'),
+            'email' => Yii::t('app', 'Email'),
         ];
     }
 

@@ -8,7 +8,7 @@ use yii\helpers\Json;
 /* @var $this yii\web\View */
 /* @var $model app\models\Activity */
 
-$this->title = $model->id;
+$this->title = Yii::t('app', 'Activity') . ' ' . $model->id;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Activities'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
@@ -26,7 +26,6 @@ if ($model->model_id) {
     <?= DetailView::widget([
         'model' => $model,
         'attributes' => [
-            'id',
             [
                 'attribute'=>'happened_at',
                 'format'=>'raw',
@@ -60,8 +59,8 @@ if ($model->model_id) {
             [
                 'label' => 'Workflow',
                 'format' => 'raw',
-                'value' => function($model) {
-                    if (!Yii::$app->user->hasAuthorizationFor('workflow')) {
+                'value' => function($model) use($object) {
+                    if (!Yii::$app->user->hasAuthorizationFor('workflow') or !$object or !$object->hasProperty('wf_status')) {
                         return '';
                     }
                     return Html::a(Yii::t('app', 'Edit Workflow Status'), ['workflow/update', 'type'=>$model->model, 'id'=>$model->model_id, 'return'=>Url::current()]);

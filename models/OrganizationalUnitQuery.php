@@ -28,6 +28,11 @@ class OrganizationalUnitQuery extends \yii\db\ActiveQuery
             ;
     }
     
+    public function withEmail($email)
+    {
+        return $this->andWhere(['=', 'email', $email]);
+    }
+    
     public function withPossibileActions($possibleActions=null)
     {
         $sql = 'possible_actions & ' . $possibleActions . ' = ' . $possibleActions;

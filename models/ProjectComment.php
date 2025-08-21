@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use yii\behaviors\TimestampBehavior;
+use app\components\LogHelper;
 
 /**
  * This is the model class for table "project_comments".
@@ -21,6 +22,7 @@ use yii\behaviors\TimestampBehavior;
 class ProjectComment extends \yii\db\ActiveRecord
 {    
     public $immediately_question_project = false;
+    public $immediately_notify_comment = false;
     
     /**
      * {@inheritdoc}
@@ -49,7 +51,7 @@ class ProjectComment extends \yii\db\ActiveRecord
             [['comment'], 'filter', 'filter'=>function($value) {return trim(strip_tags($value));}],
             [['project_id'], 'exist', 'skipOnError' => true, 'targetClass' => Project::className(), 'targetAttribute' => ['project_id' => 'id']],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
-            [['immediately_question_project'], 'safe'],
+            [['immediately_question_project', 'immediately_notify_comment'], 'safe'],
         ];
     }
 
@@ -66,6 +68,7 @@ class ProjectComment extends \yii\db\ActiveRecord
             'created_at' => Yii::t('app', 'Created At'),
             'updated_at' => Yii::t('app', 'Updated At'),
             'immediately_question_project' => Yii::t('app', 'Immediately question the Project'),
+            'immediately_notify_comment' => Yii::t('app', 'Immediately notify comment'),
         ];
     }
 
@@ -115,6 +118,13 @@ class ProjectComment extends \yii\db\ActiveRecord
             return false;
         }
         return parent::beforeSave($insert);
+    }
+    
+    public function afterSave($insert, $changedAttributes)
+    {
+        if ($this->immediately_notify_comment) {
+            LogHelper::notify($this->project, NotificationTemplate::find()->withCode('ProjectWorkflow/justcommented')->one());
+        }
     }
 
     /**

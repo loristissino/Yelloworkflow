@@ -98,6 +98,7 @@ AppAsset::register($this);
                     '<li class="divider"></li>',
                     ['label' => Yii::t('app', 'Renewals Check'), 'url' => ['roles/renewals']],
                     ['label' => Yii::t('app', 'Renewals Bulk Update'), 'url' => ['users/renewals']],
+                    ['label' => Yii::t('app', 'Organizational Units\' Main Activities'), 'url' => ['organizational-units/main-activities', 'daysBack'=>365]],
                 ]
             ];
         }
@@ -119,6 +120,7 @@ AppAsset::register($this);
             $items[] = ['label' => Yii::t('app', 'Users'),
                 'items' => [
                     ['label' => Yii::t('app', 'Renewals Check'), 'url' => ['roles/renewals']],
+                    ['label' => Yii::t('app', 'Organizational Units\' Main Activities'), 'url' => ['organizational-units/main-activities', 'daysBack'=>365]],
                 ]
             ];
         }
@@ -169,7 +171,7 @@ AppAsset::register($this);
 <footer class="footer">
     <div class="container">
         <p class="pull-left">
-            <?= Html::a('&copy; 2020-2023 LT (GNU Affero GPL)', 'https://github.com/loristissino/Yelloworkflow') ?>
+            <?= Html::a('&copy; 2020-2025 LT (GNU Affero GPL)', 'https://github.com/loristissino/Yelloworkflow') ?>
             <?php /*- 
             <?php foreach(\Yii::$app->controller->authorization_ids as $id=>$value): ?>
                 <?= Html::a($value, ['authorizations/view', 'id'=>$id]) ?> 

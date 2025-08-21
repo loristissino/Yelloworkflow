@@ -122,6 +122,8 @@ class ProjectSubmissionsController extends CController
     {
         $model = new Project();
 
+        $model->organizational_unit_id = $this->organizationalUnit->id;
+
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         }

@@ -24,7 +24,7 @@ class AffiliationSearch extends Affiliation
         return [
             // [['id', 'user_id', 'organizational_unit_id', 'role_id', 'rank'], 'integer'],
             // [['first_name', 'last_name', 'full_name', 'organizational_unit', 'role'], 'safe'],        
-            [['full_name', 'organizational_unit', 'role'], 'safe'],        
+            [['full_name', 'organizational_unit', 'role', 'email'], 'safe'],        
             ];
     }
 
@@ -82,6 +82,10 @@ class AffiliationSearch extends Affiliation
             'asc' => ['users.last_name' => SORT_ASC, 'users.first_name' => SORT_ASC],
             'desc' => ['users.last_name' => SORT_DESC, 'users.first_name' => SORT_ASC],
         ];
+        $dataProvider->sort->attributes['email'] = [  
+            'asc' => ['email' => SORT_ASC],
+            'desc' => ['email' => SORT_DESC],
+        ];
 
         $this->load($params);
 
@@ -117,6 +121,7 @@ class AffiliationSearch extends Affiliation
             ))
             ->andFilterWhere(['like', 'organizational_units.name', $this->organizational_unit])
             ->andFilterWhere(['like', 'roles.description', $this->role])
+            ->andFilterWhere(['like', 'email', $this->email])
             ;
 
         return $dataProvider;

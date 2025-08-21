@@ -96,6 +96,22 @@ class NotificationTemplatesController extends CController
         return $this->redirect(['index']);
     }
 
+    public function actionEmailTest()
+    {
+        $email = Yii::$app->params['adminEmail'];
+        if (Yii::$app->mailer->compose()
+            ->setTo($email, 'YWF Admin (TEST)')
+            ->setSubject('This is a test - ' . time())
+            ->setHtmlBody('<p>A test from YWF.</p>')
+            ->send()
+        ) {
+            die("Email sent to $email.");
+        }
+        else {
+            die("The email could not be sent.");
+        }
+    }
+
     /**
      * Finds the NotificationTemplate model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.

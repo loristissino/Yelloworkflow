@@ -44,7 +44,7 @@ class Shortener extends Model
             $params['keyword']=$this->keyword;
         }
         $data = self::_call($params);
-        if (!$data->errorCode) {
+        if ($data && !$data->errorCode) {
             $this->keyword = $data->url->keyword;
             return true;
         }
@@ -53,28 +53,29 @@ class Shortener extends Model
 
     private static function _call($options=[]) {
         
-        // see https://go.tissino.it/readme.html#API
-        
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, Yii::$app->params['shortener']['api_url']);
-        curl_setopt($ch, CURLOPT_HEADER, 0);            // No header in the result
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Return, do not echo result
-        curl_setopt($ch, CURLOPT_POST, 1);              // This is a POST request
-        
+        // see https://go.uaar.it/readme.html#API
+
         $options = array_merge($options, [
             'format'   => 'json',
             'signature' => Yii::$app->params['shortener']['signature']
         ]);
         
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $options);
+        $payload = http_build_query($options);
+        
+        $data = file_get_contents(
+            Yii::$app->params['shortener']['api_url'],
+            false,
+            stream_context_create([
+                'http'=>[
+                    'method'=>"POST",
+                    'header'=>"Content-Type: application/x-www-form-urlencoded\r\n" .
+                              "Content-Length: " . strlen($payload) . "\r\n",
+                    'content'=>$payload,
+                ]
+            ])
+        );
 
-        // Fetch and return content
-        $data = curl_exec($ch);
-        curl_close($ch);
-
-//        print_r(json_decode( $data ));
-//        die();
-        return json_decode( $data );
+        return $data ? json_decode( $data ) : false;
     }
 
     public static function findOne($keyword)

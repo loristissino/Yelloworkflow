@@ -9,7 +9,7 @@ use yii\grid\GridView;
 $title = Yii::t('app', 'Postings');
 ?>
 <div class="posting-index">
-
+    
     <h2><?= Html::encode($title) ?></h2>
 
     <?= GridView::widget([
@@ -20,7 +20,9 @@ $title = Yii::t('app', 'Postings');
             [
                 'attribute' => Yii::t('app', 'Account'),
                 'format' => 'raw',
-                'value' => 'account.viewLink',
+                'value' => function($data) {
+                        return Yii\helpers\Html::a($data['account'], ['statements/view', 'id'=>$data['account']['id'], 'year'=>substr($data['transaction']['date'], 0, 4)]); 
+                }
             ],
             [
                 'attribute' => Yii::t('app', 'Description'),

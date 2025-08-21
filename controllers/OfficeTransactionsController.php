@@ -41,6 +41,7 @@ class OfficeTransactionsController extends CController
 
     public function actionIndex($active=null, $recorded=null) // Lists all transactions prepared by office workers
     {
+        
         $active = $active == 'false' ? false : true;
         
         if ($recorded=='true') {
@@ -147,7 +148,7 @@ class OfficeTransactionsController extends CController
         
         $model->templates = TransactionTemplate::getActiveTransactionTemplatesAsArray();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if ($model->load(Yii::$app->request->post()) && $model->setPeriodicalReport() && $model->save()) {
             if ($model->immediateNotification) {
                 $model->transaction->sendToStatus($model->transaction->isExtra ? 'extra': 'notified');
                 $model->transaction->save(false);

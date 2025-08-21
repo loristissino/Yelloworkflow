@@ -6,6 +6,8 @@ use Yii;
 use app\models\OrganizationalUnit;
 use app\models\OrganizationalUnitSearch;
 use app\models\OrganizationalUnitsCeilingAmountsForm;
+use app\models\ViewedOuMainActivity;
+use app\models\ViewedOuMainActivitySearch;
 use yii\web\NotFoundHttpException;
 use app\components\CController;
 
@@ -100,6 +102,27 @@ class OrganizationalUnitsController extends CController
 
         return $this->render('ceiling-amounts', [
             'model' => $model,
+        ]);
+    }
+
+    /**
+     * Lists all ViewedOuMainActivity models.
+     * @return mixed
+     */
+    public function actionMainActivities($daysBack = 365)
+    {
+        $searchModel = new ViewedOuMainActivitySearch();
+
+        // Pass the received $daysBack value directly to the search model.
+        // We still include queryParams for other filters (from GridView filters).
+        $queryParams = Yii::$app->request->queryParams;
+        $queryParams['daysBack'] = $daysBack; // Overwrite or set the daysBack parameter
+
+        $dataProvider = $searchModel->search($queryParams);
+
+        return $this->render('main-activities-index', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
         ]);
     }
     

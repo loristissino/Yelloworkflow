@@ -44,7 +44,7 @@ class MastodonSchedulerClient
         return $info['result']=='ok';
     }
     
-    public function schedule($at, $status, $image)
+    public function schedule($at, $status, $image, $description='')
     {
         $attachments = [];
         
@@ -52,7 +52,9 @@ class MastodonSchedulerClient
             $attachments[] = [
                 'filename' => $image->baseName . '.' . $image->extension,
                 'data' => base64_encode(file_get_contents($image->tempName)),
+                'description' => $description,
             ];
+            
         };
         
         $info = $this->_send('/?at='.$at, ['text'=>$status, 'attachments'=>$attachments], 'POST');

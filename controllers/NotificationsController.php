@@ -7,6 +7,7 @@ use app\models\Notification;
 use app\models\Message;
 use app\models\NotificationSearch;
 use app\models\NotificationTemplate;
+use app\models\NotificationsPreferencesForm;
 use app\models\PeriodicalReport;
 use app\models\PetitionSignature;
 use app\components\LogHelper;
@@ -41,6 +42,7 @@ class NotificationsController extends CController
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
             'seen' => $seen,
+            'pagesize' => $pagesize,
         ]);
     }
 
@@ -50,7 +52,7 @@ class NotificationsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id) // Displays a specific notification, given its id
+    public function actionView($id, $pagesize=50) // Displays a specific notification, given its id
     {
         $model = $this->findModel($id);
         if (!$model->seen_at) {
@@ -58,6 +60,7 @@ class NotificationsController extends CController
         }
         return $this->render('view', [
             'model' => $model,
+            'pagesize'=>$pagesize,
         ]);
     }
     
@@ -148,6 +151,20 @@ class NotificationsController extends CController
             }
         }
         return $this->renderContent($data);
+    }
+    
+    public function actionSettings() {
+        $model = new NotificationsPreferencesForm;
+
+        if ($model->load(Yii::$app->request->post()) && $model->validate() && $model->save()) {
+            Yii::$app->session->setFlash('success', Yii::t('app', 'Change applied.'));
+            return $this->redirect(['site/profile']);
+        }
+
+        $model->loadValuesFromUserSettings();
+        return $this->render('settings', [
+            'model'=>$model,
+        ]);
     }
 
     public function beforeAction($action)

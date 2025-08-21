@@ -7,7 +7,7 @@ use yii\widgets\DetailView;
 /* @var $model app\models\Notification */
 
 $this->title = $model->subject;
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Notifications'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Notifications'), 'url' => ['index', 'pagesize'=>$pagesize]];
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
 ?>
@@ -50,10 +50,24 @@ $this->params['breadcrumbs'][] = $this->title;
                 'label' => Yii::t('app','Sent At'),
                 'value' => function($data)
                 {
+                    if ($data['sent_at']==-1) {
+                        return Yii::t('app', 'Not sent as per user preferences.');
+                    }
                     return sprintf('%s %s', Yii::$app->formatter->asDate($data['sent_at']), Yii::$app->formatter->asTime($data['sent_at']));
                 }
             ],
-            'email:email',
+            [
+                'attribute' => 'email',
+                'format' => 'raw',
+                'label' => Yii::t('app','Email'),
+                'value' => function($data)
+                {
+                    if ($data['sent_at']==-1) {
+                        return '---';
+                    }
+                    return $data['email'];
+                }
+            ],
         ],
     ]) ?>
 

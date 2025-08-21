@@ -26,7 +26,8 @@ $this->registerJs(
     <?php foreach($roles as $role): $renewed=[]; $not_renewed=[]; ?>
         <h2 id="<?= $role->name ?>"><?= $role->description ?></h2>
         <ul>
-        <?php foreach($role->getUsers()->actuallyMember()->orderBy(['last_name' => SORT_ASC, 'first_name'=> SORT_ASC])->all() as $user):?>
+        <?php //foreach($role->getUsers()->actuallyMember()->orderBy(['last_name' => SORT_ASC, 'first_name'=> SORT_ASC])->all() as $user):?>
+        <?php foreach($role->getActiveUsersWithEmailAssociatedToRole() as $user):?>
             <li>
                 <?= Html::a($user->fullName, ['users/view', 'id'=>$user->id]) ?>
                 <?php if(!$user->isMember): ?>

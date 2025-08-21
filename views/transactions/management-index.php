@@ -23,6 +23,15 @@ $this->registerJs(
         $('#with_attachments').show();
         $('#standard_view').hide();
     }
+
+    let rotations = {};
+    $('.inline_image').click(function(ev) {
+        if (!rotations[ev.target.id]) {
+            rotations[ev.target.id] = {degrees: 0, width: ev.target.width, height: ev.target.height};
+        }
+        rotations[ev.target.id].degrees+=90;
+        ev.target.style.transform = 'rotate(' + rotations[ev.target.id].degrees + 'deg)';
+    });
     
     (function ($) {
         $('#toggle_view').click(function() {
@@ -70,7 +79,7 @@ $this->registerJs(
                     <div><?= $data->postingsViewWithoutLink ?></div>
                     <?php foreach ($data->files as $file): ?>
                         <?php if(in_array(strtolower($file->type), ['jpeg', 'jpg', 'gif', 'png'])): ?>
-                            <img style="width: 60%; height: auto; margin-top: 20px;" src="<?= $file->url ?>">
+                            <img class="inline_image" id="<?= $file->id ?>" style="width: 60%; height: auto; margin-top: 20px;" src="<?= $file->url ?>">
                         <?php else: ?>
                             <?= Html::a($file->name . '.' . $file->type, $file->url, ['target'=>'_blank']) ?>   
                         <?php endif ?>
@@ -142,7 +151,7 @@ $this->registerJs(
             ],
         ]); ?>
         
-        <?php if ($periodicalReport->isSubmitted): ?>
+        <?php if ($periodicalReport && $periodicalReport->isSubmitted): ?>
             <?= Yii::t('app', 'With the selected transactions: ') ?>
             <?= Html::a(Yii::t('app', 'Set Recorded'), ['transactions-management/process', 'action'=>'setRecorded', 'redirect'=>\yii\helpers\Url::toRoute(['periodical-reports-management/view', 'id'=>$periodicalReport->id])], ['data-method'=>'post'])?>
         <?php endif ?>

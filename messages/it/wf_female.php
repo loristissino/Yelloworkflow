@@ -1,5 +1,5 @@
 <?php
-/* this array represents workflow statuses for "male" objects */
+/* this array represents workflow statuses for "female" objects */
 return [
     'Approved' => 'Approvata',
     'Archived' => 'Archiviata',

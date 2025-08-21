@@ -18,6 +18,14 @@ $this->title = Yii::t('app', 'Dashboard');
 
 ?>
 
+<?php if (Yii::$app->user->identity->last_renewal && Yii::$app->user->identity->last_renewal < date('Y')): ?>
+<p class="error-summary" style="font-size: 2em">
+    😰
+    <?= Yii::t('app', '{first_name}, from our records it appears that your membership has ended, with the last renewal in {year}.', ['first_name'=>Yii::$app->user->identity->first_name ,'year'=>Yii::$app->user->identity->last_renewal]) ?>
+    <?= Yii::t('app', 'Please <a href="{url}">renew</a> as soon as possible. Thank you.', ['url'=>Yii::$app->params['renewal_url']]) ?>
+</p>
+<?php endif ?>
+
 <?php if(sizeof($controllers)>0): ?>
 
 <div id="dashboard">

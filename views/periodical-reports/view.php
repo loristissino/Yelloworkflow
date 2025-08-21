@@ -68,6 +68,7 @@ $attributes = [
             'format'=>'raw',
             'value'=>Yii::$app->formatter->asDate($model->due_date),
         ],
+        'required_attachments',
         'wf_status',
         [
             'label' => Yii::t('app', 'Sales'),

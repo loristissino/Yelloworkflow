@@ -10,6 +10,7 @@ use app\models\PostingSearch;
 use app\models\PeriodicalReport;
 use app\models\PeriodicalReportSearch;
 use app\models\Transaction;
+use app\models\TransactionSearch;
 use yii\web\NotFoundHttpException;
 use app\components\CController;
 use yii\data\SqlDataProvider;
@@ -63,25 +64,53 @@ class StatementsController extends CController
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id, $year=null) // Displays a ledger for a specific account of the organizational unit of the logged-in user
+    public function actionView($id, $year=null, $hash='') // Displays a ledger for a specific account of the organizational unit of the logged-in user
     {
         $postingSearchModel = new PostingSearch();
         
-        $query = Posting::find()->orderBy('date')->select('postings.*, transactions.*')->withAccountId($id)->joinWith('periodicalReports')->withOrganizationalUnitId($this->organizationalUnit->id)->notWithTransactionStatus('TransactionWorkflow/rejected');
+        $query = Posting::find()->orderBy('date')->withAccountId($id)->joinWith('periodicalReports')->withOrganizationalUnitId($this->organizationalUnit->id)->notWithTransactionStatus('TransactionWorkflow/rejected');
+        
+        $model = $this->findModel($id);
+        
+        $historicalBalance = 0;
         
         if ($year) {
             $query = $query->inYear($year);
+            
+            if ($model->represents == 'R') {
+                $hbQuery = Posting::find()->orderBy('date')->joinWith('account')->withAccountId($id)->joinWith('periodicalReports')->withOrganizationalUnitId($this->organizationalUnit->id)->notWithTransactionStatus('TransactionWorkflow/rejected')->beforeYear($year);
+
+                if ($hash) {
+                    $hbQuery = $hbQuery->withHash($hash);
+                }
+
+                $historicalBalance = $hbQuery->sum('amount');
+            }
+        }
+        
+        if ($hash) {
+            $query = $query->withHash($hash);
         }
         
         $postingDataProvider = $postingSearchModel->search(Yii::$app->request->queryParams, $query);
         
+        /*
+        echo "<pre>";
+        foreach ($postingDataProvider->models as $model) {
+            echo $model->id . "\n";
+        }
+        die();
+        */
         $postingDataProvider->pagination = [
             'pageSize' => 1000,
         ];
         
         return $this->render('view', [
-            'model' => $this->findModel($id),
+            'model' => $model,
             'postingDataProvider'=>$postingDataProvider,
+            'historicalBalance'=>$historicalBalance,
+            'year'=>$year,
+            'hash'=>$hash,
         ]);
     }
 
@@ -95,7 +124,7 @@ class StatementsController extends CController
         
         $weight = Yii::$app->user->identity->getPreference('transaction_statuses', 768);
         
-        $query = Posting::find()->orderBy('date')->select('postings.*, transactions.*')->withAccountId($model->id)->joinWith('periodicalReports')->withOrganizationalUnitId($ou)->withOneOfTransactionStatuses($weight);
+        $query = Posting::find()->orderBy('date')->withAccountId($model->id)->joinWith('periodicalReports')->withOrganizationalUnitId($ou)->withOneOfTransactionStatuses($weight);
         
         $postingDataProvider = $postingSearchModel->search(Yii::$app->request->queryParams, $query);
         
@@ -107,6 +136,39 @@ class StatementsController extends CController
             'model' => $model,
             'ou' => $orgUnit,
             'postingDataProvider'=>$postingDataProvider,
+        ]);
+    }
+
+    public function actionTransactions($ou) // Displays all the transactions recorded for specific organizational unit
+    {
+        $model = $this->findOU($ou); 
+        
+        $weight = Yii::$app->user->identity->getPreference('transaction_statuses', 768);
+        
+        $transactionSearchModel = new TransactionSearch();
+        $transactionDataProvider = $transactionSearchModel->search(Yii::$app->request->queryParams,
+            Transaction::find()->joinWith('periodicalReport')->withOneOfTransactionStatuses($weight)->ofOrganizationalUnit($model)
+        );
+
+        $transactionDataProvider->sort->defaultOrder = ['date' => SORT_ASC];
+
+        $transactionDataProvider->pagination = [
+            'pageSize' => 200,
+        ];
+
+        /*
+        $query = Posting::find()->orderBy('date')->joinWith('periodicalReports')->withOrganizationalUnitId($ou)->withOneOfTransactionStatuses($weight);
+        
+        $postingDataProvider = $postingSearchModel->search(Yii::$app->request->queryParams, $query);
+        
+        $postingDataProvider->pagination = [
+            'pageSize' => 1000,
+        ];
+        */
+        return $this->render('transactions', [
+            'model' => $model,
+            'transactionDataProvider'=>$transactionDataProvider,
+            'transactionSearchModel'=>$transactionSearchModel,
         ]);
     }
     

@@ -56,8 +56,8 @@ $this->params['breadcrumbs'][] = $this->title;
             'class' => 'yii\grid\ActionColumn',
                 'template'=>'{view}',
                 'buttons'=>[
-                    'view' => function ($url, $data) {
-                        return Html::a('<span class="glyphicon glyphicon-eye-open"></span>', ['view', 'id'=>$data['id']], [
+                    'view' => function ($url, $data) use($year) {
+                        return Html::a('<span class="glyphicon glyphicon-eye-open"></span>', ['view', 'id'=>$data['id'], 'year'=>$year], [
                             'title'=>Yii::t('app', 'View'),
                             ]);
                         },

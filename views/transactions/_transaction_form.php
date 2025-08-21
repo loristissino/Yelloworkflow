@@ -123,7 +123,7 @@ if (Yii::$app->controller->id == 'office-transactions') {
     
     <?php if ($office_transaction): ?>
         <?= \app\models\OrganizationalUnit::getDropdown($form, $model, [
-            'possible_actions' => \app\models\OrganizationalUnit::HAS_OWN_CASH,
+            'possible_actions' => \app\models\OrganizationalUnit::HAS_OWN_PROJECTS,
             'onchange' => 'updateProjects()',
             ]) ?>
         <div style="padding-bottom: 16px">
@@ -159,7 +159,7 @@ if (Yii::$app->controller->id == 'office-transactions') {
     <?= $form->field($model, 'amount')->textInput(['maxlength' => true, 'size' => 10])->hint(Yii::t('app', 'Use a dot for the decimal part of the amount.')) ?>
 
     <div class="info-block alert" style="display:none" id="notes_request"></div>
-    <?= $form->field($model, 'notes')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'notes')->textInput(['maxlength' => true])->hint(Yii::t('app', 'If in the notes you use hashtags like #foo you\'ll be able to filter transactions.')) ?>
 
     <fieldset id="project_fieldset">
         <legend><?= Yii::t('app', 'Project') ?></legend>

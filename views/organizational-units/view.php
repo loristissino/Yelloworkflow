@@ -56,6 +56,11 @@ $this->params['breadcrumbs'][] = $this->title;
                 'value' => $model->significantLedgers,
             ],
             [
+                'label' => Yii::t('app', 'Transactions'),
+                'format' => 'raw',
+                'value' => Html::a(Yii::t('app', 'View'), ['statements/transactions', 'ou'=>$model->id]),
+            ],
+            [
                 'attribute'=>'created_at',
                 'format'=>'raw',
                 'value'=>function($data) {

@@ -7,6 +7,7 @@ use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use app\components\LogHelper;
+use app\models\Affiliation;
 
 /**
  * This is the model class for table "roles".
@@ -76,7 +77,7 @@ class Role extends \yii\db\ActiveRecord
      */
     public function getAffiliations()
     {
-        return $this->hasMany(Affiliations::className(), ['role_id' => 'id']);
+        return $this->hasMany(Affiliation::className(), ['role_id' => 'id']);
     }
 
     public function getUsers()
@@ -98,6 +99,19 @@ class Role extends \yii\db\ActiveRecord
     public function getAuthorizations()
     {
         return $this->hasMany(Authorizations::className(), ['role_id' => 'id']);
+    }
+
+    public function getActiveUsersWithEmailAssociatedToRole()
+    {
+        $result = [];
+        foreach($this->getAffiliations()->joinWith('user')->orderBy(['users.last_name' => SORT_ASC, 'users.first_name'=> SORT_ASC])->all() as $affiliation) {
+            $user = $affiliation->getUser()->one();
+            if ($affiliation->email){
+                $user->email = $affiliation->email;
+            }
+            $result[] = $user;
+        }
+        return $result;
     }
 
     public function getViewLink($options=[])
@@ -218,7 +232,7 @@ class Role extends \yii\db\ActiveRecord
             $email = $this->email == 'ou' ? $this->getOrganizationalUnitOfUser($user)->email : $user->email;
             $lines[] = sprintf('%s <%s>,', $user->getFullName(), $email);
         }
-        return join($lines, "\n");
+        return join("\n", $lines);
     }
 
     public function addPermissionsForUser(\app\models\User $user)

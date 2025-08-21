@@ -6,6 +6,7 @@ use Yii;
 use app\models\PeriodicalReport;
 use app\models\PeriodicalReportSearch;
 use yii\web\NotFoundHttpException;
+use yii\web\ForbiddenHttpException;
 use app\components\CController;
 use app\models\PeriodicalReportsBulkCreationForm;
 use app\models\TransactionStatusesForm;
@@ -78,6 +79,51 @@ class PeriodicalReportsManagementController extends CController
         return $this->render('create', [
             'model' => $model,
         ]);
+    }
+
+    /**
+     * Updates an existing Petition model.
+     * If update is successful, the browser will be redirected to the 'view' page.
+     * @param integer $id
+     * @return mixed
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    public function actionUpdate($id)
+    {
+        if (!Yii::$app->user->hasAuthorizationFor('workflow')) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Not authorized.'));
+        }
+        
+        $model = $this->findModel($id);
+
+        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            return $this->redirect(['view', 'id' => $model->id]);
+        }
+
+        return $this->render('update', [
+            'model' => $model,
+        ]);
+    }
+
+    /**
+     * Deletes an existing PeriodicalReport model.
+     * If deletion is successful, the browser will be redirected to the 'index' page.
+     * @param integer $id
+     * @return mixed
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    public function actionDelete($id)
+    {
+        $model = $this->findModel($id);
+        if ($model->isDeletable) {
+            \app\components\LogHelper::log('deleted', $model, ['excluded'=>['created_at', 'updated_at']]);
+            $model->delete();
+            Yii::$app->session->setFlash('success', Yii::t('app', "Periodical report deleted."));
+        }
+        else {
+            Yii::$app->session->setFlash('success', Yii::t('app', 'The item could not be deleted.'));
+        }
+        return $this->redirect(['index']);
     }
 
     public function actionCreateReports() // Creates a set of periodical reports

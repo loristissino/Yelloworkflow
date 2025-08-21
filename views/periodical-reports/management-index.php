@@ -59,12 +59,18 @@ $this->params['breadcrumbs'][] = $this->title;
             //'updated_at',
 
             ['class' => 'yii\grid\ActionColumn',
-                'template'=>'{view} {log} {workflow}',
+                'template'=>'{view} {edit} {log} {workflow}',
 				'buttons'=>[
 					'view' => function ($url, $model) {
                         if ($model->canBeSeenInManagementView) {
                             $icon = 'glyphicon glyphicon-eye-open';
                             return Html::a(sprintf('<span class="%s" title="%s"></span>', $icon, Yii::t('app', 'View')), $url);
+                            }
+                        },
+					'edit' => function ($url, $model) {
+                        if (Yii::$app->user->hasAuthorizationFor('workflow') and !$model->canBeSeenInManagementView) {
+                            $icon = 'glyphicon glyphicon-dashboard';
+                            return Html::a(sprintf('<span class="%s" style="color:#FFA500" title="%s"></span>', $icon, Yii::t('app', 'Properties')), ['update',  'id'=>$model->id, 'return'=>Url::current()]);
                             }
                         },
 					'log' => function ($url, $model) {

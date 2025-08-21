@@ -227,6 +227,18 @@ class SiteController extends CController
         }
         return $this->redirect(['site/profile']);
     }
+    
+    public function actionTest(){
+        $filePath = "/var/www/html/yii2/ywf/uploads/store/mycontents.txt";
+        return Yii::$app->response->sendFile($filePath, "test.txt", ['inline'=>true, 'mimeType'=>'text/plain']);
+    }
+    
+    public function actionShow($url) {
+        $this->layout = false;
+        return $this->render('show', [
+            'url' => $url,
+        ]);
+    }
 
     private function _back()
     {
@@ -329,7 +341,7 @@ class SiteController extends CController
         $current_ou_id = Yii::$app->session->get('organizational_unit_id');
         
         if (sizeof($ous)==0) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Not authorized.'));
+            throw new ForbiddenHttpException(Yii::t('app', 'It seems you do not belong to any enabled organizational unit.'));
         }
         else if(sizeof($ous)==1) {
             Yii::$app->session->set('organizational_unit_id', $ous[0]->id);
@@ -387,8 +399,6 @@ class SiteController extends CController
             Yii::$app->session->setFlash('success', Yii::t('app', 'Change applied.'));
             return $this->redirect($returnUrl);
         }
-        print_r($model);
-        die();
     }
     
     public function getIdFromEmail($u, $c)

@@ -50,7 +50,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format'=>'raw',
                 'value'=>'role.viewLink',
             ],
-
+            'email',
             ['class' => 'yii\grid\ActionColumn',
                 'template'=>'{view} {update}',
             ]

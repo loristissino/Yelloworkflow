@@ -127,14 +127,24 @@ class Account extends \yii\db\ActiveRecord
         return parent::beforeSave($insert);
     }
 
-    public function getViewLink($options=[])
+    public function getViewLink($options=[], $year=3000)
     {
-        return Yii\helpers\Html::a($this->name, ['statements/view', 'id'=>$this->id], $options);
+        return Yii\helpers\Html::a($this->name, ['statements/view', 'id'=>$this->id, 'year'=>$year], $options);
     }
 
     public function getHeader($amount)
     {
         return $amount > 0 ? $this->debits_header : $this->credits_header;
+    }
+    
+    public function getBalanceDescription($balance)
+    {
+        if (!$balance) return '';
+        return $balance >=0 ?
+            sprintf('%s − %s', $this->debits_header, $this->credits_header)
+            : 
+            sprintf('%s − %s', $this->credits_header, $this->debits_header)
+            ;
     }
 
     public static function getBalancesDataProviderForRealAccounts($organizationalUnitId, $weight = null, $before = null)

@@ -1,13 +1,14 @@
 -- phpMyAdmin SQL Dump
--- version 4.6.6deb5ubuntu0.5
+-- version 5.2.1deb3
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Creato il: Lug 03, 2022 alle 09:59
--- Versione del server: 10.1.48-MariaDB-0ubuntu0.18.04.1
--- Versione PHP: 7.2.24-0ubuntu0.18.04.12
+-- Creato il: Ago 21, 2025 alle 14:39
+-- Versione del server: 10.11.13-MariaDB-0ubuntu0.24.04.1
+-- Versione PHP: 8.3.6
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
 SET time_zone = "+00:00";
 
 
@@ -31,16 +32,17 @@ CREATE TABLE `accounts` (
   `organizational_unit_id` int(11) DEFAULT NULL,
   `rank` int(11) DEFAULT NULL,
   `name` varchar(100) NOT NULL,
-  `status` int(1) NOT NULL DEFAULT '1',
+  `reversed_name` varchar(100) NOT NULL DEFAULT '',
+  `status` int(1) NOT NULL DEFAULT 1,
   `code` varchar(40) DEFAULT NULL,
   `debits_header` varchar(60) NOT NULL,
   `credits_header` varchar(60) NOT NULL,
   `represents` char(1) NOT NULL DEFAULT 'R' COMMENT 'S: sale, D: donation, C: contribution, E: expense, R: real value',
   `enforced_balance` char(1) NOT NULL DEFAULT '-',
-  `shown_in_ou_view` int(1) NOT NULL DEFAULT '0',
+  `shown_in_ou_view` int(1) NOT NULL DEFAULT 0,
   `created_at` int(11) NOT NULL,
   `updated_at` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -54,10 +56,10 @@ CREATE TABLE `activities` (
   `activity_type` varchar(100) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
   `model` varchar(40) CHARACTER SET latin1 COLLATE latin1_bin DEFAULT NULL,
   `model_id` int(11) DEFAULT NULL,
-  `info` text NOT NULL,
+  `info` text NOT NULL DEFAULT '',
   `authorization_id` int(11) DEFAULT NULL,
   `happened_at` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='log entries for the application';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='log entries for the application';
 
 -- --------------------------------------------------------
 
@@ -70,8 +72,9 @@ CREATE TABLE `affiliations` (
   `user_id` int(11) NOT NULL,
   `organizational_unit_id` int(11) NOT NULL,
   `role_id` int(11) NOT NULL,
-  `rank` int(11) NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='link between user and organizational unit';
+  `rank` int(11) NOT NULL DEFAULT 0,
+  `email` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='link between user and organizational unit';
 
 -- --------------------------------------------------------
 
@@ -84,7 +87,7 @@ CREATE TABLE `apikeys` (
   `user_id` int(11) NOT NULL,
   `app` varchar(100) NOT NULL,
   `value` varchar(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -94,14 +97,14 @@ CREATE TABLE `apikeys` (
 
 CREATE TABLE `attachments` (
   `id` int(11) NOT NULL,
-  `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `model` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL,
+  `model` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL,
   `itemId` int(11) NOT NULL,
-  `hash` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `hash` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL,
   `size` int(11) NOT NULL,
-  `type` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `mime` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `type` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL,
+  `mime` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -121,7 +124,7 @@ CREATE TABLE `authorizations` (
   `role_id` int(11) DEFAULT NULL,
   `created_at` int(11) NOT NULL,
   `updated_at` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -137,7 +140,7 @@ CREATE TABLE `co_hosting` (
   `user_id` int(11) NOT NULL COMMENT 'last updater',
   `created_at` int(11) NOT NULL,
   `updated_at` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='link between event and organizational unit';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='link between event and organizational unit';
 
 -- --------------------------------------------------------
 
@@ -156,7 +159,7 @@ CREATE TABLE `events` (
   `user_id` int(11) NOT NULL,
   `created_at` int(11) NOT NULL,
   `updated_at` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -168,11 +171,30 @@ CREATE TABLE `expense_types` (
   `id` int(11) NOT NULL,
   `rank` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
-  `status` int(1) NOT NULL DEFAULT '1',
+  `status` int(1) NOT NULL DEFAULT 1,
   `organizational_unit_id` int(11) DEFAULT NULL,
   `created_at` int(11) NOT NULL,
   `updated_at` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `messages`
+--
+
+CREATE TABLE `messages` (
+  `id` int(11) NOT NULL,
+  `subject` varchar(255) NOT NULL,
+  `plaintext_body` text DEFAULT NULL,
+  `html_body` text DEFAULT NULL,
+  `headers` text DEFAULT NULL,
+  `created_at` int(11) NOT NULL,
+  `sent_at` int(11) DEFAULT NULL,
+  `email` varchar(100) NOT NULL,
+  `addressee` varchar(255) DEFAULT NULL,
+  `apikey` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -184,13 +206,13 @@ CREATE TABLE `notifications` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `subject` varchar(255) NOT NULL,
-  `plaintext_body` text,
-  `html_body` text,
+  `plaintext_body` text DEFAULT NULL,
+  `html_body` text DEFAULT NULL,
   `created_at` int(11) NOT NULL,
   `seen_at` int(11) DEFAULT NULL,
   `sent_at` int(11) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -204,9 +226,9 @@ CREATE TABLE `notification_templates` (
   `title` varchar(100) NOT NULL,
   `subject` varchar(255) NOT NULL,
   `plaintext_body` text NOT NULL,
-  `html_body` text,
-  `md_body` text
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `html_body` text DEFAULT NULL,
+  `md_body` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -222,12 +244,12 @@ CREATE TABLE `organizational_units` (
   `email` varchar(100) DEFAULT NULL,
   `url` varchar(255) DEFAULT NULL,
   `last_designation_date` date DEFAULT NULL,
-  `notes` text,
+  `notes` text DEFAULT NULL,
   `ceiling_amount` decimal(10,2) DEFAULT NULL,
-  `possible_actions` int(11) NOT NULL DEFAULT '0',
+  `possible_actions` int(11) NOT NULL DEFAULT 0,
   `created_at` int(11) NOT NULL,
   `updated_at` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -242,11 +264,11 @@ CREATE TABLE `periodical_reports` (
   `begin_date` date NOT NULL,
   `end_date` date NOT NULL,
   `due_date` date DEFAULT NULL,
-  `required_attachments` text,
+  `required_attachments` text DEFAULT NULL,
   `wf_status` varchar(40) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
   `created_at` int(11) NOT NULL,
   `updated_at` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -261,7 +283,56 @@ CREATE TABLE `periodical_report_comments` (
   `comment` text NOT NULL,
   `created_at` int(11) NOT NULL,
   `updated_at` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `petitions`
+--
+
+CREATE TABLE `petitions` (
+  `id` int(11) NOT NULL,
+  `slug` varchar(32) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
+  `title` varchar(256) NOT NULL,
+  `target` text NOT NULL,
+  `introduction` text DEFAULT NULL,
+  `picture_url` varchar(256) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+  `request` text DEFAULT NULL,
+  `updates` text DEFAULT NULL,
+  `promoted_by` varchar(255) DEFAULT NULL,
+  `wf_status` varchar(40) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
+  `created_at` int(11) DEFAULT NULL,
+  `updated_at` int(11) DEFAULT NULL,
+  `launched_at` int(11) DEFAULT NULL,
+  `expired_at` int(11) DEFAULT NULL,
+  `goal` int(11) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `petition_signatures`
+--
+
+CREATE TABLE `petition_signatures` (
+  `id` int(11) NOT NULL,
+  `petition_id` int(11) NOT NULL,
+  `email` varchar(120) NOT NULL,
+  `first_name` varchar(120) NOT NULL,
+  `last_name` varchar(120) NOT NULL,
+  `yob` int(4) DEFAULT NULL,
+  `district` varchar(3) DEFAULT NULL,
+  `gender` varchar(3) DEFAULT NULL,
+  `message` text DEFAULT NULL,
+  `accepted_terms` varchar(100) NOT NULL,
+  `confirmation_code` varchar(10) DEFAULT NULL,
+  `created_at` int(11) DEFAULT NULL,
+  `updated_at` int(11) DEFAULT NULL,
+  `confirmed_at` int(11) DEFAULT NULL,
+  `reminded_at` int(11) DEFAULT NULL,
+  `validated_at` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -275,8 +346,8 @@ CREATE TABLE `planned_expenses` (
   `expense_type_id` int(11) NOT NULL,
   `description` varchar(255) NOT NULL,
   `amount` decimal(10,2) NOT NULL,
-  `notes` text
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `notes` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -289,7 +360,7 @@ CREATE TABLE `postings` (
   `transaction_id` int(11) NOT NULL,
   `account_id` int(11) NOT NULL,
   `amount` decimal(10,2) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -301,15 +372,16 @@ CREATE TABLE `projects` (
   `id` int(11) NOT NULL,
   `title` varchar(100) NOT NULL,
   `description` text NOT NULL,
-  `co_hosts` text,
-  `partners` text,
+  `bond` text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `co_hosts` text DEFAULT NULL,
+  `partners` text DEFAULT NULL,
   `period` varchar(255) NOT NULL,
   `place` varchar(255) NOT NULL,
   `wf_status` varchar(40) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
-  `organizational_unit_id` int(11) NOT NULL,
+  `organizational_unit_id` int(11) DEFAULT NULL,
   `created_at` int(11) NOT NULL,
   `updated_at` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -324,7 +396,41 @@ CREATE TABLE `project_comments` (
   `comment` text NOT NULL,
   `created_at` int(11) NOT NULL,
   `updated_at` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `questionnaires`
+--
+
+CREATE TABLE `questionnaires` (
+  `id` int(11) NOT NULL,
+  `title` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `version` int(11) NOT NULL DEFAULT 1,
+  `wf_status` varchar(40) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
+  `definition` mediumtext DEFAULT NULL,
+  `created_at` int(11) NOT NULL,
+  `updated_at` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `questionnaire_responses`
+--
+
+CREATE TABLE `questionnaire_responses` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `questionnaire_id` int(11) NOT NULL,
+  `label` varchar(50) DEFAULT NULL,
+  `wf_status` varchar(40) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
+  `content` mediumtext DEFAULT NULL,
+  `created_at` int(11) NOT NULL,
+  `updated_at` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -342,7 +448,7 @@ CREATE TABLE `reimbursements` (
   `reimbursement_description` varchar(255) NOT NULL,
   `created_at` int(11) NOT NULL,
   `updated_at` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -352,23 +458,13 @@ CREATE TABLE `reimbursements` (
 
 CREATE TABLE `roles` (
   `id` int(11) NOT NULL,
-  `rank` int(11) NOT NULL DEFAULT '0',
-  `status` int(1) NOT NULL DEFAULT '1',
+  `rank` int(11) NOT NULL DEFAULT 0,
+  `status` int(1) NOT NULL DEFAULT 1,
   `name` varchar(50) NOT NULL,
   `description` varchar(255) DEFAULT NULL,
-  `permissions` varchar(255) DEFAULT NULL,
+  `permissions` varchar(511) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- --------------------------------------------------------
-
---
--- Struttura della tabella `test`
---
-
-CREATE TABLE `test` (
-  `a` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -393,7 +489,7 @@ CREATE TABLE `transactions` (
   `user_id` int(11) NOT NULL COMMENT 'last updater',
   `created_at` int(11) NOT NULL,
   `updated_at` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -411,12 +507,13 @@ CREATE TABLE `transaction_templates` (
   `o_title` varchar(60) NOT NULL,
   `o_description` varchar(255) NOT NULL,
   `request` varchar(255) DEFAULT NULL,
-  `needs_attachment` int(1) NOT NULL DEFAULT '1',
-  `needs_project` int(1) NOT NULL DEFAULT '1',
-  `needs_vendor` int(1) NOT NULL DEFAULT '1',
-  `is_sealable` int(1) NOT NULL DEFAULT '0',
-  `office` int(1) NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `needs_attachment` int(1) NOT NULL DEFAULT 1,
+  `needs_project` int(1) NOT NULL DEFAULT 1,
+  `needs_vendor` int(1) NOT NULL DEFAULT 1,
+  `is_sealable` int(1) NOT NULL DEFAULT 0,
+  `office` int(1) NOT NULL DEFAULT 0,
+  `extra` int(11) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -431,7 +528,7 @@ CREATE TABLE `transaction_template_postings` (
   `account_id` int(11) NOT NULL,
   `dc` char(1) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL COMMENT 'D=debit, C=credit, $=amount',
   `amount` decimal(10,2) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -448,13 +545,14 @@ CREATE TABLE `users` (
   `auth_key` varchar(100) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
   `access_token` varchar(255) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
   `otp_secret` varchar(128) CHARACTER SET latin1 COLLATE latin1_bin DEFAULT NULL,
-  `status` int(11) NOT NULL DEFAULT '1',
+  `status` int(11) NOT NULL DEFAULT 1,
   `external_id` int(11) DEFAULT NULL,
   `last_renewal` int(4) DEFAULT NULL,
+  `preferences` text DEFAULT NULL,
   `last_action_at` int(11) DEFAULT NULL,
   `created_at` int(11) DEFAULT NULL,
   `updated_at` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -467,8 +565,37 @@ CREATE TABLE `user_agents` (
   `user_id` int(11) DEFAULT NULL,
   `hash` varchar(40) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL,
   `info` text NOT NULL,
+  `created_at` int(11) NOT NULL,
   `updated_at` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struttura stand-in per le viste `viewed_ou_main_activities`
+-- (Vedi sotto per la vista effettiva)
+--
+CREATE TABLE `viewed_ou_main_activities` (
+`id` int(11)
+,`happened_at` int(11)
+,`activity_type` varchar(100)
+,`user_id` int(11)
+,`first_name` varchar(40)
+,`last_name` varchar(40)
+,`organizational_unit_id` int(11)
+,`name` varchar(100)
+,`role_id` int(11)
+,`role_description` varchar(255)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Struttura per vista `viewed_ou_main_activities`
+--
+DROP TABLE IF EXISTS `viewed_ou_main_activities`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `viewed_ou_main_activities`  AS SELECT `subquery`.`id` AS `id`, `subquery`.`happened_at` AS `happened_at`, `subquery`.`activity_type` AS `activity_type`, `subquery`.`user_id` AS `user_id`, `subquery`.`first_name` AS `first_name`, `subquery`.`last_name` AS `last_name`, `subquery`.`organizational_unit_id` AS `organizational_unit_id`, `subquery`.`name` AS `name`, `subquery`.`role_id` AS `role_id`, `subquery`.`role_description` AS `role_description` FROM (select `activities`.`id` AS `id`,`activities`.`happened_at` AS `happened_at`,`activities`.`activity_type` AS `activity_type`,`users`.`id` AS `user_id`,`users`.`first_name` AS `first_name`,`users`.`last_name` AS `last_name`,`organizational_units`.`id` AS `organizational_unit_id`,`organizational_units`.`name` AS `name`,`roles`.`id` AS `role_id`,`roles`.`description` AS `role_description` from (((((`activities` join `authorizations` on(`activities`.`authorization_id` = `authorizations`.`id`)) join `roles` on(`authorizations`.`role_id` = `roles`.`id`)) join `users` on(`activities`.`user_id` = `users`.`id`)) join `periodical_reports` on(`activities`.`model_id` = `periodical_reports`.`id`)) join `organizational_units` on(`periodical_reports`.`organizational_unit_id` = `organizational_units`.`id`)) where `activities`.`activity_type` in ('PeriodicalReportWorkflow/submitted','PeriodicalReportWorkflow/submitted-empty') union select `activities`.`id` AS `id`,`activities`.`happened_at` AS `happened_at`,`activities`.`activity_type` AS `activity_type`,`users`.`id` AS `user_id`,`users`.`first_name` AS `first_name`,`users`.`last_name` AS `last_name`,`organizational_units`.`id` AS `organizational_unit_id`,`organizational_units`.`name` AS `name`,`roles`.`id` AS `role_id`,`roles`.`description` AS `role_description` from (((((`activities` join `authorizations` on(`activities`.`authorization_id` = `authorizations`.`id`)) join `roles` on(`authorizations`.`role_id` = `roles`.`id`)) join `users` on(`activities`.`user_id` = `users`.`id`)) join `projects` on(`activities`.`model_id` = `projects`.`id`)) join `organizational_units` on(`projects`.`organizational_unit_id` = `organizational_units`.`id`)) where `activities`.`activity_type` = 'ProjectWorkflow/submitted') AS `subquery` ;
 
 --
 -- Indici per le tabelle scaricate
@@ -483,7 +610,8 @@ ALTER TABLE `accounts`
   ADD KEY `code` (`code`),
   ADD KEY `rank` (`rank`),
   ADD KEY `name` (`name`),
-  ADD KEY `shown_in_ou_view` (`shown_in_ou_view`);
+  ADD KEY `shown_in_ou_view` (`shown_in_ou_view`),
+  ADD KEY `reversed_name` (`reversed_name`);
 
 --
 -- Indici per le tabelle `activities`
@@ -506,7 +634,8 @@ ALTER TABLE `affiliations`
   ADD KEY `user_id` (`user_id`),
   ADD KEY `organizational_unit_id` (`organizational_unit_id`),
   ADD KEY `role_id` (`role_id`),
-  ADD KEY `rank` (`rank`);
+  ADD KEY `rank` (`rank`),
+  ADD KEY `email` (`email`);
 
 --
 -- Indici per le tabelle `apikeys`
@@ -570,6 +699,16 @@ ALTER TABLE `expense_types`
   ADD KEY `rank` (`rank`);
 
 --
+-- Indici per le tabelle `messages`
+--
+ALTER TABLE `messages`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `sent_at` (`sent_at`),
+  ADD KEY `email` (`email`),
+  ADD KEY `created_at` (`created_at`),
+  ADD KEY `addressee` (`addressee`(191));
+
+--
 -- Indici per le tabelle `notifications`
 --
 ALTER TABLE `notifications`
@@ -619,6 +758,40 @@ ALTER TABLE `periodical_report_comments`
   ADD KEY `user_id` (`user_id`);
 
 --
+-- Indici per le tabelle `petitions`
+--
+ALTER TABLE `petitions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `slug` (`slug`),
+  ADD KEY `title` (`title`(191)),
+  ADD KEY `picture_url` (`picture_url`),
+  ADD KEY `wf_status` (`wf_status`),
+  ADD KEY `created_at` (`created_at`),
+  ADD KEY `launched_at` (`launched_at`),
+  ADD KEY `expired_at` (`expired_at`),
+  ADD KEY `updated_at` (`updated_at`),
+  ADD KEY `promoted_by` (`promoted_by`(191));
+
+--
+-- Indici per le tabelle `petition_signatures`
+--
+ALTER TABLE `petition_signatures`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `petition_id_email` (`petition_id`,`email`) USING BTREE,
+  ADD KEY `petition_id` (`petition_id`),
+  ADD KEY `email` (`email`),
+  ADD KEY `name` (`first_name`),
+  ADD KEY `created_at` (`created_at`),
+  ADD KEY `updated_at` (`updated_at`),
+  ADD KEY `confirmed_at` (`confirmed_at`),
+  ADD KEY `validated_at` (`validated_at`) USING BTREE,
+  ADD KEY `yob` (`yob`),
+  ADD KEY `district` (`district`),
+  ADD KEY `gender` (`gender`),
+  ADD KEY `last_name` (`last_name`),
+  ADD KEY `reminded_at` (`reminded_at`);
+
+--
 -- Indici per le tabelle `planned_expenses`
 --
 ALTER TABLE `planned_expenses`
@@ -652,6 +825,22 @@ ALTER TABLE `project_comments`
   ADD PRIMARY KEY (`id`),
   ADD KEY `project_id` (`project_id`),
   ADD KEY `user_id` (`user_id`);
+
+--
+-- Indici per le tabelle `questionnaires`
+--
+ALTER TABLE `questionnaires`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `title` (`title`);
+
+--
+-- Indici per le tabelle `questionnaire_responses`
+--
+ALTER TABLE `questionnaire_responses`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `questionnaire_id` (`questionnaire_id`),
+  ADD KEY `wf_status` (`wf_status`);
 
 --
 -- Indici per le tabelle `reimbursements`
@@ -699,7 +888,8 @@ ALTER TABLE `transaction_templates`
   ADD KEY `o_title` (`o_title`),
   ADD KEY `is_sealable` (`is_sealable`),
   ADD KEY `office` (`office`),
-  ADD KEY `request` (`request`(191));
+  ADD KEY `request` (`request`(191)),
+  ADD KEY `extra` (`extra`);
 
 --
 -- Indici per le tabelle `transaction_template_postings`
@@ -722,7 +912,7 @@ ALTER TABLE `users`
   ADD KEY `last_name` (`last_name`),
   ADD KEY `status` (`status`),
   ADD KEY `last_renewal` (`last_renewal`),
-  ADD KEY `last_visit_at` (`last_action_at`);
+  ADD KEY `last_action_at` (`last_action_at`);
 
 --
 -- Indici per le tabelle `user_agents`
@@ -730,7 +920,8 @@ ALTER TABLE `users`
 ALTER TABLE `user_agents`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`),
-  ADD KEY `hash` (`hash`);
+  ADD KEY `hash` (`hash`),
+  ADD KEY `created_at` (`created_at`);
 
 --
 -- AUTO_INCREMENT per le tabelle scaricate
@@ -740,127 +931,182 @@ ALTER TABLE `user_agents`
 -- AUTO_INCREMENT per la tabella `accounts`
 --
 ALTER TABLE `accounts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `activities`
 --
 ALTER TABLE `activities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21940;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `affiliations`
 --
 ALTER TABLE `affiliations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=323;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `apikeys`
 --
 ALTER TABLE `apikeys`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `attachments`
 --
 ALTER TABLE `attachments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1147;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `authorizations`
 --
 ALTER TABLE `authorizations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1501;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `co_hosting`
 --
 ALTER TABLE `co_hosting`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `events`
 --
 ALTER TABLE `events`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `expense_types`
 --
 ALTER TABLE `expense_types`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT per la tabella `messages`
+--
+ALTER TABLE `messages`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9163;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `notification_templates`
 --
 ALTER TABLE `notification_templates`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `organizational_units`
 --
 ALTER TABLE `organizational_units`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=103;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `periodical_reports`
 --
 ALTER TABLE `periodical_reports`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=642;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `periodical_report_comments`
 --
 ALTER TABLE `periodical_report_comments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=206;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT per la tabella `petitions`
+--
+ALTER TABLE `petitions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT per la tabella `petition_signatures`
+--
+ALTER TABLE `petition_signatures`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `planned_expenses`
 --
 ALTER TABLE `planned_expenses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=219;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `postings`
 --
 ALTER TABLE `postings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3567;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `projects`
 --
 ALTER TABLE `projects`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=158;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `project_comments`
 --
 ALTER TABLE `project_comments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=112;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT per la tabella `questionnaires`
+--
+ALTER TABLE `questionnaires`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT per la tabella `questionnaire_responses`
+--
+ALTER TABLE `questionnaire_responses`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `reimbursements`
 --
 ALTER TABLE `reimbursements`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `transactions`
 --
 ALTER TABLE `transactions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=954;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `transaction_templates`
 --
 ALTER TABLE `transaction_templates`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `transaction_template_postings`
 --
 ALTER TABLE `transaction_template_postings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=140;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=273;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `user_agents`
 --
 ALTER TABLE `user_agents`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- Limiti per le tabelle scaricate
 --
@@ -930,6 +1176,12 @@ ALTER TABLE `periodical_report_comments`
   ADD CONSTRAINT `periodical_report_comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON UPDATE CASCADE;
 
 --
+-- Limiti per la tabella `petition_signatures`
+--
+ALTER TABLE `petition_signatures`
+  ADD CONSTRAINT `petition_signatures_ibfk_1` FOREIGN KEY (`petition_id`) REFERENCES `petitions` (`id`) ON UPDATE CASCADE;
+
+--
 -- Limiti per la tabella `planned_expenses`
 --
 ALTER TABLE `planned_expenses`
@@ -957,6 +1209,13 @@ ALTER TABLE `project_comments`
   ADD CONSTRAINT `project_comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON UPDATE CASCADE;
 
 --
+-- Limiti per la tabella `questionnaire_responses`
+--
+ALTER TABLE `questionnaire_responses`
+  ADD CONSTRAINT `questionnaire_responses_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `questionnaire_responses_ibfk_2` FOREIGN KEY (`questionnaire_id`) REFERENCES `questionnaires` (`id`) ON UPDATE CASCADE;
+
+--
 -- Limiti per la tabella `transactions`
 --
 ALTER TABLE `transactions`
@@ -982,6 +1241,7 @@ ALTER TABLE `transaction_template_postings`
 --
 ALTER TABLE `user_agents`
   ADD CONSTRAINT `user_agents_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

@@ -46,9 +46,14 @@ class ShortenersController extends CController
     {
         $model = new Shortener();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            \app\components\LogHelper::log(sprintf('created [%s]', $model->keyword), $model, ['key'=>$model->keyword]);
-            return $this->redirect(['view', 'keyword' => $model->keyword]);
+        if ($model->load(Yii::$app->request->post())) {
+            if ($model->save()) {
+                \app\components\LogHelper::log(sprintf('created [%s]', $model->keyword), $model, ['key'=>$model->keyword]);
+                return $this->redirect(['view', 'keyword' => $model->keyword]);
+            }
+            else {
+                Yii::$app->session->setFlash('error', Yii::t('app', 'The URL could not be shortened for unknown reasons.'));
+            }
         }
 
         return $this->render('create', [

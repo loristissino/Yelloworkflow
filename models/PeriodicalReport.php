@@ -20,6 +20,7 @@ use \raoul2000\workflow\base\SimpleWorkflowBehavior;
  * @property string $begin_date
  * @property string $end_date
  * @property string $due_date
+ * @property string $required_attachments
  * @property string $wf_status
  * @property int $created_at
  * @property int $updated_at
@@ -186,6 +187,7 @@ class PeriodicalReport extends \yii\db\ActiveRecord
                 'TransactionWorkflow/submitted',
                 'TransactionWorkflow/notified',
                 'TransactionWorkflow/recorded',
+                'TransactionWorkflow/reimbursed',
                 'TransactionWorkflow/sealed',
                 'TransactionWorkflow/handled',
                 'TransactionWorkflow/extra',
@@ -253,6 +255,10 @@ class PeriodicalReport extends \yii\db\ActiveRecord
     public function getDueDate()
     {
         return Yii::$app->formatter->asDate($this->due_date);
+    }
+    
+    public function getIsDeletable() {
+            return $this->isEmpty and $this->canBeUpdated;
     }
 
     private function _hasRecentComments()
@@ -333,6 +339,7 @@ class PeriodicalReport extends \yii\db\ActiveRecord
                         'TransactionWorkflow/sealed',
                         'TransactionWorkflow/handled',
                         'TransactionWorkflow/rejected',
+                        'TransactionWorkflow/reimbursed',
                         'TransactionWorkflow/extra',
                     ])) {
                     // a transaction could have been recorded, but the periodical report could have been questioned
