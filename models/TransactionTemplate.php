@@ -142,7 +142,8 @@ class TransactionTemplate extends \yii\db\ActiveRecord
     {
         return self::find()
             ->active()
-            ->allowedForOrganizationaLUnit()
+            ->choosable()
+            ->allowedForOrganizationalUnit()
             ->select(['id', 'title', 'description', 'needs_attachment', 'needs_project', 'needs_vendor', 'request'])
             ->indexBy('id')
             ->orderBy(['rank' => SORT_ASC, 'title' => SORT_ASC])

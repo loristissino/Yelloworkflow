@@ -2,6 +2,7 @@
 
 use yii\helpers\Html;
 use yii\widgets\DetailView;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\User */
@@ -109,7 +110,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= \app\components\UnorderedListWidget::widget([
         'introMessage'=>'{count,plural,=0{No authorization found} =1{One authorization found} other{# authorizations found}}:',
-        'items'=>$model->getAuthorizations()->active()->all(),
+        'items'=>$model->getAuthorizations()->active()->orderBy(['controller_id'=>SORT_ASC, 'action_id'=>SORT_ASC])->all(),
         'textProperty'=>'identifier',
         'link'=>'authorizations/view',
     ]) ?>
@@ -124,5 +125,18 @@ $this->params['breadcrumbs'][] = $this->title;
         'link'=>'authorizations/view',
     ]) ?>    
     */ ?>
+    
+    <?php if(Yii::$app->user->hasAuthorizationFor('backend')): ?>
+    <hr>
+    
+    <p>
+        <?= Html::a(Yii::t('app', 'Create a Test Notification'), ['backend/test-notification', 'id' => $model->id, 'return_url'=> Url::toRoute(['users/view', 'id'=>$model->id])], [
+            'class' => 'btn btn-info',
+            'data' => [
+                'method' => 'post',
+            ],
+        ]) ?>
+    </p>
+    <?php endif?>
 
 </div>

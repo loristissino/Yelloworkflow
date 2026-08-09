@@ -38,6 +38,12 @@ $this->params['breadcrumbs'][] = $this->title;
             'name',
             'status',
             'code',
+            'represents',
+            [
+                'attribute'=>'parent_id',
+                'format'=>'raw',
+                'value'=>$model->parentAccount,
+            ],
             'debits_header',
             'credits_header',
             [

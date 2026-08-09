@@ -14,7 +14,7 @@ class TransactionWorkflow implements IWorkflowDefinitionProvider
             'initialStatusId' => 'draft',
             'status' => [
                 'draft' => [
-                    'transition' => ['confirmed', 'prepared', 'sealed'],
+                    'transition' => ['confirmed', 'prepared', 'sealed', 'generated'],
                     'metadata'   => [
                         'color' => 'gray',
                         'verb' => 'Reset to draft',
@@ -58,9 +58,23 @@ class TransactionWorkflow implements IWorkflowDefinitionProvider
                     'transition' => ['recorded'],
                     'metadata'   => [
                         'color' => '#005700',
-                        'verb' => 'Mark handled',
+                        'verb' => 'Mark as Handled',
                         'permission' => "fast-transactions/view",
                         'weigth' => 8,
+                        'notifications' => [
+                            "office-transactions/view" => '*',
+                            "$submissionsController/view" => 'ou',
+                        ],
+                        'notification_fields' => ['description', 'templateTitle', 'organizationalUnit'],
+                    ],
+                ],
+                'generated' => [
+                    'transition' => ['recorded', 'submitted'],
+                    'metadata'   => [
+                        'color' => '#005700',
+                        'verb' => 'Mark as Generated',
+                        'permission' => 'automations/journalize',
+                        'weigth' => 2048,
                         'notifications' => [
                             "office-transactions/view" => '*',
                             "$submissionsController/view" => 'ou',

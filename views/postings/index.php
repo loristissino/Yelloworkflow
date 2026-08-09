@@ -16,7 +16,6 @@ $title = Yii::t('app', 'Postings');
         'dataProvider' => $dataProvider,
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
-            'id',
             [
                 'attribute' => Yii::t('app', 'Account'),
                 'format' => 'raw',
@@ -29,15 +28,54 @@ $title = Yii::t('app', 'Postings');
                 'format' => 'raw',
                 'value' => 'description',
             ],
+            /*
             [
                 'attribute' => Yii::t('app', 'Amount'),
                 'format' => 'raw',
-                'value' => 'formattedAmount',
+                'value' => 'formattedSignedAmount',
                 'contentOptions' => ['class' => 'amount'],
                 'headerOptions' => ['class' => 'amount'],
                 'footerOptions' => ['class' => 'amount'],
             ],
+            */
+            [
+                'attribute' => Yii::t('app', 'Debit'),
+                'format' => 'raw',
+                'value' => 'formattedDebitAmount',
+                'contentOptions' => ['class' => 'amount'],
+                'headerOptions' => ['class' => 'amount'],
+                'footerOptions' => ['class' => 'amount'],
+            ],
+            [
+                'attribute' => Yii::t('app', 'Credit'),
+                'format' => 'raw',
+                'value' => 'formattedCreditAmount',
+                'contentOptions' => ['class' => 'amount'],
+                'headerOptions' => ['class' => 'amount'],
+                'footerOptions' => ['class' => 'amount'],
+            ],
+            /*
+            [
+                'attribute' => Yii::t('app', 'Real Account'),
+                'format' => 'raw',
+                'value' => 'formattedSignedDebitAmount',
+                'contentOptions' => ['class' => 'amount'],
+                'headerOptions' => ['class' => 'amount'],
+                'footerOptions' => ['class' => 'amount'],
+            ],
+            [
+                'attribute' => Yii::t('app', 'Revenue'),
+                'format' => 'raw',
+                'value' => 'formattedSignedCreditAmount',
+                'contentOptions' => ['class' => 'amount'],
+                'headerOptions' => ['class' => 'amount'],
+                'footerOptions' => ['class' => 'amount'],
+            ],
+            */
         ],
     ]); ?>
 
+<?php if(Yii::$app->user->hasAuthorizationFor('transactions-management')): ?>
+    <p><?= Html::a(Yii::t('app', 'Patch'), ['transactions-management/patch', 'id'=>$transaction->id]) ?></p>
+<?php endif ?>
 </div>

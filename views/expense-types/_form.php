@@ -17,6 +17,8 @@ use yii\widgets\ActiveForm;
     <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'status')->checkbox() ?>
+
+    <?= $form->field($model, 'coeff')->textInput(['type'=>'number']) ?>
     
     <?= \app\models\OrganizationalUnit::getDropdown($form, $model) ?>
 

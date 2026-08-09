@@ -229,10 +229,10 @@ class Authorization extends \yii\db\ActiveRecord
                 'title' => 'Events Management',
                 'description' => 'What\'s gonna happen',
             ],
-            'shorteners' => [
+            'shortenings' => [
                 'icon' => 'link',
                 'color' => '#008000',
-                'title' => 'Shorteners',
+                'title' => 'Shortenings',
                 'description' => 'Customized short URLs',
             ],
             'social-media' => [
@@ -241,11 +241,31 @@ class Authorization extends \yii\db\ActiveRecord
                 'title' => 'Social Media',
                 'description' => 'Schedule the posts',
             ],
+            /*
             'my-organizational-unit' => [
                 'icon' => 'picture-o',
                 'color' => '#FFA500',
                 'title' => 'My Organizational Unit',
                 'description' => 'People I work with',
+            ],
+            */
+            'products' => [
+                'icon' => 'cubes',
+                'color' => '#0916EB',
+                'title' => 'Products',
+                'description' => 'Items we sell',
+            ],
+            'digital-receipts' => [
+                'icon' => 'file-text-o',
+                'color' => '#FEA93E',
+                'title' => 'Digital Receipts',
+                'description' => 'Cash inflows documentation',
+            ],
+            'expos' => [
+                'icon' => 'leanpub',
+                'color' => '#A52A2A',
+                'title' => 'Expos',
+                'description' => 'Events where we exhibit',
             ],
             
             /*

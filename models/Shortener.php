@@ -12,6 +12,12 @@ class Shortener extends Model
     public $url;
     public $title;
     public $shorturl;
+    public $multiline;
+    public $response;
+
+    function __construct($multiline) {
+        $this->multiline = $multiline;
+    }
 
     /**
      * {@inheritdoc}
@@ -39,6 +45,32 @@ class Shortener extends Model
     }
 
     public function save() {
+
+        if ($this->multiline) {
+            $this->response = [];
+            $lines = array_filter(array_map('trim', explode("\n", $this->url)));
+            foreach($lines as $line) {
+                $parts = explode("\t", $line);
+                if (sizeof($parts)==0){
+                    $this->response[] = [];
+                    continue;
+                }
+                $url = trim($parts[0]);
+                $params = ['action'=>'shorturl', 'url'=>$url, 'title'=>''];
+                if (sizeof($parts)>1) {
+                    $params['keyword'] = trim($parts[1]);
+                }
+                $data = self::_call($params);
+                if ($data && !$data->errorCode) {
+                    $this->response[] = [$url, $data->shorturl, $data->title]; 
+                }
+                else {
+                    $this->response[] = [$url, 'ERROR'];
+                }
+            }
+            return sizeof($this->response)>0;
+        }
+        
         $params = ['action'=>'shorturl', 'url'=>$this->url, 'title'=>$this->title];
         if ($this->keyword) {
             $params['keyword']=$this->keyword;
@@ -62,7 +94,7 @@ class Shortener extends Model
         
         $payload = http_build_query($options);
         
-        $data = file_get_contents(
+        $data = @file_get_contents(
             Yii::$app->params['shortener']['api_url'],
             false,
             stream_context_create([

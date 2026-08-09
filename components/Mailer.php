@@ -59,15 +59,30 @@ class Mailer extends Component
 
     public function setHtmlBody($text)
     {
-        $this->_data['body'] = $text;
+        $this->_data['body'] = $text .
+            '<hr>' .
+            '<p><em>'. Yii::t('app', 'This email was sent automatically. Replies to this address are not monitored. If you have questions, please <a href="{url}">contact us</a>.', ['url'=>Yii::$app->params['contactPage']]) . '</em></p>'
+        ;
         $this->_data['isHTML'] = true;
         return $this;
     }
 
     public function setTextBody($text)
     {
-        $this->_data['body'] = $text;
+        $this->_data['body'] = $text . 
+        
+            "\n\n-----------\n" .
+            
+            Yii::t('app', 'This email was sent automatically. Replies to this address are not monitored. If you have questions, please contact us at {url}.', ['url'=>Yii::$app->params['contactPage']])
+        ;
+        
         $this->_data['isHTML'] = false;
+        return $this;
+    }
+    
+    public function setAttachments($attachments=[])
+    {
+        $this->_data['attachments'] = $attachments;
         return $this;
     }
     

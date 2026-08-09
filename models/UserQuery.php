@@ -19,6 +19,11 @@ class UserQuery extends \yii\db\ActiveQuery
         return $this->andWhere(['=', 'id', $id]);
     }
 
+    public function human()
+    {
+        return $this->andWhere(['>', 'id', 0]);
+    }
+
     public function excludingId($id)
     {
         return $this->andWhere(['<>', 'id', $id]);

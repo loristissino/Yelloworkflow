@@ -41,7 +41,7 @@ class PwdChangeForm extends Model
         
         if ($user) {
             
-            $user->auth_key = $this->password;
+            $user->password_hash = $this->password;
             $user->encryptPassword();
             if ($user->save()) {
                 Yii::$app->session->setFlash('success', Yii::t('app', 'Password successfully reset.'));

@@ -16,9 +16,11 @@ use \app\models\Apikey;
  * @property string $first_name
  * @property string $last_name
  * @property string $email
+ * @property string|null $phone
  * @property string $auth_key
  * @property string $access_token
  * @property string|null $otp_secret
+ * @property string|null $password_hash
  * @property int $status
  * @property int|null $external_id
  * @property int|null $last_renewal
@@ -71,7 +73,9 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             [['username'], 'string', 'max' => 20],
             [['first_name', 'last_name'], 'string', 'max' => 40],
             [['email', 'auth_key'], 'string', 'min'=>4, 'max' => 100], // TODO The min limit is for debugging purposes
-            [['access_token', 'otp_secret'], 'safe'],
+            [['phone'], 'string', 'max' => 20],
+            [['phone'], 'validatePhoneNumber'],
+            [['access_token', 'otp_secret', 'password_hash'], 'safe'],
             //[['access_token'], 'string', 'max' => 255],
             //[['otp_secret'], 'string', 'max' => 128],
             [['username'], 'unique'],
@@ -95,6 +99,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             'auth_key' => Yii::t('app', 'Password'),
             'access_token' => Yii::t('app', 'Access Token'),
             'otp_secret' => Yii::t('app', 'Otp Secret'),
+            'password_hash' => Yii::t('app', 'Password Hash'),
             'status' => Yii::t('app', 'Is Active?'),
             'external_id' => Yii::t('app', 'External Id'),
             'last_renewal' => Yii::t('app', 'Last Renewal'),
@@ -103,6 +108,20 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             'created_at' => Yii::t('app', 'Created At'),
             'updated_at' => Yii::t('app', 'Updated At'),
         ];
+    }
+
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            if ($insert  || $this->isAttributeChanged('password_hash')) {
+                $this->auth_key = $this->generateAuthKey();
+            }
+            if ($insert) {
+                $this->encryptPassword();
+            }
+            return true;
+        }
+        return false;
     }
 
     public function getFullName()
@@ -203,7 +222,8 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         return $this
             ->hasMany(OrganizationalUnit::className(), ['id' => 'organizational_unit_id'])
             ->viaTable('affiliations', ['user_id' => 'id'])
-            ->withPossibileActions(OrganizationalUnit::HAS_OWN_PROJECTS)
+            //->withPossibileActions(OrganizationalUnit::HAS_OWN_PROJECTS)
+            ->withPossibileActions(OrganizationalUnit::CAN_SELL)
             ->active();
     }
 
@@ -294,7 +314,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 
     public static function findIdentity($id)
     {
-        return static::findOne($id);
+        return static::find()->withId($id)->active()->human()->one();
     }
     
     public function getId()
@@ -317,6 +337,12 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {
         return $this->authKey === $authKey;
     }
+
+    public static function generateAuthKey()
+    {
+        return Yii::$app->security->generateRandomString();
+    }
+    
     
     /**
      * Finds user by username
@@ -337,7 +363,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public function validatePassword($password)
     {
-        return Yii::$app->getSecurity()->validatePassword($password, $this->getAuthKey());
+        return Yii::$app->getSecurity()->validatePassword($password, $this->password_hash);
     }
     
     public function fixPermissions()
@@ -394,17 +420,10 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             );
     }
 
-    public function beforeSave($insert)
-    {
-        if ($insert) {
-            $this->encryptPassword();
-        }
-        return parent::beforeSave($insert);
-    }
     
     public function encryptPassword()
     {
-        $this->auth_key = Yii::$app->getSecurity()->generatePasswordHash($this->auth_key);
+        $this->password_hash = Yii::$app->getSecurity()->generatePasswordHash($this->password_hash);
         return $this;
     }
 
@@ -415,6 +434,12 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         // this is used for two-factor authentication, but only when the user activates it
         $this->otp_secret = null;
         return $this;
+    }
+    
+    public function getTwoFactorAuthVerifiedViaSMS()
+    {
+        // the otp secret is stored lowercase when 2FA was verified via SMS
+        return strtolower($this->otp_secret) == $this->otp_secret;
     }
 
     public function afterSave($insert, $changedAttributes)
@@ -513,7 +538,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     
     public function getPreferences()
     {
-        return json_decode($this->preferences, true);
+        return $this->getJsonField('preferences');
     }
     
     public function getPreference($key, $default='')
@@ -529,6 +554,28 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         $this->preferences = json_encode($preferences);
         Yii::debug("pref: " . $this->preferences);
         return $this;
+    }
+        
+    public function getObscuredPhone()
+    {
+        return '...' . substr($this->phone, strlen($this->phone)-4, 4);
+    }
+
+    public function validatePhoneNumber($attribute)
+    {
+        $value = $this->$attribute;
+        if (trim($value)=='') {
+            $this->$attribute = null;
+            return true;
+        }
+        $cleaned = preg_replace('/[\s\-\.]/', '', $value);
+        if (!preg_match('/^\+/', $cleaned)) {
+            $cleaned = '+' . Yii::$app->params['defaultCountryCode'] . $cleaned;
+        }
+        if (!preg_match('/^\+\d{10,15}$/', $cleaned)) {
+            $this->addError($attribute, Yii::t('app', 'Phone number must be 10-15 digits.'));
+        }
+        $this->$attribute = $cleaned;
     }
         
     /**

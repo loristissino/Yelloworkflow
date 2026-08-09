@@ -75,6 +75,8 @@ $dataProvider = $mastodon->getScheduledPosts();
 
     <?= $form->field($model, 'at')->textInput(['type'=>'datetime-local', 'min'=>date('Y-m-d\TH:i')]) ?>
 
+    <?= $form->errorSummary($model) ?>
+
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app', 'Schedule'), ['class' => 'btn btn-success']) ?>
     </div>

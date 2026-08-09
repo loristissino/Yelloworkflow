@@ -103,7 +103,7 @@ class PeriodicalReportComment extends \yii\db\ActiveRecord
     }
 
     public function getIsUpdateable() {
-        return $this->user_id == Yii::$app->user->identity->id and $this->created_at >= $this->periodicalReport->lastLoggedActivityTime;
+        return Yii::$app->user->identity && $this->user_id == Yii::$app->user->identity->id and $this->created_at >= $this->periodicalReport->lastLoggedActivityTime;
     }
 
     public function beforeSave($insert)

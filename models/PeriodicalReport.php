@@ -138,7 +138,8 @@ class PeriodicalReport extends \yii\db\ActiveRecord
 
     public function getViewLink($options=[])
     {
-        return Yii\helpers\Html::a($this->__toString(), ['periodical-report-submissions/view', 'id'=>$this->id], $options);
+        $controller = ArrayHelper::getValue($options, 'controller', 'periodical-report-submissions');
+        return Yii\helpers\Html::a($this->__toString(), [$controller . '/view', 'id'=>$this->id], $options);
     }
 
     public function __toString()
@@ -190,6 +191,7 @@ class PeriodicalReport extends \yii\db\ActiveRecord
                 'TransactionWorkflow/reimbursed',
                 'TransactionWorkflow/sealed',
                 'TransactionWorkflow/handled',
+                'TransactionWorkflow/generated',
                 'TransactionWorkflow/extra',
             ])->count()
             ==

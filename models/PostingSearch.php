@@ -19,6 +19,7 @@ class PostingSearch extends Posting
         return [
             [['id', 'transaction_id', 'account_id'], 'integer'],
             [['amount'], 'number'],
+            [['id', 'account.rank', 'account.name', /* other account columns */], 'safe'],
         ];
     }
 
@@ -48,9 +49,21 @@ class PostingSearch extends Posting
         ->joinWith('account')
         ;        
 
-
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'sort' => [
+                'defaultOrder' => ['accounts.rank' => SORT_ASC],
+                'attributes' => [
+                    'id' => [
+                        'asc' => ['id' => SORT_ASC],
+                        'desc' => ['id' => SORT_DESC],
+                    ],
+                    'accounts.rank' => [
+                        'asc' => ['{{accounts}}.{{rank}}' => SORT_ASC],
+                        'desc' => ['{{accounts}}.{{rank}}' => SORT_DESC],
+                    ],
+                ],
+            ],            
         ]);
 
         $this->load($params);

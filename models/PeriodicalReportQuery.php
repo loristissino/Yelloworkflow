@@ -38,6 +38,16 @@ class PeriodicalReportQuery extends \yii\db\ActiveQuery
         return $this->andWhere(['=', 'organizational_unit_id', $id]);
     }
     
+    public function withBeginDate($date)
+    {
+        return $this->andWhere(['=', 'begin_date', $date]);
+    }
+    
+    public function withEndDate($date)
+    {
+        return $this->andWhere(['=', 'end_date', $date]);
+    }
+
     public function withWithinDate($date)
     {
         return $this

@@ -19,6 +19,16 @@ class TransactionTemplateQuery extends \yii\db\ActiveQuery
         return $this->andWhere(['=', 'id', $id]);
     }
 
+    public function withRank($rank)
+    {
+        return $this->andWhere(['=', 'rank', $rank]);
+    }
+    
+    public function choosable()
+    {
+        return $this->andWhere(['>', 'rank', 0]);  // negative ranks are reserved for automated transactions
+    }
+
     public function officeOnly($office_only=true)
     {
         return $office_only ? $this->andWhere(['<>', 'office', 0]) : $this;

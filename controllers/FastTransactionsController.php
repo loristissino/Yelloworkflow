@@ -40,17 +40,30 @@ class FastTransactionsController extends CController
     public function actionIndex($active=null) // Lists all transactions prepared by office workers
     {
         $active = $active == 'false' ? false : true;
+        
+        $statuses = ['TransactionWorkflow/sealed', 'TransactionWorkflow/handled', 'TransactionWorkflow/rejected'];
+        
+        if (Yii::$app->session->get('include_generated_transactions', false)) {
+            $statuses[] = 'TransactionWorkflow/generated';
+        }
+        
         $searchModel = new TransactionSearch();
         $dataProvider = $searchModel->search(
             Yii::$app->request->queryParams, 
-            Transaction::find()->active($active)->withOneOfStatuses(['TransactionWorkflow/sealed', 'TransactionWorkflow/handled', 'TransactionWorkflow/rejected'])
+            Transaction::find()->active($active)->withOneOfStatuses($statuses)
         );
-        $dataProvider->sort->defaultOrder = ['date' => SORT_DESC];
+        $dataProvider->sort->defaultOrder = ['date' => SORT_DESC, 'created_at' => SORT_DESC];
         
         return $this->render('/transactions/office-index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
+    }
+
+    public function actionToggleGeneratedTransactionsInclusion()
+    {
+        Yii::$app->session->set('include_generated_transactions', !Yii::$app->session->get('include_generated_transactions', false));
+        return $this->redirect('index');
     }
 
     /**

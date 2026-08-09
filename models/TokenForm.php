@@ -18,6 +18,7 @@ class TokenForm extends Model
     public $user;
     public $secret = null;
     public $trust_user_agent = false;
+    public $sms = false;
     
     /**
      * @return array the validation rules.
@@ -33,6 +34,20 @@ class TokenForm extends Model
 
     public function validateToken($attribute, $params)
     {
+        if ($this->sms) {
+            $sms = Yii::$app->session->get('user2FA_sms', []);
+            if (!$sms) {
+                $this->addError($attribute, Yii::t('app', 'Invalid session.'));
+            }
+            if (time() > $sms['expiresAt']) {
+                $this->addError($attribute, Yii::t('app', 'Expired code.'));
+            }
+            if ($sms['randomNumber']!=trim($this->token)) {
+                $this->addError($attribute, Yii::t('app', 'Incorrect code.'));
+            }
+            return;
+        }
+        
         $initializationKey = $this->secret ? $this->secret : $this->user->otp_secret;
         
         if (!Google2FA::verify_key($initializationKey, $this->token, 2)) {
@@ -46,7 +61,7 @@ class TokenForm extends Model
     public function attributeLabels()
     {
         return [
-            'token' => Yii::t('app', 'Token'),
+            'token' => Yii::t('app', 'Code'),
             'trust_user_agent' => Yii::t('app', 'Don\'t ask again for this device'),
         ];
     }

@@ -144,6 +144,10 @@ a.desc:after {
     min-width: 100px; 
 }
 
+.negative {
+    background-color: #FFC0CB;
+}
+
 .amount.header {
     text-align: left;
 }
@@ -241,4 +245,8 @@ a.desc:after {
 .json-comma,
 .json-colon {
     color: #333; /* Dark grey for commas and colons */
+}
+
+a.navbar-brand {
+    color: #ffe500 !important;
 }

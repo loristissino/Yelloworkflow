@@ -6,7 +6,7 @@ use yii\helpers\Html;
 /* @var $model app\models\PlannedExpense */
 
 
-$this->title = Yii::t('app', 'Update Planned Expense: {name}', [
+$this->title = Yii::t('app', 'Update Planned Expense «{name}»', [
     'name' => $model->description,
 ]);
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Projects'), 'url' => ['project-submissions/index']];

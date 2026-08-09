@@ -18,7 +18,7 @@ class OrganizationalUnitSearch extends OrganizationalUnit
     {
         return [
             [['id', 'rank', 'status', 'created_at', 'updated_at'], 'integer'],
-            [['name', 'email', 'url', 'ceiling_amount', 'possible_actions'], 'safe'],
+            [['name', 'email', 'phone', 'url', 'ceiling_amount', 'possible_actions'], 'safe'],
         ];
     }
 
@@ -69,6 +69,7 @@ class OrganizationalUnitSearch extends OrganizationalUnit
 
         $query->andFilterWhere(['like', 'name', $this->name])
             ->andFilterWhere(['like', 'email', $this->email])
+            ->andFilterWhere(['like', 'phone', $this->phone])
             ->andFilterWhere(['like', 'url', $this->url]);
 
         return $dataProvider;

@@ -22,6 +22,7 @@ use yii\data\SqlDataProvider;
  * @property string $debits_header
  * @property string $credits_header
  * @property string $represents
+ * @property string $parent_id
  * @property string|null $enforced_balance
  * @property int $shown_in_ou_view
  * @property int $created_at
@@ -29,6 +30,7 @@ use yii\data\SqlDataProvider;
  *
  * @property OrganizationalUnit $organizationalUnit
  * @property Posting[] $postings
+ * @property Account $parentAccount
  * @property TransactionTemplatePosting[] $transactionTemplatePostings
  */
 class Account extends \yii\db\ActiveRecord
@@ -56,7 +58,7 @@ class Account extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['organizational_unit_id', 'rank', 'status', 'shown_in_ou_view'], 'integer'],
+            [['organizational_unit_id', 'rank', 'status', 'shown_in_ou_view', 'parent_id'], 'integer'],
             [['name', 'debits_header', 'credits_header'], 'required'],
             [['name'], 'string', 'max' => 100],
             [['reversed_name'], 'string', 'max' => 100],
@@ -64,6 +66,7 @@ class Account extends \yii\db\ActiveRecord
             [['code', 'debits_header', 'credits_header'], 'string', 'max' => 60],
             [['represents', 'enforced_balance'], 'string', 'max' => 1],
             [['organizational_unit_id'], 'exist', 'skipOnError' => true, 'targetClass' => OrganizationalUnit::className(), 'targetAttribute' => ['organizational_unit_id' => 'id']],
+            [['parent_id'], 'exist', 'skipOnError' => true, 'targetClass' => Account::className(), 'targetAttribute' => ['parent_id' => 'id']],
         ];
     }
 
@@ -83,6 +86,7 @@ class Account extends \yii\db\ActiveRecord
             'debits_header' => Yii::t('app', 'Debits Header'),
             'credits_header' => Yii::t('app', 'Credits Header'),
             'represents' => Yii::t('app', 'Represents'),
+            'parent_id' => Yii::t('app', 'Parent Account'),
             'enforced_balance' => Yii::t('app', 'Enforced Balance'),
             'shown_in_ou_view' => Yii::t('app', 'Shown in OU view'),
             'created_at' => Yii::t('app', 'Created At'),
@@ -118,6 +122,11 @@ class Account extends \yii\db\ActiveRecord
     public function getTransactionTemplatePostings()
     {
         return $this->hasMany(TransactionTemplatePosting::className(), ['account_id' => 'id']);
+    }
+
+    public function getParentAccount()
+    {
+        return $this->hasOne(Account::className(), ['id' => 'parent_id']);
     }
     
     public function beforeSave($insert)

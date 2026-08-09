@@ -11,43 +11,56 @@ use yii\bootstrap\NavBar;
 use yii\widgets\Breadcrumbs;
 use app\assets\AppAsset;
 
+$pinging = Yii::$app->params['pinging'] ?? false;
+$pingRoute = ['site/ping'];
 
-$this->registerJs(
-    "
-    let pingUrl = '". Url::toRoute(['site/ping']). "';
-    
-    let cnt = $('#user_info').html();
+// used for tests -- to remove
+$delay = $_GET['delay'] ?? 0;
+if ($delay){
+    $pinging = $_GET['pinging'] ?? 200;
+    $pingRoute['delay'] = $delay; 
+}
 
-    
-    async function ping() {
-        let response = await fetch(pingUrl);
-        let content = await response.json();
-        if (!content) {
-            return;
+$url = Url::toRoute($pingRoute);
+
+if ($pinging) {
+
+    $this->registerJs(
+        "
+        let pingUrl = '". Url::toRoute($pingRoute). "';
+        
+        let cnt = $('#user_info').html();
+
+        
+        async function ping() {
+            let response = await fetch(pingUrl);
+            let content = await response.json();
+            if (!content) {
+                return;
+            }
+            let users = content.users.map(x => x.fullName);
+            let tooltip = '';
+            let icon = '🙂';
+            if (users.length > 0) {
+                tooltip = '👥\\n' + users.join('\\n') + '\\n';
+                icon = '😌';
+            }
+            if (content.unseen_notifications > 0) {
+                tooltip += `\\n✉️ \${content.unseen_notifications}`;
+                icon = '🔔';
+            }
+            $('#user_info').attr('title', tooltip);
+            $('#user_info').html(cnt.replace('😶', icon));
         }
-        let users = content.users.map(x => x.fullName);
-        let tooltip = '';
-        let icon = '🙂';
-        if (users.length > 0) {
-            tooltip = '👥\\n' + users.join('\\n') + '\\n';
-            icon = '😌';
-        }
-        if (content.unseen_notifications > 0) {
-            tooltip += `\\n✉️ \${content.unseen_notifications}`;
-            icon = '🔔';
-        }
-        $('#user_info').attr('title', tooltip);
-        $('#user_info').html(cnt.replace('😶', icon));
-    }
-    
-    setTimeout(ping, 1000);
-    setInterval(ping, 10000);
-    
-    
-    ",
-    \yii\web\View::POS_READY,
-    'pinger'
-);
+        
+        setTimeout(ping, 1000);
+        setInterval(ping, " . $pinging . ");
+        
+        ",
+        \yii\web\View::POS_READY,
+        'pinger'
+    );
+}
 
 AppAsset::register($this);
 ?>
@@ -97,7 +110,7 @@ AppAsset::register($this);
                     ['label' => Yii::t('app', 'Affiliations'), 'url' => ['affiliations/index']],
                     '<li class="divider"></li>',
                     ['label' => Yii::t('app', 'Renewals Check'), 'url' => ['roles/renewals']],
-                    ['label' => Yii::t('app', 'Renewals Bulk Update'), 'url' => ['users/renewals']],
+                    // ['label' => Yii::t('app', 'Renewals Bulk Update'), 'url' => ['users/renewals']],
                     ['label' => Yii::t('app', 'Organizational Units\' Main Activities'), 'url' => ['organizational-units/main-activities', 'daysBack'=>365]],
                 ]
             ];
@@ -171,7 +184,7 @@ AppAsset::register($this);
 <footer class="footer">
     <div class="container">
         <p class="pull-left">
-            <?= Html::a('&copy; 2020-2025 LT (GNU Affero GPL)', 'https://github.com/loristissino/Yelloworkflow') ?>
+            <?= Html::a('&copy; 2020-2026 LT (GNU Affero GPL)', 'https://github.com/loristissino/Yelloworkflow') ?>
             <?php /*- 
             <?php foreach(\Yii::$app->controller->authorization_ids as $id=>$value): ?>
                 <?= Html::a($value, ['authorizations/view', 'id'=>$id]) ?> 

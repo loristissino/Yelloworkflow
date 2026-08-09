@@ -7,6 +7,9 @@ use yii\widgets\DetailView;
 use app\models\Posting;
 use app\models\PostingSearch;
 
+use app\models\DigitalReceipt;
+use app\models\DigitalReceiptSearch;
+
 use app\assets\TransactionFormAsset;
 
 TransactionFormAsset::register($this);
@@ -60,7 +63,12 @@ $postingDataProvider = $postingSearchModel->search(Yii::$app->request->queryPara
     Posting::find()->ofTransaction($model)
 );
 
-$postingDataProvider->sort->defaultOrder = ['id' => SORT_ASC];
+$digitalReceiptSearchModel = new DigitalReceiptSearch();
+$digitalReceiptDataProvider = $digitalReceiptSearchModel->search(Yii::$app->request->queryParams,
+    DigitalReceipt::find()->linkedToTransaction($model->id)
+);
+
+$digitalReceiptDataProvider->sort->defaultOrder = ['id' => SORT_ASC];
 
 $this->title = $model->description;
 
@@ -104,8 +112,8 @@ if (!$model->project) {
         if (sizeof($projects)>0) {
             $html =
                 Html::beginForm(['connect', 'id'=>$model->id]) .
-                Html::activeDropDownList($model, 'project', ArrayHelper::map($projects, 'id', 'title'), ['prompt'=>Yii::t('app', 'Connect to a project')]) .
-                Html::submitButton(Yii::t('app', 'Connect'), ['id'=>'project-selection-button', 'disabled'=>'disabled']) .
+                Html::activeDropDownList($model, 'project', ArrayHelper::map($projects, 'id', 'title'), ['prompt'=>Yii::t('app', 'Connect to a project')]) . ' ' .
+                Html::submitButton(Yii::t('app', 'Connect'), ['id'=>'project-selection-button', 'disabled'=>'disabled', 'class'=>'btn btn-success']) .
                 Html::endForm();
             $projectChoice = $html;
         }
@@ -189,13 +197,32 @@ if (!$model->project) {
 
 <div class="attachments-view">
     <h2><?= Yii::t('app', 'Attachments') ?></h2>
-    <?= \nemmo\attachments\components\AttachmentsTable::widget(['model' => $model, 'showDeleteButton'=>$is_draft, 'viewLink'=>['site/show']]) ?>
+    <?php if(sizeof($model->files)>0): ?>
+        <?= \nemmo\attachments\components\AttachmentsTable::widget(['model' => $model, 'showDeleteButton'=>$is_draft, 'viewLink'=>['site/show']]) ?>
+    <?php else: ?>
+        <p><?= Yii::t('app', 'No attachments.') ?></p>
+    <?php endif ?>
+    
+</div>
+
+<div class="digital-receipts-view">
+    <h2><?= Yii::t('app', 'Digital Receipts') ?></h2>
+    <?php if ($digitalReceiptDataProvider->getCount() > 0): ?>
+        <?= $this->render('/digital-receipts/list', [
+            'searchModel' => $digitalReceiptSearchModel,
+            'dataProvider' => $digitalReceiptDataProvider,
+            'transaction' => $model,
+            ]); 
+        ?>
+    <?php else: ?>
+        <p><?= Yii::t('app', 'No digital receipts.') ?></p>
+    <?php endif ?>
 </div>
 
 <div class="transaction-view">
 
     <h2><?= Yii::t('app', 'Details') ?></h2>
-
+    
     <?= DetailView::widget([
         'model' => $model,
         'attributes' => [
@@ -211,6 +238,12 @@ if (!$model->project) {
                 'value' => $model->project ? $model->project->$projectViewLink : '<span class="not-set">' . Yii::t('yii', '(not set)') . '</span><br>' . $projectChoice,
             ],
             //'event_id',
+            [
+                'attribute'=> Yii::t('app', 'Expo'),
+                'format'=>'raw',
+                'value'=>$model->expo ? $model->expo . ' ' . Html::a('⛓️‍💥', ['unlink-from-expo', 'id'=>$model->id], ['data-method'=>'post', 'data-confirm'=>Yii::t('app', 'Do you really want to unlink this receipt from the Expo?'), 'class'=>'btn']) : null,
+            ],
+            
             'vendor',
             [
                 'attribute' => 'vat_number',

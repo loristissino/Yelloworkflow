@@ -35,6 +35,65 @@ class OrganizationalUnitsController extends CController
         ]);
     }
 
+    public function actionText($active=null, $text='') // Lists all organizational units
+    {
+        $activeStatus = $active == 'false' ? false : true;
+        $active = $activeStatus ? 'true': 'false';
+        $searchModel = new OrganizationalUnitSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams, OrganizationalUnit::find()->active($activeStatus)->withAPhoneNumber());
+        $dataProvider->sort->defaultOrder = ['rank' => SORT_ASC, 'name' => SORT_ASC];
+        $dataProvider->pagination = [
+            'pageSize' => 1000,
+        ];
+        
+        return $this->render('text', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+            'active' => $active,
+            'text' => $text,
+        ]);
+    }
+    
+    public function actionSendSmsMessages()
+    {
+        $selectedIds = Yii::$app->request->post('selection', []);
+        $smsMessage = Yii::$app->request->post('sms_message');
+        $action = Yii::$app->request->post('action');
+        
+        // Check if user submitted the SMS action
+        if ($action === 'sendsms') {
+            
+            // Validate that message and rows are selected
+            if (empty($selectedIds)) {
+                Yii::$app->session->addFlash('error', Yii::t('app', 'Please select at least one organizational unit.'));
+                return $this->redirect(['text', 'text'=>$smsMessage]);
+            }
+            
+            if (empty($smsMessage)) {
+                Yii::$app->session->addFlash('error', 'Please enter an SMS message.');
+                return $this->redirect(['text']);
+            }
+            
+            // $selectedIds - array of selected organizational unit IDs
+            // $smsMessage - the text message to send
+            
+            // Send SMS to selected units
+            $count = 0;
+            foreach ($selectedIds as $id) {
+                $unit = OrganizationalUnit::findOne($id);
+                if ($unit) {
+                    if (Yii::$app->smsservice->send($unit->phone, $smsMessage)){
+                        $count++;
+                    }
+                }
+            }
+            
+            Yii::$app->session->addFlash('success', Yii::t('app', 'SMS sent to {count,plural,=0{no addressee} =1{one addressee} other{# addressees}}.', ['count'=>$count]));
+            return $this->redirect(['text']);
+        }
+        
+    } 
+
     /**
      * Displays a single OrganizationalUnit model.
      * @param integer $id

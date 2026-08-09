@@ -81,6 +81,11 @@ class Posting extends \yii\db\ActiveRecord
     {
         return  Yii::$app->formatter->asCurrency(abs($this->amount));
     }
+    
+    public function getFormattedSignedAmount()
+    {
+        return  Yii::$app->formatter->asCurrency($this->amount);
+    }
 
     public function getFormattedDebitAmount()
     {
@@ -89,6 +94,22 @@ class Posting extends \yii\db\ActiveRecord
 
     public function getFormattedCreditAmount()
     {
+        return $this->amount <0 ? Yii::$app->formatter->asCurrency(abs($this->amount)): '';
+    }
+
+    public function getFormattedSignedDebitAmount()
+    {
+        if ($this->account->represents=='S'){
+            return '';
+        }
+        return $this->amount >=0 ? Yii::$app->formatter->asCurrency(abs($this->amount)): '';
+    }
+
+    public function getFormattedSignedCreditAmount()
+    {
+        if ($this->account->represents=='S'){
+            return Yii::$app->formatter->asCurrency(-  $this->amount);
+        }
         return $this->amount <0 ? Yii::$app->formatter->asCurrency(abs($this->amount)): '';
     }
     

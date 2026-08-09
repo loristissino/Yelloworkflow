@@ -20,6 +20,8 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'end_date')->textInput() ?>
 
+    <?= $form->field($model, 'due_date')->textInput() ?>
+
     <?= $form->field($model, 'required_attachments')->textArea() ?>
 
     <div class="form-group">

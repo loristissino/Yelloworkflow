@@ -32,6 +32,18 @@ $this->params['breadcrumbs'][] = $this->title;
         </p>
     <?php endif ?>
 
+    <?php if($controller == 'fast-transactions'): ?>
+        <p>
+            <?= Html::a(Yii::t('app',
+                Yii::$app->session->get('include_generated_transactions', false) ?
+                    'Exclude generated transactions'
+                    :
+                    'Include generated transactions'
+                ),
+                ['fast-transactions/toggle-generated-transactions-inclusion']) ?>
+        </p>
+    <?php endif ?>
+
     <?php if (($dataProvider->count > 0)): ?>
 
     <?=Html::beginForm(['process'],'post');?>
@@ -114,7 +126,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <hr>
     
     <p>
-        <?php if($recorded=='extra'): ?>
+        <?php if(isset($recorded) && $recorded=='extra'): ?>
             <?= Html::a(Yii::t('app', 'Ordinary transactions'), ['index']) ?>
         <?php else: ?>
             <?= Html::a(Yii::t('app', '«Extra» transactions'), ['index', 'recorded'=>'extra']) ?>

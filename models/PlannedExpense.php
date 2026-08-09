@@ -37,7 +37,7 @@ class PlannedExpense extends \yii\db\ActiveRecord
         return [
             [['project_id', 'expense_type_id', 'description', 'amount'], 'required'],
             [['project_id', 'expense_type_id'], 'integer'],
-            [['amount'], 'number', 'min' => 0, 'max'=>1000000],
+            [['amount'], 'number', 'min' => 1, 'max'=>100000],
             [['notes'], 'string'],
             [['description'], 'string', 'max' => 255],
             [['notes', 'description'], 'filter', 'filter'=>function($value) {return trim(strip_tags($value));}],
@@ -89,7 +89,7 @@ class PlannedExpense extends \yii\db\ActiveRecord
     
     public function getFormattedAmount()
     {
-        return  Yii::$app->formatter->asCurrency($this->amount);
+        return  Yii::$app->formatter->asCurrency($this->amount * $this->expenseType->coeff);
     }    
     
     public function beforeSave($insert)
@@ -99,6 +99,7 @@ class PlannedExpense extends \yii\db\ActiveRecord
             $this->addError('*', 'It is not possible to edit planned expenses of projects that do not have draft status.');
             return false;
         }
+
         return parent::beforeSave($insert);
     }
 

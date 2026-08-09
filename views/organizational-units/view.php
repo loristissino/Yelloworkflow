@@ -38,6 +38,7 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             'name',
             'email:email',
+            'phone',
             'url:url',
             'last_designation_date:date',
             [

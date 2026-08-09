@@ -58,7 +58,8 @@ class MastodonSchedulerClient
         };
         
         $info = $this->_send('/?at='.$at, ['text'=>$status, 'attachments'=>$attachments], 'POST');
-        return $info['result']=='ok';
+        
+        return $info;
     }
     
     private function _send($path, $contents = [], $method='GET')

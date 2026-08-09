@@ -12,18 +12,26 @@ use yii\helpers\Html;
 <p><?= Html::a(Yii::t('app', 'Notification Templates'), ['notification-templates/index']) ?></p>
 <p><?= Html::a(Yii::t('app', 'Vendors'), ['vendors/index']) ?></p>
 <p><?= Html::a(Yii::t('app', 'Attachments'), ['attachments', 'pagesize'=>666, 'sort'=>'-id']) ?></p>
+<p><?= Html::a(Yii::t('app', 'Digital Receipt Types'), ['digital-receipt-types/index']) ?></p>
+<?php /*
 <p><?= Html::a(Yii::t('app', 'Contact Method Types'), ['contact-method-types/index']) ?></p>
 <p><?= Html::a(Yii::t('app', 'Subscription Types'), ['subscription-types/index']) ?></p>
-
-
-<hr />
+*/ ?>
+<hr>
 
 <p><?= Html::a(Yii::t('app', 'Markdown Documentation'), ['markdown-documentation']) ?></p>
 
-<hr />
+<hr>
 
-<p><?= Html::a(Yii::t('app', 'Project Workflow'), ['project-workflow', 'seed'=>3]) ?></p>
-<p><?= Html::a(Yii::t('app', 'Periodical Report Workflow'), ['periodical-report-workflow', 'seed'=>3]) ?></p>
-<p><?= Html::a(Yii::t('app', 'Transaction Workflow'), ['transaction-workflow', 'seed'=>3]) ?></p>
+<p><?= Html::a(Yii::t('app', 'Project Workflow'), ['project-workflow', 'seed'=>49, 'gender'=>'male', 'static'=>true]) ?></p>
+<p><?= Html::a(Yii::t('app', 'Periodical Report Workflow'), ['periodical-report-workflow', 'seed'=>3, 'gender'=>'male', 'static'=>true]) ?></p>
+<p><?= Html::a(Yii::t('app', 'Transaction Workflow'), ['transaction-workflow', 'seed'=>14, 'gender'=>'female', 'static'=>true]) ?></p>
+<p><?= Html::a(Yii::t('app', 'Digital Receipt Workflow'), ['digital-receipt-workflow', 'seed'=>6, 'gender'=>'female', 'static'=>true]) ?></p>
+<p>&nbsp;</p>
+<p><?= Html::a(Yii::t('app', 'Set Seed'), ['set-seed', 'seed'=>1]) ?></p>
+<p><?= Html::a(Yii::t('app', 'Unset Seed'), ['unset-seed']) ?></p>
 
 </div>
+
+
+<hr>

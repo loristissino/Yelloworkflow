@@ -6,7 +6,7 @@ use Yii;
 use yii\base\Model;
 use yii\validators\DateValidator;
 use yii\web\UploadedFile;
-
+use yii\helpers\ArrayHelper;
 
 /**
  * MastodonPostForm is the model behind the issues form.
@@ -56,7 +56,12 @@ class MastodonPostForm extends Model
         $d = new \DateTime($this->at);
 //        $d->setTimezone(new \DateTimeZone('Europe/Rome'));
         $at = $d->format('U');
-        return $this->mastodon->schedule($at, $this->status, $this->image, $this->description);
+        $result = $this->mastodon->schedule($at, $this->status, $this->image, $this->description);
+        if (!ArrayHelper::getValue($result, 'result', false)=='ok') {
+            $this->addError(null, json_encode($result));
+            return false;
+        }
+        return true;
     }
 
 }

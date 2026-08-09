@@ -7,6 +7,9 @@ $this->registerJs(
     "
     $('.loader').on('click', function(event){
         $('#loader').show();
+        setTimeout(function() {
+            $('#loader').hide();
+        }, 2000);
     });
     ",
     \yii\web\View::POS_END,

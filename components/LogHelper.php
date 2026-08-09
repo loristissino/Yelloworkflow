@@ -21,13 +21,25 @@ class LogHelper {
         ]);
         
         $activity = new Activity();
-        $activity->user_id = \Yii::$app->user->isGuest ? null : \Yii::$app->user->id;
+        
+        if (\Yii::$app instanceof \yii\console\Application) {
+            // Running in console
+            $userId = -1; // system user that must exist!
+            $authorizationId = null;
+        } 
+        else {
+            // Running in web application
+            $userId = \Yii::$app->user->isGuest ? null : \Yii::$app->user->id;
+            $authorizationId = \Yii::$app->controller->getAuthorizationId();
+        }
+        
+        $activity->user_id = $userId;
         $activity->activity_type = $activity_type;
         $activity->model = $model::className();
         $activity->model_id = isset($model->id) ? $model->id: 0;
 
         $values = array_diff_key(
-            ArrayHelper::toArray($model),
+            ArrayHelper::toArray($model, [], false),
             array_flip($options['excluded'])
             );
             
@@ -45,7 +57,7 @@ class LogHelper {
         
         $activity->info = JSON_encode($values);
         
-        $activity->authorization_id = \Yii::$app->controller->getAuthorizationId();
+        $activity->authorization_id = $authorizationId;
         $activity->save(false);
         
         if (!ArrayHelper::getValue($options, 'without-notifications', false)) {
@@ -62,7 +74,7 @@ class LogHelper {
             return $count;
                         
         $notifications = $model->getWorkflowStatus()->getMetadata('notifications');
-                
+                        
         if (!$notifications) {
             return $count;
         }
@@ -90,7 +102,7 @@ class LogHelper {
         
         foreach($notifications as $permission=>$type){
             $authorizations = Authorization::find()->withActivePermission($permission)->all();
-                                    
+                                                
             if ($type == 'ou') {
                 $ou = $model->organizationalUnit;
                 $authorizations = array_filter($authorizations, function($auth) use ($ou) {
@@ -128,16 +140,9 @@ class LogHelper {
                 
                 $accepted_notifications = $authorization->user->getPreference('notifications', false);
                                 
-                if (($accepted_notifications !== false) and !in_array($template->id, $accepted_notifications)) {
+                if (is_array($accepted_notifications) and !in_array($template->id, $accepted_notifications)) {
                     $notification->sent_at = -1;
                 }
-                
-                /*
-                $template->id lo abbiamo
-                $authorization->user è l'utente
-                getPreference di quell'utente ci dice se deve essere mandata l'email
-                se non deve essere mandata mettiamo sent_at al valore -1 (poi bisogna cambiare la vista)
-                */
                 
                 $notification->save();
                 $count++;

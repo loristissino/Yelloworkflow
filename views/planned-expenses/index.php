@@ -6,7 +6,7 @@ use yii\grid\GridView;
 $totalAmount = 0;
 
 foreach($dataProvider->models as $expense) {
-    $totalAmount += $expense->amount;
+    $totalAmount += $expense->amount * $expense->expenseType->coeff;
 }
 
 $is_draft = $project->isDraft;
@@ -24,7 +24,13 @@ $columns = [
         'attribute'=>'amount',
         'format'=>'raw',
         'value'=>'formattedAmount',
-        'contentOptions' => ['class' => 'amount'],
+        'contentOptions' => function($model) {
+            $class = 'amount';
+            if ($model->expenseType->coeff < 0){
+                $class .= ' negative';
+            }
+            return ['class' => $class];
+        },
         'headerOptions' => ['class' => 'amount'],
         'footer' => Yii::$app->formatter->asCurrency($totalAmount),
         'footerOptions' => ['class' => 'amount'],

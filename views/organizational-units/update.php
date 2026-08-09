@@ -5,7 +5,7 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\OrganizationalUnit */
 
-$this->title = Yii::t('app', 'Update Organizational Unit: {name}', [
+$this->title = Yii::t('app', 'Update Organizational Unit «{name}»', [
     'name' => $model->name,
 ]);
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Organizational Units'), 'url' => ['index']];

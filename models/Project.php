@@ -299,13 +299,15 @@ class Project extends \yii\db\ActiveRecord
 
         if (in_array($event->getEndStatus()->getId(), ['ProjectWorkflow/approved','ProjectWorkflow/partially-approved'])) {
             $ou = $this->getOrganizationalUnit()->one();
-            if (! $ou->hasOwnCash) {
+            if (! $ou->hasOwnCash && ! $this->periodical_report_id) {
                 $periodicalReport = new \app\models\PeriodicalReport();
                 $periodicalReport->begin_date = date('Y-m-d');
                 $periodicalReport->end_date = date('Y-m-d', time()+365*24*60*60);
                 $periodicalReport->organizational_unit_id = $ou->id;
                 $periodicalReport->name = Yii::t('app', 'Expenses for «{title}»', ['title' => $this->title]);
                 $periodicalReport->save();
+                $this->periodical_report_id = $periodicalReport->id;
+                $this->save(false);
             }
             $this->_createCommentAfterApproval();
         }
@@ -379,7 +381,7 @@ class Project extends \yii\db\ActiveRecord
             $text = Yii::t('app', '[{type}] {description}: {amount}', [
                 'type'=>$expense->expenseType->name,
                 'description'=>$expense->description,
-                'amount'=>Yii::$app->formatter->asCurrency($expense->amount),
+                'amount'=>Yii::$app->formatter->asCurrency($expense->amount * $expense->expenseType->coeff),
             ]);
             
             if ($expense->notes) {

@@ -9,6 +9,7 @@ use yii\helpers\Url;
 use yii\data\SqlDataProvider;
 use yii\behaviors\TimestampBehavior;
 use \raoul2000\workflow\base\SimpleWorkflowBehavior;
+use app\models\Posting;
 
 /**
  * This is the model class for table "transactions".
@@ -16,6 +17,7 @@ use \raoul2000\workflow\base\SimpleWorkflowBehavior;
  * @property int $id
  * @property int $periodical_report_id
  * @property int $transaction_template_id
+ * @property int $expo_id
  * @property string $date
  * @property string $description
  * @property int|null $project_id
@@ -30,8 +32,10 @@ use \raoul2000\workflow\base\SimpleWorkflowBehavior;
  * @property int $updated_at
  *
  * @property Posting[] $postings
+ * @property DigitalReceipt[] $digitalReceipts
  * @property PeriodicalReport $periodicalReport
  * @property User $user
+ * @property Expo $expo
  */
 class Transaction extends \yii\db\ActiveRecord
 {
@@ -78,7 +82,7 @@ class Transaction extends \yii\db\ActiveRecord
     {
         return [
             [['periodical_report_id', 'date', 'description', 'wf_status', 'user_id'], 'required'],
-            [['periodical_report_id', 'project_id', 'event_id', 'user_id', 'created_at', 'updated_at'], 'integer'],
+            [['periodical_report_id', 'project_id', 'expo_id', 'event_id', 'user_id', 'created_at', 'updated_at'], 'integer'],
             [['date'], 'safe'],
             [['description', 'notes'], 'string', 'max' => 255],
             [['notes', 'handling'], 'string', 'max' => 255],
@@ -88,6 +92,7 @@ class Transaction extends \yii\db\ActiveRecord
             [['description', 'notes', 'vendor', 'invoice'], 'filter', 'filter'=>function($value) {return trim(strip_tags($value));}],
             [['periodical_report_id'], 'exist', 'skipOnError' => true, 'targetClass' => PeriodicalReport::className(), 'targetAttribute' => ['periodical_report_id' => 'id']],
             [['transaction_template_id'], 'exist', 'skipOnError' => true, 'targetClass' => TransactionTemplate::className(), 'targetAttribute' => ['transaction_template_id' => 'id']],
+            [['expo_id'], 'exist', 'skipOnError' => true, 'targetClass' => Expo::className(), 'targetAttribute' => ['expo_id' => 'id']],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
         ];
     }
@@ -101,6 +106,7 @@ class Transaction extends \yii\db\ActiveRecord
             'id' => Yii::t('app', 'ID'),
             'periodical_report_id' => Yii::t('app', 'Periodical Report'),
             'transaction_template_id' => Yii::t('app', 'Transaction Template'),
+            'expo_id' => Yii::t('app', 'Expo'),
             'date' => Yii::t('app', 'Date'),
             'description' => Yii::t('app', 'Description'),
             'project_id' => Yii::t('app', 'Project'),
@@ -115,6 +121,16 @@ class Transaction extends \yii\db\ActiveRecord
             'created_at' => Yii::t('app', 'Created At'),
             'updated_at' => Yii::t('app', 'Updated At'),
         ];
+    }
+
+    /**
+     * Gets query for [[DigitalReceipts]].
+     *
+     * @return \yii\db\ActiveQuery|DigitalReceiptQuery
+     */
+    public function getDigitalReceipts()
+    {
+        return $this->hasMany(DigitalReceipt::className(), ['transaction_id' => 'id']);
     }
 
     /**
@@ -146,6 +162,12 @@ class Transaction extends \yii\db\ActiveRecord
     {
         return $this->hasOne(Project::className(), ['id' => 'project_id']);
     }
+
+    public function getExpo()
+    {
+        return $this->hasOne(Expo::className(), ['id' => 'expo_id']);
+    }
+
     
     /**
      * Gets query for [[User]].
@@ -300,7 +322,7 @@ return Yii\helpers\Html::a($this->description, ['transaction-submissions/view', 
                 break;
             case 'TransactionWorkflow/confirmed':
             case 'TransactionWorkflow/sealed':
-                if ($template->needs_attachment && sizeof($this->files)==0) {
+                if ($template->needs_attachment && sizeof($this->files)==0 && sizeof($this->digitalReceipts)==0) {
                     $this->workflowError = 'This transaction must be documented with an attachment.';
                     $event->invalidate($this->workflowError);
                 }
@@ -321,7 +343,7 @@ return Yii\helpers\Html::a($this->description, ['transaction-submissions/view', 
                     $event->invalidate($this->workflowError);
                 }
                 if ( ! $this->hasDateInValidRange ) {
-                    $this->workflowError = 'Date outside periodica report\'s range.';
+                    $this->workflowError = 'Date outside periodical report\'s range.';
                     $event->invalidate($this->workflowError);
                 }
                 if ( $template->request and !$this->notes ) {
@@ -350,9 +372,18 @@ return Yii\helpers\Html::a($this->description, ['transaction-submissions/view', 
 
     private function _runWorkflowRoutines($event)
     {
-        $log = "Running workflow routines...\n";
+        $log = "Running workflow routines for transaction...\n";
         
         $log .= $event->getTransition()->getId() . "\n";
+        
+        if ($event->getEndStatus()->getId() == 'TransactionWorkflow/recorded') {
+            foreach($this->getDigitalReceipts()->all() as $receipt) {
+                $receipt->sendToStatus('recorded');
+                $receipt->save(false);
+            }
+        }
+
+        //file_put_contents('transaction_log_' . date('Ymd-His') . '.log', $log);
 
         $options = [];
         
@@ -406,6 +437,121 @@ return Yii\helpers\Html::a($this->description, ['transaction-submissions/view', 
             return $this->sendToStatus('notified');
         }
         return false;
+    }
+    
+    public function separateDigitalReceipt($digitalReceipt) {
+                
+        $dbTransaction = Yii::$app->db->beginTransaction();
+
+        try {
+
+            $newTransaction = $this->cloneModel(Yii::t('app', 'Digital Receipt') . ' ' . $digitalReceipt->completeSequentialNumber);
+            
+            $connection = Yii::$app->getDb();
+            $command = $connection->createCommand("
+
+            SELECT 
+                SUM(`digital_receipt_lines`.`unit_price` * `digital_receipt_lines`.`quantity`) AS `sale`, 
+                SUM(`digital_receipt_lines`.`discount`) AS `discount`, 
+                `sales_account_id`, 
+                `discounts_account_id`
+            FROM 
+                `digital_receipt_lines`
+                JOIN
+                `products` ON `digital_receipt_lines`.`product_id` = `products`.`id`
+            WHERE `digital_receipt_id` = :receipt
+            GROUP BY `products`.`sales_account_id`, `products`.`discounts_account_id`
+
+            ", [':receipt' => $digitalReceipt->id]);
+
+            $data = $command->queryAll();
+            
+            // Calculate total amount from all rows
+            $totalAmount = 0;
+            foreach ($data as $row) {
+                $totalAmount += (float)$row['sale'] - (float)$row['discount'];
+            }
+            
+            $incomeAccountId = 0;
+            
+            // Update existing postings in the original transaction
+            foreach($this->postings as $posting) {
+                if ($posting->account->represents == 'R') {
+                    $posting->amount -= $totalAmount;
+                    $incomeAccountId = $posting->account_id;
+                }
+                // Check if this posting matches any of the data rows
+                foreach ($data as $row) {
+                    if ($posting->account->id == $row['sales_account_id']) {
+                        $posting->amount += (float)$row['sale'];
+                    }
+                    if ($posting->account->id == $row['discounts_account_id']) {
+                        $posting->amount -= (float)$row['discount'];
+                    }
+                }
+                if (abs($posting->amount) < 0.01) {  // within 1 cent
+                    $posting->delete(false);
+                } else {
+                    $posting->save(false);
+                }
+            }
+            
+            $this->description .= ' - ' . Yii::t('app', 'With exclusion of one or more digital receipts');
+            $this->save(false);
+
+            // Create postings for the new transaction for each account combination
+            foreach ($data as $row) {
+                // Sale posting
+                $posting = new Posting();
+                $posting->account_id = $row['sales_account_id'];
+                $posting->amount = - (float)$row['sale'];
+                $posting->transaction_id = $newTransaction->id;
+                $posting->save(false);
+                
+                // Discount posting (if discount > 0)
+                if ((float)$row['discount'] > 0) {
+                    $posting = new Posting();
+                    $posting->account_id = $row['discounts_account_id'];
+                    $posting->amount = (float)$row['discount'];
+                    $posting->transaction_id = $newTransaction->id;
+                    $posting->save(false);
+                }
+            }
+
+            // Income posting (single posting for the total amount)
+            $posting = new Posting();
+            $posting->account_id = $incomeAccountId;
+            $posting->amount = $totalAmount;
+            $posting->transaction_id = $newTransaction->id;
+            $posting->save(false);
+            
+            $newTransaction->sendToStatus('confirmed');
+            $newTransaction->save(false);
+            
+            $digitalReceipt->transaction_id = $newTransaction->id;
+            $digitalReceipt->save(false);
+              
+            $dbTransaction->commit();
+            return true;
+        
+        }
+        catch (Exception $e) {
+            $dbTransaction->rollBack();
+            return false;    
+        }
+         
+    }
+
+    public function cloneModel($description=false)
+    {
+        $model = new Transaction();
+        $model->attributes = $this->attributes;
+        if ($description) {
+            $model->description = $description;
+        }
+        $model->save(false);
+        
+        return $model;
     }
 
     public function __toString()

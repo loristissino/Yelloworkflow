@@ -19,12 +19,16 @@ class UsersController extends CController
      * Lists all User models.
      * @return mixed
      */
-    public function actionIndex($active=null) // Lists all users
+    public function actionIndex($active=null, $pagesize=1000) // Lists all users
     {
         $activeStatus = $active == 'false' ? false : true;
         $active = $activeStatus ? 'true': 'false';
         $searchModel = new UserSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams, User::find()->active($activeStatus));
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams, User::find()->active($activeStatus)->human());
+        
+        $dataProvider->pagination = [
+            'pageSize' => $pagesize,
+        ];
 
         return $this->render('index', [
             'searchModel' => $searchModel,

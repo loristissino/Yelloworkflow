@@ -16,6 +16,7 @@ use yii\helpers\Url;
  * @property int $status
  * @property string $name
  * @property string|null $email
+ * @property string|null $phone
  * @property string|null $url
  * @property string $last_designation
  * @property string $notes
@@ -30,6 +31,7 @@ use yii\helpers\Url;
  * @property ExpenseType[] $expenseTypes
  * @property PeriodicalReport[] $periodicalReports
  * @property Project[] $projects
+ * @property Expo[] $expos
  * @property TransactionTemplate[] $transactionTemplates
  */
 class OrganizationalUnit extends \yii\db\ActiveRecord
@@ -66,7 +68,9 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
             [['last_designation_date'], 'safe'],
             [['notes'], 'string'],
             [['name', 'email'], 'string', 'max' => 100],
-            [['name', 'notes', 'email'], 'trim'],
+            [['phone'], 'string', 'max' => 20],
+            [['phone'], 'validatePhoneNumber'],
+            [['name', 'notes', 'email', 'phone'], 'trim'],
             [['ceiling_amount'], 'number', 'min'=>0, 'max' => 100000],
             [['possible_actions'], 'number', 'min' => 0],
             [['url'], 'string', 'max' => 255],
@@ -85,6 +89,7 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
             'status' => Yii::t('app', 'Is Active?'),
             'name' => Yii::t('app', 'Name'),
             'email' => Yii::t('app', 'Email'),
+            'phone' => Yii::t('app', 'Phone'),
             'url' => Yii::t('app', 'Url'),
             'last_designation_date' => Yii::t('app', 'Last Designation Date'),
             'notes' => Yii::t('app', 'Notes'),
@@ -166,6 +171,16 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
     }
 
     /**
+     * Gets query for [[Expo]].
+     *
+     * @return \yii\db\ActiveQuery|ExpoQuery
+     */
+    public function getExpos()
+    {
+        return $this->hasMany(Expo::className(), ['organizational_unit_id' => 'id']);
+    }
+
+    /**
      * Gets query for [[TransactionTemplates]].
      *
      * @return \yii\db\ActiveQuery|TransactionTemplateQuery
@@ -180,6 +195,11 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
         return $this->getPeriodicalReports()->open()->withWithinDate($date)->orderBy(['end_date'=>SORT_DESC])->one();
     }
     
+    public function getCurrentExpo()
+    {
+        return $this->getExpos()->active()->ongoing()->one();
+    }
+    
     public function getViewLink($options=[])
     {
         return Html::a($this->name, ['organizational-units/view', 'id'=>$this->id], $options);
@@ -188,6 +208,14 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
     public function getViewLinkWithEmail($options=[])
     {
         return sprintf('%s - %s', $this->name, Html::a($this->email, 'mailto:' . $this->email, $options));
+    }
+    
+    public function beforeSave($insert)
+    {
+        if (trim($this->phone)==''){
+            $this->phone = null;
+        }
+        return parent::beforeSave($insert);
     }
     
     public static function getActiveOrganizationalUnitsAsArray($options)
@@ -280,6 +308,23 @@ class OrganizationalUnit extends \yii\db\ActiveRecord
     public function __toString()
     {
         return $this->name;
+    }
+
+    public function validatePhoneNumber($attribute)
+    {
+        $value = $this->$attribute;
+        if (trim($value)=='') {
+            $this->$attribute = null;
+            return true;
+        }
+        $cleaned = preg_replace('/[\s\-\.]/', '', $value);
+        if (!preg_match('/^\+/', $cleaned)) {
+            $cleaned = '+' . Yii::$app->params['defaultCountryCode'] . $cleaned;
+        }
+        if (!preg_match('/^\+\d{10,15}$/', $cleaned)) {
+            $this->addError($attribute, Yii::t('app', 'Phone number must be 10-15 digits.'));
+        }
+        $this->$attribute = $cleaned;
     }
 
     /**

@@ -60,8 +60,8 @@ $this->params['breadcrumbs'][] = $this->title;
     ]); ?>
     
     <?= Yii::t('app', 'With the selected notifications: ') ?>
-    <?= Html::a(Yii::t('app', 'Mark seen'), ['process', 'action'=>'markSeen'], ['data-method'=>'post'])?> - 
-    <?= Html::a(Yii::t('app', 'Mark unseen'), ['process', 'action'=>'markUnseen'], ['data-method'=>'post'])?>
+    <?= Html::a(Yii::t('app', 'Mark as Seen'), ['process', 'action'=>'markSeen'], ['data-method'=>'post'])?> - 
+    <?= Html::a(Yii::t('app', 'Mark as Unseen'), ['process', 'action'=>'markUnseen'], ['data-method'=>'post'])?>
     
     <?= Html::endForm();?> 
 

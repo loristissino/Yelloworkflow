@@ -64,6 +64,9 @@ class NotificationsController extends CController
         ]);
     }
     
+    /*
+     * Moved to the command Notifications (see commands/NotificationsController)
+     * 
     public function actionSend($key) // Sends ready notifications and email messages via email
     {
         $this->enableCsrfValidation = false;
@@ -71,15 +74,6 @@ class NotificationsController extends CController
         {
             throw new ForbiddenHttpException(Yii::t('app', 'Not authorized.'));
         }
-        /*
-         * Not possible because of CSRF token required
-         * FIXME: move this to REST API requests
-        if (!Yii::$app->request->isPost)
-        {
-            throw new MethodNotAllowedHttpException(Yii::t('app', 'Method not allowed.'));
-        }
-        */
-
         $this->layout = false;
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
@@ -112,7 +106,11 @@ class NotificationsController extends CController
 
         return $this->renderContent($data);
     }
+    */
 
+    /*
+     * Moved to the command Notifications (see commands/NotificationsController)
+     * 
     public function actionPrepareReminders($key, $type='workflow', $petition_key='') // Prepare reminders as notifications
     {
         $this->enableCsrfValidation = false;
@@ -152,6 +150,7 @@ class NotificationsController extends CController
         }
         return $this->renderContent($data);
     }
+    */
     
     public function actionSettings() {
         $model = new NotificationsPreferencesForm;

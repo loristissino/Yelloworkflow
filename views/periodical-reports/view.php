@@ -24,7 +24,11 @@ $transactionDataProvider = $transactionSearchModel->search(Yii::$app->request->q
     Transaction::find()->active()->ofPeriodicalReport($model)
 );
 
-$transactionDataProvider->sort->defaultOrder = ['date' => SORT_ASC];
+$transactionDataProvider->sort->defaultOrder = ['date' => SORT_ASC, 'created_at' => SORT_ASC];
+
+$transactionDataProvider->pagination = [
+    'pageSize' => 1000,
+];
 
 $salesViews = [
     'lines'=>'Line-based report', 
@@ -195,4 +199,4 @@ $attributes[] =
     </div>
 <?php endif ?>
 <hr>
-<?= Html::a(Yii::t('app', 'Balances'), ['statements/index']) ?><br>
+<?= Html::a(Yii::t('app', 'Balances'), ['statements/index']) ?>

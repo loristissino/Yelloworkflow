@@ -1,6 +1,7 @@
 <?php
 /* this array represents workflow statuses for "female" objects */
 return [
+    'Active' => 'Attiva',
     'Approved' => 'Approvata',
     'Archived' => 'Archiviata',
     'Canceled' => 'Annullata',
@@ -10,15 +11,23 @@ return [
     'Deleted' => 'Eliminata',
     'Draft' => 'Bozza',
     'Ended' => 'Conclusa',
+    'Generated' => 'Generata',
     'Handled' => 'Trattata',
+    'Issued' => 'Emessa',
+    'Journalized' => 'Inserita nel resoconto',
     'Notified' => 'Notificata',
+    'Patched' => 'Aggiustata',
+    'Posted' => 'Contabilizzata',
     'Prepared' => 'Preparata',
     'Questioned' => 'Messa in discussione',  
     'Recorded' => 'Registrata',
     'Reimbursed' => 'Rimborsata',
     'Rejected' => 'Respinta',
+    'Saved' => 'Salvata',
     'Sealed' => 'Irrevocabile',
+    'Sent' => 'Inviata',
     'Submitted' => 'Inviata',
     'Submitted Empty' => 'Inviata vuota',
     'Suspended' => 'Sospesa',
+    'Voided' => 'Annullata',
 ];

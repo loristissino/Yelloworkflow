@@ -18,6 +18,8 @@ $title = Yii::t('app', 'Transactions');
     <?php if ($periodicalReport->isDraft): ?>
         <p>
             <?= Html::a(Yii::t('app', 'Create Transaction'), ['transaction-submissions/create', 'periodical_report'=> $periodicalReport->id], ['class' => 'btn btn-success']) ?>
+
+            <?= Html::a(Yii::t('app', 'Issue a Receipt'), ['digital-receipts/index'], ['class' => 'btn btn-info']) ?>
         </p>
     <?php endif ?>
 

@@ -34,6 +34,8 @@ use yii\widgets\ActiveForm;
 
     <?= \app\models\Account::getPossibleEnforcedBalancesDropdown($form, $model) ?>
 
+    <?= \app\models\Account::getDropdown($form, $model, ['field_name'=>'parent_id']) ?>
+
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app', 'Save'), ['class' => 'btn btn-success']) ?>
     </div>

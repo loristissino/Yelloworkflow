@@ -62,3 +62,7 @@ $this->params['breadcrumbs'][] = $this->title;
 </div>
 
 <div><?= Html::a(Yii::t('app', 'Show / Hide organizational units depending of being active'), ['organizational-units/index', 'active'=>($active=='true'?'false':'true')]) ?></div>
+
+<hr>
+
+<div><?= Html::a(Yii::t('app', 'Send text messages via SMS'), ['organizational-units/text']) ?></div>

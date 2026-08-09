@@ -5,6 +5,7 @@ namespace app\models;
 use Yii;
 use yii\helpers\Html;
 use yii\helpers\Url;
+use \raoul2000\workflow\base\SimpleWorkflowBehavior;
 
 trait ModelTrait
 {
@@ -98,6 +99,39 @@ trait ModelTrait
             ->withActivityType('locked')
             ->recent(600)
             ;
+    }
+
+    public function getJsonField($field)
+    {
+        $value = $this->$field;
+
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (is_object($value)) {
+            return (array)$value;
+        }
+
+        if (empty($value)) {
+            return [];
+        }
+
+        return json_decode($value, true) ?? [];
+    }
+  
+    public function getJsonFieldAsHTML($field, $raw=false)
+    {
+        $value = $raw ? json_decode($field) : $this->getJsonField($field);
+        return  Html::tag('pre', json_encode($value, JSON_PRETTY_PRINT));
+    }
+    
+    public function getDefaultWorkflowBehavior()
+    {
+        return [
+            'class'                    => SimpleWorkflowBehavior::className(),
+            'statusAttribute'          => 'wf_status',
+        ];
     }
 
 }

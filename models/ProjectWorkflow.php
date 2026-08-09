@@ -120,7 +120,7 @@ class ProjectWorkflow implements IWorkflowDefinitionProvider
                     'transition' => ['reimbursed', 'canceled'],
                     'metadata'   => [
                         'color' => '#7F7F7F',
-                        'verb' => 'Mark ended',
+                        'verb' => 'Mark as Ended',
                         'confirm' => 'Are you sure you want to mark this project ended (with no expenses)?',
                         'confirmCondition' => 'missingExpenses',
                         'permission' => "$submissionsController/end",
@@ -136,7 +136,7 @@ class ProjectWorkflow implements IWorkflowDefinitionProvider
                     'transition' => ['archived'],
                     'metadata'   => [
                         'color' => '#738579',
-                        'verb' => 'Mark reimbursed',
+                        'verb' => 'Mark as Reimbursed',
                         'permission' => "$managementController/suspend",
                         'notifications' => [
                             "$managementController/view" => '*',
@@ -149,7 +149,7 @@ class ProjectWorkflow implements IWorkflowDefinitionProvider
                     'transition' => ['archived'],
                     'metadata'   => [
                         'color' => '#C602C6',
-                        'verb' => 'Mark canceled',
+                        'verb' => 'Mark as Canceled',
                         'permission' => "$managementController/cancel",
                         'notifications' => [
                             "$managementController/view" => '*',

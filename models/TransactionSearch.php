@@ -17,7 +17,7 @@ class TransactionSearch extends Transaction
     public function rules()
     {
         return [
-            [['id', 'periodical_report_id', 'project_id', 'event_id', 'user_id', 'created_at', 'updated_at'], 'integer'],
+            [['id', 'periodical_report_id', 'expo_id', 'project_id', 'event_id', 'user_id', 'created_at', 'updated_at'], 'integer'],
             [['date', 'description', 'notes', 'vat_number', 'vendor', 'wf_status'], 'safe'],
         ];
     }
@@ -67,6 +67,7 @@ class TransactionSearch extends Transaction
             'periodical_report_id' => $this->periodical_report_id,
             'date' => $this->date,
             'project_id' => $this->project_id,
+            'expo_id' => $this->expo_id,
             'event_id' => $this->event_id,
             'user_id' => $this->user_id,
             'created_at' => $this->created_at,

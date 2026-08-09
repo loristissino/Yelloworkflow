@@ -15,7 +15,11 @@ use app\models\Authorization;
 use app\models\User;
 use yii\helpers\ArrayHelper;
 use yii\web\ForbiddenHttpException;
+use yii\web\NotFoundHttpException;
+use yii\web\MethodNotAllowedHttpException;
 use app\models\Apikey;
+use app\components\PDFServiceClient;
+use app\components\Google2FA;
 
 class SiteController extends CController
 {
@@ -46,8 +50,12 @@ class SiteController extends CController
         return $this->render('index');
     }
     
-    public function actionPing()
+    public function actionPing($delay=0)
     {
+        if ($delay) {
+            sleep($delay);
+            return '';
+        } // used for tests
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         if (Yii::$app->user->isGuest) {
             return '';
@@ -75,15 +83,6 @@ class SiteController extends CController
         }
         
         $model = new LoginForm();
-        
-        /*
-        if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            \app\components\LogHelper::log('Login', $model->getUser(), ['excluded'=>[
-                'first_name','last_name', 'email', 'auth_key', 'access_token','otp_secret','created_at', 'updated_at',
-            ]]);
-            return $this->_back();
-        }
-        */
 
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
             
@@ -98,6 +97,9 @@ class SiteController extends CController
             ]]);
             return $this->_back();
         }
+        else {
+            Yii::$app->response->statusCode = 401;
+        }
 
         $model->password = '';
         return $this->render('login', [
@@ -105,7 +107,7 @@ class SiteController extends CController
         ]);
     }
 
-    public function actionToken() // Displays the token page
+    public function actionToken($sms=false) // Displays the token page
     {
         $loginForm = Yii::$app->session->get('user2FA');
         if (!$loginForm){
@@ -114,11 +116,12 @@ class SiteController extends CController
         
         $model = new TokenForm();
         $model->user = $loginForm->getUser();
+        $model->sms = $sms;
         Yii::$app->session->setFlash('info', null);
         
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
             $loginForm->login();
-            
+            Yii::$app->session->set('user2FA', false);
             $user = $loginForm->getUser();
             
             if ($model->trust_user_agent) {
@@ -130,10 +133,57 @@ class SiteController extends CController
             ]]);
             return $this->_back();
         }
+        else {
+            Yii::$app->response->statusCode = 401;
+        }
 
         return $this->render('token', [
             'model' => $model,
         ]);
+    }
+    
+    public function actionSendCodeViaSms()
+    {
+        $loginForm = Yii::$app->session->get('user2FA');
+        if (!$loginForm){
+            throw new ForbiddenHttpException('Invalid session.');
+        }
+        
+        $model = new TokenForm();
+        $model->user = $loginForm->getUser();
+        
+        $sms = [
+            'randomNumber' => rand(0, 999999),
+            'expiresAt' => time() + 5*60,
+        ];
+        $text = Yii::t('app', 'Your one-time code to access Yellow is {code}', ['code' => $sms['randomNumber']]);
+        Yii::$app->session->set('user2FA_sms', $sms);
+        if (Yii::$app->smsservice->send($model->user->phone, $text)) {
+            Yii::$app->session->setFlash('success', Yii::t('app', 'The code has been sent to the number {phone}.', ['phone' => $model->user->obscuredPhone])); 
+        }
+        else {
+            Yii::$app->session->setFlash('error', Yii::t('app', 'The code could not be sent.')); 
+        }
+        return $this->redirect(['site/token', 'sms'=>1]);
+    }
+
+    public function actionSendTokenViaSms()
+    {
+        $user = Yii::$app->user->identity;
+        
+        $timeStamp	  = Google2FA::get_timestamp();
+        $secretKey = Google2FA::base32_decode(Yii::$app->session->get('2FA_secret'));
+        $token = Google2FA::oath_hotp($secretKey, $timeStamp);
+        
+        $text = Yii::t('app', 'Your one-time token to enable 2FA on Yellow is {token}', ['token' => $token]);
+        if (Yii::$app->smsservice->send($user->phone, $text)) {
+            Yii::$app->session->set('2FA_secret_viasms', 1);
+            Yii::$app->session->setFlash('success', Yii::t('app', 'The token has been sent to the number {phone}.', ['phone' => $user->obscuredPhone])); 
+        }
+        else {
+            Yii::$app->session->setFlash('error', Yii::t('app', 'The token could not be sent.')); 
+        }
+        return $this->redirect(['site/enable-two-factor-authentication']);
     }
     
     public function actionEnableTwoFactorAuthentication()
@@ -141,10 +191,19 @@ class SiteController extends CController
         $model = new TokenForm();
         $model->secret = Yii::$app->session->get('2FA_secret');
         
+        if (!$model->secret) {
+            $model->secret = strtoupper(Yii::$app->user->identity->otp_secret);
+            Yii::$app->session->set('2FA_secret_viasms', false);
+        }
+        
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
             Yii::$app->user->identity->otp_secret =$model->secret;
+            if (Yii::$app->session->get('2FA_secret_viasms', 0)==1) {
+                // if the token was sent via sms we write the token as lowercase just to be able to know
+                Yii::$app->user->identity->otp_secret = strtolower(Yii::$app->user->identity->otp_secret);
+            }
             Yii::$app->user->identity->save();
-            \app\components\LogHelper::log('2FA enabled', Yii::$app->user->identity, ['excluded'=>[
+            \app\components\LogHelper::log('2FA enabled' . (Yii::$app->session->get('2FA_secret_viasms', 0)==1 ? ' (via SMS)': ''), Yii::$app->user->identity, ['excluded'=>[
                 'first_name','last_name', 'email', 'auth_key', 'access_token','otp_secret','created_at', 'updated_at',
             ]]);
             Yii::$app->session->setFlash('success', Yii::t('app', 'Two-factor authentication enabled.'));
@@ -240,6 +299,32 @@ class SiteController extends CController
         ]);
     }
 
+    public function actionDigitalReceipt($id, $qrcode=300, $framed=0, $format='html') {
+        $model = \app\models\DigitalReceipt::find()->withClientId($id)->one();
+        if (!$model) {
+            throw new NotFoundHttpException(Yii::t('app', 'The requested page does not exist.'));
+        }
+
+        if ($format=='pdf') {
+            $pdf = $model->getPdf();
+            if ($pdf) {
+                return \Yii::$app->response->sendContentAsFile(
+                    $pdf, 
+                    "receipt_{$model->client_id}.pdf", 
+                    ['mimeType' => 'application/pdf', 'inline' => true]
+                );
+            }
+        }
+
+        $this->layout = 'receipt';
+        
+        return $this->render('/digital-receipts/show', [
+            'model' => $model,
+            'qrcode' => $qrcode,
+            'framed' => $framed,
+        ]);
+    }
+
     private function _back()
     {
         $return_url = Yii::$app->request->get('return');
@@ -330,6 +415,26 @@ class SiteController extends CController
             'controllers'=>$controllers,
             ]
         );
+    }
+    
+    public function actionToggleDebug()
+    {
+        if (Yii::$app->user->isGuest) {
+            return $this->redirect(['login', 'return' => $return]);
+        }
+
+        if (!Yii::$app->request->isPost) {
+            throw new MethodNotAllowedHttpException('Only POSTs are accepted.');
+        }
+        
+        $currentState = Yii::$app->session->get('debug', false);
+        $newState = !$currentState;
+        Yii::$app->session->set('debug', $newState);
+            
+        Yii::$app->session->setFlash('success', Yii::t('app', 'Debugging state set to {state}.', ['state'=>$newState ? 'ON' : 'OFF']));
+
+        return $this->redirect(['profile']);
+
     }
 
     public function actionChooseOrganizationalUnit($id=null, $return='') // Allows the user to switch to a different organizational unit they belong to

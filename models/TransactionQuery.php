@@ -33,7 +33,7 @@ class TransactionQuery extends \yii\db\ActiveQuery
 
     public function ofPeriodicalReport(PeriodicalReport $pr)
     {
-        return $this->andWhere(['=', 'periodical_report_id', $pr->id]);
+        return $this->andWhere(['=', 'transactions.periodical_report_id', $pr->id]);
     }
 
     public function ofOrganizationalUnit(OrganizationalUnit $ou)
@@ -59,6 +59,17 @@ class TransactionQuery extends \yii\db\ActiveQuery
     {
         return $this->andWhere('transactions.wf_status IN ' . Transaction::getSqlSetForStatuses($weight));
     }
+    
+    public function linkedToExpo($expo_id)
+    {
+        return $this->andWhere(['=', 'expo_id', $expo_id]); 
+    }
+    
+    public function withDate($date)
+    {
+        return $this->andWhere(['=', 'date', $date]);
+    }
+
 
     /**
      * {@inheritdoc}

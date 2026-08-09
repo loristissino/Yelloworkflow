@@ -33,7 +33,7 @@ class NotificationTemplate extends \yii\db\ActiveRecord
         return [
             [['code', 'title', 'subject', 'plaintext_body'], 'required'],
             [['plaintext_body', 'html_body', 'md_body'], 'string'],
-            [['code'], 'string', 'max' => 40],
+            [['code'], 'string', 'max' => 100],
             [['title'], 'string', 'max' => 100],
             [['subject'], 'string', 'max' => 255],
             [['code'], 'unique'],
@@ -64,6 +64,14 @@ class NotificationTemplate extends \yii\db\ActiveRecord
         $model->code .= '_' . rand(1000,9999);
         $model->save();
         return $model;
+    }
+    
+    public function replace($fields=[], $property='plaintext_body'){
+        $text = $this->$property;
+        foreach($fields as $key => $value) {
+            $text = str_replace('{' . $key . '}', $value, $text);
+        }
+        return $text;
     }
 
     /**

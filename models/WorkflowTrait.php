@@ -89,7 +89,11 @@ trait WorkflowTrait
     public function init()
     {
         $this->on('beforeChangeStatusFrom*', function($event) {
-            if (!in_array($event->getEndStatus()->getId(), $this->getAuthorizedTransitionsIds())) {
+            if (
+                !\Yii::$app instanceof \yii\console\Application
+                &&
+                !in_array($event->getEndStatus()->getId(), $this->getAuthorizedTransitionsIds())
+                ) {
                 $this->workflowError = 'You do not have the authorization for this workflow status change.';
                 $event->invalidate($this->workflowError);
             }

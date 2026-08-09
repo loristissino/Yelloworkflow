@@ -5,7 +5,10 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use rmrevin\yii\fontawesome\FA;
 use rmrevin\yii\fontawesome\FA\component\Icon;
-
+/*
+use Lcobucci\JWT\Signer\Hmac\Sha256; // The Signer class
+use Lcobucci\JWT\Signer\Key;        // The Key class
+*/
 // for unknown reasons, autoloader does not work as expected in the production server
 require_once(__DIR__ . '/../../vendor/rmrevin/yii2-fontawesome/AssetBundle.php');
 require_once(__DIR__ . '/../../vendor/rmrevin/yii2-fontawesome/FA.php');
@@ -15,10 +18,39 @@ require_once(__DIR__ . '/../../vendor/rmrevin/yii2-fontawesome/component/Icon.ph
 rmrevin\yii\fontawesome\AssetBundle::register($this);
 
 $this->title = Yii::t('app', 'Dashboard');
+/*
+// Old Syntax (v3.x)
+$jwt = Yii::$app->jwt;
+$builder = $jwt->getBuilder();
 
+// 1. Instantiate the Signer (HS256)
+$signer = new Sha256();
+
+// 2. Wrap your secret key in the Key object
+// The key comes from your config/web.php 'key' parameter
+$key = new Key($jwt->key); 
+
+$jti = uniqid(); // for revocation;
+
+// 3. Build the token
+$token = $builder
+    ->setIssuer('https://yourwebapp.com')
+    ->setAudience('https://yourrestservice.com')
+    ->setId($jti, true)           // The unique JTI for revocation
+    ->setIssuedAt(time())
+    ->setExpiration(time() + 3600) // 1 hour
+    ->set('uid', 'loris')        // Custom claims
+    ->set('role', 'superuser',)
+    ->set('regions', ['PN', 'UD', 'GO'])
+    ->sign($signer, $key)          // SIGN FIRST in v3.x
+    ->getToken();                  // Then GET the token object
+
+// 4. Convert to string to send to your REST service
+$tokenString = (string)$token;
+*/
 ?>
 
-<?php if (Yii::$app->user->identity->last_renewal && Yii::$app->user->identity->last_renewal < date('Y')): ?>
+<?php if (Yii::$app->user  && Yii::$app->user->identity && Yii::$app->user->identity->last_renewal && Yii::$app->user->identity->last_renewal < date('Y')): ?>
 <p class="error-summary" style="font-size: 2em">
     😰
     <?= Yii::t('app', '{first_name}, from our records it appears that your membership has ended, with the last renewal in {year}.', ['first_name'=>Yii::$app->user->identity->first_name ,'year'=>Yii::$app->user->identity->last_renewal]) ?>
@@ -44,8 +76,23 @@ $this->title = Yii::t('app', 'Dashboard');
     <p><?= Yii::t('app', 'It seems that you are not allowed to perform any action on this site.') ?></p>
 <?php endif ?>
 
-<?php 
+<hr>
+<?php /*
+<p style="font-size: 3em"><?=$tokenString ?></p>
 
+<hr>
+hello
+<hr>
+<div style="font-size: 3em">
+<?php
+$components = explode('.', $tokenString);
+foreach($components as $component) {
+    print_r(json_decode(base64_decode(str_replace(['-', '/'], ['+', '_'], $component)), true));
+}
+?>
+</div>
+*/ ?>
+<?php 
 // https://fontawesome.com/v4.7.0/cheatsheet/
 // https://fontawesome.bootstrapcheatsheets.com/
 
@@ -727,8 +774,8 @@ foreach([
 "meetup",
 
 ] as $icon) {
-    //echo FA::icon($icon)->size(FA::SIZE_5X);
-    //echo " " . $icon . "<br/>";
+    // echo FA::icon($icon)->size(FA::SIZE_5X);
+    // echo " " . $icon . "<br/>";
 }
 /*
 echo FA::icon('home'); // <i class="fa fa-home"></i>

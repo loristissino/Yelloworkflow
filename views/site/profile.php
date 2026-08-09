@@ -84,10 +84,23 @@ $this->registerJs(
     
     <h2><?= Yii::t('app', 'Two-factor authentication') ?></h2>
     
+    <?php if (Yii::$app->user->identity->phone): ?>
+        <p>
+            <?= Yii::t('app', 'The phone number associated to your account ends with {number}. If it is not correct, please <a href="{url}">contact us</a> for the update.', ['number'=>\Yii::$app->user->identity->obscuredPhone, 'url'=>Url::toRoute(['site/about'])]) ?>
+        </p>
+    <?php else: ?>
+        <p>
+            <?= Yii::t('app', 'There is no phone number associated with your account. Please <a href="{url}">contact us</a> for the update.', ['url'=>Url::toRoute(['site/about'])]) ?>
+        </p>
+    <?php endif ?>
+    
     <?php if (Yii::$app->user->identity->otp_secret): ?>
     
         <p>
             <?= Yii::t('app', 'Two-factor authentication enabled.') ?>
+            <?php if (Yii::$app->user->identity->twoFactorAuthVerifiedViaSMS): ?>
+                <?= Html::a(Yii::t('app', 'Configure Authenticator App'), ['site/enable-two-factor-authentication']) ?>
+            <?php endif ?>
         </p>
 
         <p>
@@ -118,4 +131,19 @@ $this->registerJs(
     
     <?php endif ?>
     
+    <hr>
+    
+    <h2><?= Yii::t('app', 'Debug') ?></h2>
+    
+    
+    <p>
+        <?= Html::a(Yii::t('app', 
+            Yii::$app->session->get('debug', false)==false ?
+                'Enable debugging view'
+                : 
+                'Disable debugging view'
+            ), 
+            ['site/toggle-debug'], ['data-method'=>'POST'])?>
+    </p>
+
 </div>

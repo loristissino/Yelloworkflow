@@ -18,7 +18,7 @@ else {
     $this->params['breadcrumbs'][] = Yii::t('app', 'Update');
 }
 
-$this->title = Yii::t('app', 'Update Transaction: {name}', [
+$this->title = Yii::t('app', 'Update Transaction «{name}»', [
     'name' => $model->description,
 ]);
 

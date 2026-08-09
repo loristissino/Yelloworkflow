@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use Yii;
 use app\models\Transaction;
+use app\models\DigitalReceipt;
 use app\models\TransactionForm;
 use app\models\TransactionSearch;
 use app\models\TransactionTemplate;
@@ -22,7 +23,7 @@ class TransactionSubmissionsController extends CController
     use SubmissionsTrait;
 
     public $periodicalReport;
-    
+        
     public function init()
     {
         parent::init();
@@ -50,6 +51,7 @@ class TransactionSubmissionsController extends CController
      */
     public function actionView($id) // Displays a transaction
     {
+        $model = $this->findModel($id);
         return $this->render('/transactions/view', [
             'model' => $this->findModel($id),
         ]);
@@ -119,6 +121,35 @@ class TransactionSubmissionsController extends CController
         return $this->render('/transactions/update', [
             'model' => $model,
         ]);
+    }
+
+
+    public function actionUnlinkFromExpo($id) // Disconnects a transaction from an Expo
+    {
+        if (!Yii::$app->request->isPost) {
+            throw new NotFoundHttpException(Yii::t('app', 'The requested page does not exist.'));
+        }
+        
+        $transaction = $this->findModel($id);
+        
+        $this->periodicalReport = $transaction->periodicalReport;
+        
+        if (! $this->periodicalReport->isOwnedByCurrentUser)
+        {
+            throw new ForbiddenHttpException(Yii::t('app', 'Not authorized.'));
+        }
+
+        if (! $transaction->canBeUpdated )
+        {
+            throw new ForbiddenHttpException(Yii::t('app', 'Not updatable in this state.'));
+        }
+
+        $transaction->expo_id = null;
+        $transaction->save(false);
+        Yii::$app->session->setFlash('success', Yii::t('app', 'Unlinked'));
+        LogHelper::log('Expo disconnnected', $transaction);
+        return $this->redirect(['/transaction-submissions/view', 'id'=>$id]);
+        
     }
 
     public function actionConnect($id) // Connects a transaction to a project
@@ -196,6 +227,29 @@ class TransactionSubmissionsController extends CController
         }
         
         return $this->redirect(['transaction-submissions/view', 'id'=>$id]);
+    }
+    
+    public function actionJournalizeSeparately($receipt) {
+
+        $digitalReceipt = DigitalReceipt::find()->withId($receipt)->one();
+        if (!$digitalReceipt) {
+            throw new NotFoundHttpException(Yii::t('app', 'The requested page does not exist.'));
+        }
+        
+        $periodicalReport = $this->findPeriodicalReport($digitalReceipt->transaction->periodicalReport->id);
+        
+        if (Yii::$app->request->isPost) {
+            if ($digitalReceipt->transaction->separateDigitalReceipt($digitalReceipt)){
+                Yii::$app->session->setFlash('success', Yii::t('app', 'The digital receipt has been successfully journalized separately.'));
+            }
+            else {
+                Yii::$app->session->setFlash('error', Yii::t('app', 'The digital receipt could not be journalized separately.'));
+            }
+            return $this->redirect(['/periodical-report-submissions/view', 'id'=>$periodicalReport->id]);
+        } 
+        return $this->render('/transactions/journalize-separately', [
+            'model' => $digitalReceipt,
+        ]);
     }
 
     public function actionChange($id, $status) // Changes the workflow status of a transaction

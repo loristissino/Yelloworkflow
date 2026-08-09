@@ -38,6 +38,16 @@ class OrganizationalUnitQuery extends \yii\db\ActiveQuery
         $sql = 'possible_actions & ' . $possibleActions . ' = ' . $possibleActions;
         return $possibleActions === null ? $this : $this->andWhere($sql);
     }
+    
+    public function withAPhoneNumber()
+    {
+        return $this->andWhere('phone is not null');
+    }
+    
+    public function temporary($temporary=true)
+    {
+        return $this->andWhere([$temporary ? 'LIKE': 'NOT LIKE', 'name', '*']);
+    }
 
     /**
      * {@inheritdoc}

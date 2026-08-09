@@ -15,6 +15,7 @@ use Yii;
  * @property int $rank
  * @property string $name
  * @property int $status
+ * @property int $coeff
  * @property int|null $organizational_unit_id
  * @property int $created_at
  * @property int $updated_at
@@ -45,8 +46,8 @@ class ExpenseType extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['rank', 'name'], 'required'],
-            [['rank', 'status', 'organizational_unit_id', 'created_at', 'updated_at'], 'integer'],
+            [['rank', 'name', 'coeff'], 'required'],
+            [['rank', 'status', 'coeff', 'organizational_unit_id', 'created_at', 'updated_at'], 'integer'],
             [['name'], 'string', 'max' => 100],
             [['organizational_unit_id'], 'exist', 'skipOnError' => true, 'targetClass' => OrganizationalUnit::className(), 'targetAttribute' => ['organizational_unit_id' => 'id']],
         ];
@@ -61,6 +62,7 @@ class ExpenseType extends \yii\db\ActiveRecord
             'id' => Yii::t('app', 'ID'),
             'rank' => Yii::t('app', 'Rank'),
             'name' => Yii::t('app', 'Name'),
+            'coeff' => Yii::t('app', 'Coefficient'),
             'status' => Yii::t('app', 'Is Active'),
             'organizational_unit_id' => Yii::t('app', 'Organizational Unit'),
             'created_at' => Yii::t('app', 'Created At'),
