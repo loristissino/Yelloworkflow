@@ -48,7 +48,6 @@ class DigitalReceiptsController extends CController
      */
     public function actionIndex($active=null, $pagesize=30)
     {
-        
         $active = $active == 'false' ? false : true;
         
         $searchModel = new DigitalReceiptSearch();
@@ -364,6 +363,11 @@ class DigitalReceiptsController extends CController
         Yii::$app->session->setFlash('success', Yii::t('app', 'Processed: '). $processed);
 
         return $this->redirect(['view', 'id'=>$model->id]);
+    }
+
+    public function actionApp()
+    {
+        return $this->redirect(['app/']);
     }
 
     public function actionChange($id, $status) // Changes the workflow status of a digital receipt

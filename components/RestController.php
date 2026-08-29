@@ -7,7 +7,7 @@ use yii\data\ActiveDataProvider;
 use yii\filters\auth\HttpHeaderAuth;
 use app\controllers\ControllerTrait;
 use yii\web\ForbiddenHttpException;
-
+use yii\helpers\ArrayHelper;
 
 class RestController extends ActiveController
 {
@@ -54,9 +54,10 @@ class RestController extends ActiveController
     public function checkAuth($controller_id, $action_id='*', $method='*')
     {
         $auths = \Yii::$app->user->getAuthorizationsFor($controller_id, $action_id, $method);
+
         if (sizeof($auths)>0)
         {
-            $this->authorization_ids = \Yii\helpers\ArrayHelper::map($auths, 'id', 'identifier');
+            $this->authorization_ids = ArrayHelper::map($auths, 'id', 'identifier');
             return true;
         }
         throw new ForbiddenHttpException(\Yii::t('app', 'Not authorized.'));

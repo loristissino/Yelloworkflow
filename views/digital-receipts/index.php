@@ -1,6 +1,7 @@
 <?php
 
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\grid\GridView;
 
 /* @var $this yii\web\View */
@@ -147,6 +148,7 @@ if (Yii::$app->session->get('debug', false)) {
     <h1><?= Html::encode($this->title) ?></h1>
 
     <?= $this->render('/common_partials/_need_to_change_organizational_unit') ?>
+    <p><strong><?= Yii::t('app', 'Issue receipts anytime, even offline: <a href="{url}">try the app</a>!', ['url'=>Url::toRoute(['/app'])]) ?></strong></p>
 
     <p>
         <?php foreach($digitalReceiptTypes as $drt): ?>

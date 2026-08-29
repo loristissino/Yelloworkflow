@@ -31,6 +31,9 @@ class LogHelper {
             // Running in web application
             $userId = \Yii::$app->user->isGuest ? null : \Yii::$app->user->id;
             $authorizationId = \Yii::$app->controller->getAuthorizationId();
+            if (!$authorizationId){
+                $authorizationId = null; // for PWA
+            }
         }
         
         $activity->user_id = $userId;

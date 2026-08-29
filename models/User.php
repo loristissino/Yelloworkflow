@@ -226,6 +226,19 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             ->withPossibileActions(OrganizationalUnit::CAN_SELL)
             ->active();
     }
+    
+    public function getCurrentChosenOrganizationalUnit()
+    {
+        // this is a hack: we look into the logs instead of having a specific field in the DB
+        // it is used only to fix the behavior of the PWA
+        $activity = \app\models\Activity::find()
+            ->withModel('app\models\OrganizationalUnit')
+            ->withUserId($this->id)
+            ->orderBy(['happened_at' => SORT_DESC])
+            ->limit(1)
+            ->one();
+        return \app\models\OrganizationalUnit::findOne($activity->model_id);
+    }
 
     /**
      * Gets query for [[Apikeys]].

@@ -1,0 +1,62 @@
+    .discount{
+        color: #1E90FF;
+        font-size: 0.8em;
+    }
+
+    .discount-button, .payment-selector{
+        cursor: pointer;
+    }
+    
+    .number {
+        text-align: right;
+    }
+
+    span.notes {
+        color: #1E90FF;
+        font-size: 0.8em;
+    }
+    
+    #max-discount {
+        display: none;
+    } 
+
+  .emoji-button {
+    font-size: 2em;
+    cursor: pointer;
+    user-select: none;
+    transition: opacity 0.2s;
+  }
+
+  .emoji-button:hover:not(.disabled) {
+    opacity: 0.8;
+  }
+
+  .emoji-button.disabled {
+    opacity: 0.5;
+    filter: grayscale(100%);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+    table {
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    button.btn-remove {
+        margin: 0px;
+        padding: 0px;
+    }
+    
+    .buttons {
+        width: 16px;
+    }
+    
+    #native-video {
+        width: 100%;
+        height; auto;
+    }
+    
+    #info-isbn-not-found {
+        background-color: orange;
+    }

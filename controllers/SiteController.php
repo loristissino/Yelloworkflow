@@ -13,6 +13,7 @@ use app\models\IssuesForm;
 use app\components\CController;
 use app\models\Authorization;
 use app\models\User;
+use app\models\OrganizationalUnit;
 use yii\helpers\ArrayHelper;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -299,9 +300,20 @@ class SiteController extends CController
         ]);
     }
 
-    public function actionDigitalReceipt($id, $qrcode=300, $framed=0, $format='html') {
+    public function actionDigitalReceipt($id, $qrcode=300, $framed=0, $format='html', $code='') {
+        
+        $this->layout = 'receipt';
+        
         $model = \app\models\DigitalReceipt::find()->withClientId($id)->one();
         if (!$model) {
+            $hash = substr(hash('sha256', $id.\Yii::$app->params['receipts']['pwa']['offline_secret'],), 0, 8);
+            if ($hash == $code) {
+                return $this->render('/digital-receipts/pending', [
+                    'id'=>$id,
+                    'issuer'=> \Yii::$app->params['receipts']['issuer'],
+                ]);
+            }
+            
             throw new NotFoundHttpException(Yii::t('app', 'The requested page does not exist.'));
         }
 
@@ -316,8 +328,6 @@ class SiteController extends CController
             }
         }
 
-        $this->layout = 'receipt';
-        
         return $this->render('/digital-receipts/show', [
             'model' => $model,
             'qrcode' => $qrcode,
@@ -339,7 +349,7 @@ class SiteController extends CController
      *
      * @return Response
      */
-    public function actionLogout() // Makes the user log out
+    public function actionLogout($return='') // Makes the user log out
     {
         if (!Yii::$app->user->isGuest) {
             \app\components\LogHelper::log('Logout', Yii::$app->user->identity, ['excluded'=>[
@@ -348,7 +358,7 @@ class SiteController extends CController
             Yii::$app->user->identity->touchLastActionAt(true);
         }
         Yii::$app->user->logout();
-        return $this->goHome();
+        return $this->render('logout', ['return'=>$return]); // we need to clear the localStorage and maybe the indexedDB
     }
 
     /**
@@ -449,7 +459,7 @@ class SiteController extends CController
             throw new ForbiddenHttpException(Yii::t('app', 'It seems you do not belong to any enabled organizational unit.'));
         }
         else if(sizeof($ous)==1) {
-            Yii::$app->session->set('organizational_unit_id', $ous[0]->id);
+            $this->setOrganizationalUnit($ous[0]->id);
             return $this->_back();
         }
         
@@ -458,7 +468,7 @@ class SiteController extends CController
             if (!in_array($id, ArrayHelper::map($ous, 'id', 'id'))) {
                 throw new ForbiddenHttpException(Yii::t('app', 'Not authorized.'));
             }
-            Yii::$app->session->set('organizational_unit_id', $id);
+            $this->setOrganizationalUnit($id);
             if ($current_ou_id and $id!=$current_ou_id) {
                 $ou = array_filter($ous, function ($x) use ($id) {return $x->id == $id; });
                 $chosen = array_pop($ou);
@@ -473,6 +483,16 @@ class SiteController extends CController
             'return' => $return,
             ]
         );
+    }
+    
+    private function setOrganizationalUnit($id)
+    {
+        Yii::$app->session->set('organizational_unit_id', $id);
+        $model = new OrganizationalUnit(); // needed only to feed the logger
+        $model->id = $id;
+        \app\components\LogHelper::log('OU set', $model, ['excluded'=>[
+                'rank','status', 'name', 'email', 'phone', 'url', 'last_designation', 'notes', 'ceiling_amount', 'possible_actions', 'created_at', 'updated_at',
+            ]]);
     }
 
     public function actionApikey($action, $id=null) // Creates or deletes an API key [for REST services]

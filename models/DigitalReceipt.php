@@ -280,6 +280,7 @@ class DigitalReceipt extends \yii\db\ActiveRecord
         try {
             // 2. Save the Master Record (DigitalReceipt) first
             // We call parent::save() to use the standard saving logic
+            
             if (!$this->save()) {
                 return false;
             }

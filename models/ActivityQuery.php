@@ -33,6 +33,11 @@ class ActivityQuery extends \yii\db\ActiveQuery
     {
         return $this->andWhere(['<>', 'user_id', $user_id]);
     }
+
+    public function withUserId($user_id)
+    {
+        return $this->andWhere(['=', 'user_id', $user_id]);
+    }
     
     public function recent($seconds=600)
     {

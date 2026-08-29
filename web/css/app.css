@@ -1,0 +1,336 @@
+/* Make width/height include padding and borders */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* -------------------------------------------------
+   Base layout & typography
+   ------------------------------------------------- */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont,
+                 "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #f9fafb;
+    color: #333;
+    line-height: 1.5;
+}
+
+/* Center the main container and give it a max‑width */
+.wrap {
+    display: flex;
+    justify-content: center;
+    padding: 1px;
+}
+.info {
+    max-width: 960px;
+    background: #ADD8E6;
+    border-radius: 2px;
+    box-shadow: 0 2px 2px rgba(0,0,0,.08);
+    padding: 2px;
+}
+.container {
+    width: 100%;
+    max-width: 960px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.08);
+    padding: 2rem;
+}
+.footer {
+    width: 100%;
+    max-width: 960px;
+    background: #fff49d;
+    color: black;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.08);
+    padding-left: 2rem;
+    padding-right: 2rem;
+    font-size: 0.5rem;
+}
+
+.footer a {
+    text-decoration: none;
+    color: #4D4D4D;
+}
+/* -------------------------------------------------
+   Headings & sections
+   ------------------------------------------------- */
+.digital-receipt-create h1 {
+    margin-top: 0;
+    font-size: 2rem;
+    color: #222;
+}
+.digital-receipt-create p {
+    margin-top: .25rem;
+    font-size: 1rem;
+    color: #555;
+}
+
+#receipt-type-description {
+    background-color: #7F7F7F;
+    color: white;
+    text-align: left;
+    padding: 3px;
+}
+
+/* -------------------------------------------------
+   Forms & inputs
+   ------------------------------------------------- */
+.form-group {
+    margin-bottom: 1rem;
+}
+label {
+    display: block;
+    margin-bottom: .25rem;
+    font-weight: 600;
+}
+input[type="text"],
+input[type="number"],
+input[type="email"],
+select,
+textarea {
+    width: 100%;
+    padding: .5rem .75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    background: #fff;
+    transition: border-color .2s;
+}
+input[readonly] {
+    background: #e9ecef;
+}
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #4a90e2;
+}
+
+/* Hint / help blocks */
+.help-block,
+.hint-block {
+    font-size: .85rem;
+    color: #6c757d;
+    margin-top: .25rem;
+}
+
+/* -------------------------------------------------
+   Table – receipt items
+   ------------------------------------------------- */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+}
+.table thead th {
+    background: #f1f3f5;
+    font-weight: 600;
+    text-align: left;
+    padding: .75rem;
+    border-bottom: 2px solid #dee2e6;
+}
+.table th,
+.table td {
+    padding: .5rem .75rem;
+    border-bottom: 1px solid #e9ecef;
+}
+.table .number,
+.table .amount {
+    text-align: right;
+}
+.table .buttons {
+    width: 4rem;
+    text-align: center;
+}
+
+/* -------------------------------------------------
+   Buttons
+   ------------------------------------------------- */
+.btn {
+    display: inline-block;
+    padding: .5rem 1rem;
+    font-size: .95rem;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+    border: 1px solid transparent;
+}
+.btn-primary {
+    background: #0069d9;
+    color: #fff;
+    border-color: #0062cc;
+}
+.btn-primary:hover {
+    background: #0053ba;
+}
+.btn-success {
+    background: #28a745;
+    color: #fff;
+    border-color: #28a745;
+}
+.btn-success:hover {
+    background: #218838;
+}
+.btn[disabled],
+.btn.disabled {
+    opacity: .65;
+    cursor: not-allowed;
+}
+
+/* -------------------------------------------------
+   Emoji payment selector
+   ------------------------------------------------- */
+.payment-selector {
+    cursor: pointer;
+    padding: .05rem;
+    user-select: none;
+}
+.payment-selector:hover {
+    transform: scale(1.1);
+}
+.payment-selector.active {
+    background: #e2e6ea;
+    border-radius: 4px;
+}
+
+/* -------------------------------------------------
+   Modals (basic – works with Bootstrap‑style markup)
+   ------------------------------------------------- */
+.modal {
+    display: none;               /* toggled by JS */
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    overflow-y: auto;
+    background: rgba(0,0,0,.5);
+    z-index: 1050;
+}
+.modal-dialog {
+    max-width: 500px;
+    margin: 2rem auto;
+}
+.modal-content {
+    background: #fff;
+    border-radius: .3rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,.5);
+    overflow: hidden;
+}
+.modal-header,
+.modal-footer {
+    padding: .75rem 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+.modal-header .close {
+    /*
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    */
+    position: absolute;
+    top: 8px;
+    right: 12px;
+
+    border: 0;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1;
+    color: #ccc;
+
+    cursor: pointer;
+    
+}
+.modal-body {
+    padding: 1rem;
+}
+
+/*body {font-family:Arial,Helvetica,sans-serif; margin:2rem;}
+h2 {margin-top:0;}
+button {margin:0.5rem;}
+ul {list-style:none; padding:0;}
+li {margin:0.3rem 0;}
+*/
+/* simple modal */
+.modal {position:fixed; top:0; left:0; width:100%; height:100%;
+        background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center;}
+.modal.hidden {display:none;}
+.modal-content {background:#fff; padding:1rem; border-radius:4px; min-width:250px;}
+
+
+/* -------------------------------------------------
+   Responsive tweaks
+   ------------------------------------------------- */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    #receipt-type-description, #logs, .table {
+        font-size: 0.4rem;
+    }
+    .table thead {
+        /*display: none;*/                     /* hide header on small screens */
+    }
+    /*
+    .table tr {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: .75rem;
+        border: 1px solid #e9ecef;
+        border-radius: 4px;
+        padding: .5rem;
+    }
+    .table td {
+        border: none;
+        padding: .25rem 0;
+    }
+    .table .buttons {
+        align-self: flex-end;
+    }
+    */
+    .payment-selector {
+        font-size: 2rem;
+    }
+}
+
+/* -------------------------------------------------
+   Loader image – keep hidden until activated
+   ------------------------------------------------- */
+#loader {
+    vertical-align: middle;
+    margin-left: .5rem;
+}
+
+/* -------------------------------------------------
+   Misc utilities
+   ------------------------------------------------- */
+.text-right { text-align: right; }
+
+.pull-left {
+    float: left;
+}
+.pull-right {
+    float: right;
+}
+
+.hidden {
+    display: none;
+}
